@@ -28,6 +28,10 @@ printf("0> %c\n", c);
             case '\t':
                 break;
 
+            case '(':
+            case ')':
+                return c;
+
             case EOF:
                 return TK_EOF;
 
@@ -56,27 +60,28 @@ printf("0> %c\n", c);
                     }
                     return TK_COMMENT;
                 }
-                return TK_MINUS;
+                return c;
 
             default:
 
-                if (isalpha(c)) {
-                    int i = 0;
-                    while (isalnum(c) || c=='_' || c=='\'' || c=='?' || c=='!') {
-                        lexer_value[i++] = c;
-                        c = fgetc(buf);
-                    }
-                    lexer_value[i] = '\0';
-                    ungetc(c, buf);
-
-                    int key = is_reserved();
-                    if (key) {
-                        return key;
-                    }
-
-                    return (islower(lexer_value[0]) ? TK_VAR : TK_DATA);
-                    return TK_VAR;
+                if (!isalpha(c)) {
+                    return TK_NONE;
                 }
+
+                int i = 0;
+                while (isalnum(c) || c=='_' || c=='\'' || c=='?' || c=='!') {
+                    lexer_value[i++] = c;
+                    c = fgetc(buf);
+                }
+                lexer_value[i] = '\0';
+                ungetc(c, buf);
+
+                int key = is_reserved();
+                if (key) {
+                    return key;
+                }
+
+                return (islower(lexer_value[0]) ? TK_VAR : TK_DATA);
         }
     }
 }

@@ -60,9 +60,10 @@ void t_lexer (void) {
 
 void t_parser (void) {
     {
-        FILE* buf = stropen("xxx XXX");
-        assert(parser_expr(buf) == EXP_VAR);  assert(!strcmp(lexer_value, "xxx"));
-        assert(parser_expr(buf) == EXP_CONS); assert(!strcmp(lexer_value, "XXX"));
+        FILE* buf = stropen("xxx (  ) XXX");
+        assert(parser_exp(buf) == EXP_VAR);  assert(!strcmp(lexer_value, "xxx"));
+        assert(parser_exp(buf) == EXP_UNIT);
+        assert(parser_exp(buf) == EXP_CONS); assert(!strcmp(lexer_value, "XXX"));
         fclose(buf);
     }
 }
