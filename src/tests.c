@@ -15,4 +15,14 @@ int main (void) {
         assert(lex(buf) == TK_EOF);
         fclose(buf);
     }
+    {
+        FILE* buf = stropen("-- c1\n--c2\n\n");
+        assert(lex(buf) == TK_COMMENT);
+        assert(lex(buf) == TK_NEWLINE);
+        assert(lex(buf) == TK_COMMENT);
+        assert(lex(buf) == TK_NEWLINE);
+        assert(lex(buf) == TK_NEWLINE);
+        assert(lex(buf) == TK_EOF);
+        fclose(buf);
+    }
 }

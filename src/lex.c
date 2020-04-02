@@ -9,6 +9,14 @@ TK lex (FILE* buf) {
         switch (c) {
             case EOF:
                 return TK_EOF;
+            case '\n':
+                return TK_NEWLINE;
+            case '\r':
+                c = fgetc(buf);
+                if (c != '\n') {
+                    ungetc(c, buf);
+                }
+                return TK_NEWLINE;
             case '-':
                 c = fgetc(buf);
                 if (c == '-') {
