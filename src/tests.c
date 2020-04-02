@@ -25,4 +25,16 @@ int main (void) {
         assert(lex(buf) == TK_EOF);
         fclose(buf);
     }
+    {
+        FILE* buf = stropen(" c1\nc2 c3'  \n  \nc4");
+        assert(lex(buf) == TK_VAR);         assert(!strcmp(lex_value, "c1"));
+        assert(lex(buf) == TK_NEWLINE);
+        assert(lex(buf) == TK_VAR);         assert(!strcmp(lex_value, "c2"));
+        assert(lex(buf) == TK_VAR);         assert(!strcmp(lex_value, "c3'"));
+        assert(lex(buf) == TK_NEWLINE);
+        assert(lex(buf) == TK_NEWLINE);
+        assert(lex(buf) == TK_VAR);         assert(!strcmp(lex_value, "c4"));
+        assert(lex(buf) == TK_EOF);
+        fclose(buf);
+    }
 }
