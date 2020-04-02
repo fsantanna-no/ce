@@ -5,8 +5,11 @@
 
 EXP parser_expr (FILE* buf) {
     TK tk = lexer(buf);
-    if (tk == TK_VAR) {
-        return EXP_VAR;
+    switch (tk) {
+        case TK_VAR:
+            return EXP_VAR;
+        case TK_DATA:
+            return EXP_CONS;
     }
     return EXP_NONE;
 }
