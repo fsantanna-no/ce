@@ -4,7 +4,7 @@ typedef enum TK {
     TK_COMMENT,
     TK_NEWLINE,
 
-    TK_VAR,
+    TK_VAR, TK_DATA,
 
     TK_MINUS
 } TK;

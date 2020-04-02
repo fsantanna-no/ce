@@ -37,4 +37,13 @@ int main (void) {
         assert(lex(buf) == TK_EOF);
         fclose(buf);
     }
+    {
+        FILE* buf = stropen(" c1 C1 C'a a'? C!!");
+        assert(lex(buf) == TK_VAR);  assert(!strcmp(lex_value, "c1"));
+        assert(lex(buf) == TK_DATA); assert(!strcmp(lex_value, "C1"));
+        assert(lex(buf) == TK_DATA); assert(!strcmp(lex_value, "C'a"));
+        assert(lex(buf) == TK_VAR);  assert(!strcmp(lex_value, "a'?"));
+        assert(lex(buf) == TK_DATA); assert(!strcmp(lex_value, "C!!"));
+        fclose(buf);
+    }
 }

@@ -45,14 +45,15 @@ printf("0> %c\n", c);
 
             default:
 
-                if (islower(c)) {
+                if (isalpha(c)) {
                     int i = 0;
-                    while (isalnum(c) || c=='_' || c=='\'') {
+                    while (isalnum(c) || c=='_' || c=='\'' || c=='?' || c=='!') {
                         lex_value[i++] = c;
                         c = fgetc(buf);
                     }
                     lex_value[i] = '\0';
                     ungetc(c, buf);
+                    return (islower(lex_value[0]) ? TK_VAR : TK_DATA);
                     return TK_VAR;
                 }
         }
