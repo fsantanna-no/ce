@@ -3,6 +3,7 @@
 #include <assert.h>
 
 #include "lexer.h"
+#include "parser.h"
 
 FILE* stropen (char* str) {
     return fmemopen(str, strlen(str), "r");
@@ -57,6 +58,15 @@ void t_lexer (void) {
     }
 }
 
+void t_parser (void) {
+    {
+        FILE* buf = stropen("xxx");
+        assert(parser_expr(buf) == EXP_VAR); assert(!strcmp(lexer_value, "xxx"));
+        fclose(buf);
+    }
+}
+
 int main (void) {
     t_lexer();
+    t_parser();
 }
