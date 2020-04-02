@@ -12,6 +12,6 @@ typedef enum TK {
     TK_LET
 } TK;
 
-char lex_value[255];
+char lexer_value[255];
 
-TK lex (FILE* buf);
+TK lexer (FILE* buf);

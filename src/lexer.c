@@ -2,7 +2,7 @@
 #include <ctype.h>
 #include <string.h>
 
-#include "lex.h"
+#include "lexer.h"
 
 static char* reserved[] = {
     "let"
@@ -11,14 +11,14 @@ static char* reserved[] = {
 int is_reserved (void) {
     int N = sizeof(reserved) / sizeof(reserved[0]);
     for (int i=0; i<N; i++) {
-        if (!strcmp(lex_value, reserved[i])) {
+        if (!strcmp(lexer_value, reserved[i])) {
             return TK_RESERVED+1 + i;
         }
     }
     return 0;
 }
 
-TK lex (FILE* buf) {
+TK lexer (FILE* buf) {
     while (1) {
         int c = fgetc(buf);
 printf("0> %c\n", c);
@@ -63,10 +63,10 @@ printf("0> %c\n", c);
                 if (isalpha(c)) {
                     int i = 0;
                     while (isalnum(c) || c=='_' || c=='\'' || c=='?' || c=='!') {
-                        lex_value[i++] = c;
+                        lexer_value[i++] = c;
                         c = fgetc(buf);
                     }
-                    lex_value[i] = '\0';
+                    lexer_value[i] = '\0';
                     ungetc(c, buf);
 
                     int key = is_reserved();
@@ -74,7 +74,7 @@ printf("0> %c\n", c);
                         return key;
                     }
 
-                    return (islower(lex_value[0]) ? TK_VAR : TK_DATA);
+                    return (islower(lexer_value[0]) ? TK_VAR : TK_DATA);
                     return TK_VAR;
                 }
         }
