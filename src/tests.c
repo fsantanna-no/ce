@@ -44,6 +44,15 @@ int main (void) {
         assert(lex(buf) == TK_DATA); assert(!strcmp(lex_value, "C'a"));
         assert(lex(buf) == TK_VAR);  assert(!strcmp(lex_value, "a'?"));
         assert(lex(buf) == TK_DATA); assert(!strcmp(lex_value, "C!!"));
+        assert(lex(buf) == TK_EOF);
+        fclose(buf);
+    }
+    {
+        FILE* buf = stropen("let xlet letx");
+        assert(lex(buf) == TK_LET);
+        assert(lex(buf) == TK_VAR); assert(!strcmp(lex_value, "xlet"));
+        assert(lex(buf) == TK_VAR); assert(!strcmp(lex_value, "letx"));
+        assert(lex(buf) == TK_EOF);
         fclose(buf);
     }
 }

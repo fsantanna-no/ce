@@ -1,7 +1,22 @@
 #include <stdio.h>
 #include <ctype.h>
+#include <string.h>
 
 #include "lex.h"
+
+static char* reserved[] = {
+    "let"
+};
+
+int is_reserved (void) {
+    int N = sizeof(reserved) / sizeof(reserved[0]);
+    for (int i=0; i<N; i++) {
+        if (!strcmp(lex_value, reserved[i])) {
+            return TK_RESERVED+1 + i;
+        }
+    }
+    return 0;
+}
 
 TK lex (FILE* buf) {
     while (1) {
@@ -53,6 +68,12 @@ printf("0> %c\n", c);
                     }
                     lex_value[i] = '\0';
                     ungetc(c, buf);
+
+                    int key = is_reserved();
+                    if (key) {
+                        return key;
+                    }
+
                     return (islower(lex_value[0]) ? TK_VAR : TK_DATA);
                     return TK_VAR;
                 }

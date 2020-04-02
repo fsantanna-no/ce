@@ -6,7 +6,10 @@ typedef enum TK {
 
     TK_VAR, TK_DATA,
 
-    TK_MINUS
+    TK_MINUS,
+
+    TK_RESERVED,
+    TK_LET
 } TK;
 
 char lex_value[255];
