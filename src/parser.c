@@ -44,7 +44,7 @@ Error expected (const char* msg) {
     Error ret;
     STK stk = PR.stk[PR.stkn-1];
     ret.off = stk.off;
-    sprintf(ret.msg, "(ln %ld, col %ld): expected `%s`", stk.lin, stk.col, msg);
+    sprintf(ret.msg, "(ln %ld, col %ld): expected %s", stk.lin, stk.col, msg);
     return ret;
 }
 
@@ -76,7 +76,7 @@ Expr parser_expr () {
                 if (tk.sym == ')') {
                     return ret;
                 } else {
-                    return (Expr) { EXPR_NONE, .err=expected(")") };
+                    return (Expr) { EXPR_NONE, .err=expected("`)`") };
                 }
             }
         case TK_VAR:
@@ -90,12 +90,20 @@ Expr parser_expr () {
 ///////////////////////////////////////////////////////////////////////////////
 
 Decl parser_decl () {
-    Decl ret;
-    ret.var = push();
-    assert(ret.var.sym == TK_VAR);
+    Tk var = push();
+    if (var.sym != TK_VAR) {
+        return (Decl) { DECL_NONE, .err=expected("declaration") };
+    }
+
     Tk dcl = push();
-    assert(dcl.sym == TK_DECL);
-    ret.type = parser_type();
-    assert(ret.type != TYPE_NONE);
-    return ret;
+    if (dcl.sym != TK_DECL) {
+        return (Decl) { DECL_NONE, .err=expected("`::`") };
+    }
+
+    TYPE tp = parser_type();
+    if (tp == TYPE_NONE) {
+        return (Decl) { DECL_NONE, .err=expected("declaration type") };
+    }
+
+    return (Decl) { DECL_SIG, .var=var, .type=tp };
 }

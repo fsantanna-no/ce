@@ -10,13 +10,18 @@ typedef enum {
     EXPR_CONS
 } EXPR;
 
+typedef enum {
+    DECL_NONE = 0,
+    DECL_SIG
+} DECL;
+
 typedef struct {
     long off;
     char msg[256];
 } Error;
 
 typedef struct {
-    EXPR  sub;
+    EXPR sub;
     union {
         Error err;      // EXPR_NONE
         Tk    tk;       // EXPR_UNIT, EXPR_VAR, EXPR_CONS
@@ -24,8 +29,14 @@ typedef struct {
 } Expr;
 
 typedef struct {
-    Tk   var;
-    TYPE type;
+    DECL sub;
+    union {
+        Error err;
+        struct {
+            Tk   var;
+            TYPE type;
+        };
+    };
 } Decl;
 
 TYPE parser_type ();

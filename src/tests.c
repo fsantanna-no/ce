@@ -97,6 +97,7 @@ void t_parser_decl (void) {
         LX.buf = stropen("a :: ()");
         Decl decl = parser_decl();
         assert(decl.var.sym  == TK_VAR);
+        assert(!strcmp(decl.var.val.s, "a"));
         assert(decl.type == TYPE_UNIT);
         fclose(LX.buf);
     }
