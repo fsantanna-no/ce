@@ -58,6 +58,15 @@ void t_lexer (void) {
     }
 }
 
+void t_parser_exp (void) {
+    {
+        printf(">>>\n");
+        FILE* buf = stropen("(())");
+        assert(parser_exp(buf) == EXP_UNIT);
+        fclose(buf);
+    }
+}
+
 void t_parser (void) {
     {
         FILE* buf = stropen("xxx (  ) XXX");
@@ -66,6 +75,7 @@ void t_parser (void) {
         assert(parser_exp(buf) == EXP_CONS); assert(!strcmp(lexer_value, "XXX"));
         fclose(buf);
     }
+    t_parser_exp();
 }
 
 int main (void) {

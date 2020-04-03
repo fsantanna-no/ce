@@ -11,7 +11,14 @@ EXP parser_exp (FILE* buf) {
             if (tk == ')') {
                 return EXP_UNIT;
             } else {
-                return EXP_NONE;
+                ungetc(tk, buf);
+                EXP ret = parser_exp(buf);
+                tk = lexer(buf);
+                if (tk == ')') {
+                    return ret;
+                } else {
+                    return EXP_NONE;
+                }
             }
         case TK_VAR:
             return EXP_VAR;
