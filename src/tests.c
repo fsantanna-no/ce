@@ -107,6 +107,13 @@ void t_parser_expr (void) {
         assert(parser_expr().sub == EXPR_FUNC);
         fclose(CUR.buf);
     }
+    {
+        parser_init(stropen("xxx (  )"));
+        Expr e = parser_expr();
+        assert(e.Call.func->sub == EXPR_VAR);  assert(!strcmp(e.Call.func->tk.val.s, "xxx"));
+        assert(e.Call.expr->sub == EXPR_UNIT);
+        fclose(CUR.buf);
+    }
 }
 
 void t_parser_decl (void) {
@@ -114,7 +121,6 @@ void t_parser_decl (void) {
         parser_init(stropen("a"));
         Decl decl = parser_decl();
         assert(decl.sub == DECL_NONE);
-//puts(decl.err.msg);
         assert(!strcmp(decl.err.msg, "(ln 1, col 2): expected `::` : have end of file"));
         fclose(CUR.buf);
     }
@@ -150,15 +156,6 @@ void t_parser_decl (void) {
 }
 
 void t_parser (void) {
-    {
-        parser_init(stropen("xxx (  ) XXX"));
-        Expr e1 = parser_expr();
-        assert(e1.sub == EXPR_VAR);  assert(!strcmp(e1.tk.val.s, "xxx"));
-        assert(parser_expr().sub == EXPR_UNIT);
-        Expr e2 = parser_expr();
-        assert(e2.sub == EXPR_CONS); assert(!strcmp(e2.tk.val.s, "XXX"));
-        fclose(CUR.buf);
-    }
     t_parser_type();
     t_parser_expr();
     t_parser_decl();

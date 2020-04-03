@@ -39,12 +39,6 @@ int pr_accept (TK tk) {
     }
 }
 
-#if 0
-void back () {
-    fseek(CUR.buf, CUR.off, SEEK_SET);
-}
-#endif
-
 ///////////////////////////////////////////////////////////////////////////////
 
 Error expected (const char* v) {
@@ -86,7 +80,7 @@ Type parser_type (void) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-Expr parser_expr (void) {
+Expr parser_expr_one (void) {
     // PARENS
     if (pr_accept('(')) {
         if (pr_accept(')')) {
@@ -115,7 +109,7 @@ Expr parser_expr (void) {
         }
         Expr* pe = malloc(sizeof *pe);
         *pe = e;
-        return (Expr) { EXPR_FUNC, .type=tp, .expr=pe };
+        return (Expr) { EXPR_FUNC, .Func={tp,pe} };
 
     // VAR,DATA
     } else if (pr_accept(TK_VAR)) {
@@ -124,6 +118,26 @@ Expr parser_expr (void) {
         return (Expr) { EXPR_CONS, .tk=OLD.tk };
     }
     return (Expr) { EXPR_NONE, {} };
+}
+
+Expr parser_expr (void) {
+    Expr e1 = parser_expr_one();
+    if (e1.sub == EXPR_NONE) {
+        return e1;
+    }
+
+    Lexer BAK = CUR;
+    Expr e2 = parser_expr_one();
+    if (e2.sub == EXPR_NONE) {
+        fseek(BAK.buf, BAK.off, SEEK_SET);
+        return e1;
+    }
+
+    Expr* pe1 = malloc(sizeof *pe1);
+    Expr* pe2 = malloc(sizeof *pe2);
+    *pe1 = e1;
+    *pe2 = e2;
+    return (Expr) { EXPR_CALL, .Call={pe1,pe2} };
 }
 
 ///////////////////////////////////////////////////////////////////////////////

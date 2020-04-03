@@ -8,6 +8,7 @@ typedef enum {
     EXPR_UNIT,
     EXPR_VAR,
     EXPR_CONS,
+    EXPR_CALL,
     EXPR_FUNC
 } EXPR;
 
@@ -37,10 +38,14 @@ typedef struct Expr {
     union {
         Error err;      // EXPR_NONE
         Tk    tk;       // EXPR_UNIT, EXPR_VAR, EXPR_CONS
+        struct {        // EXPR_CALL
+            struct Expr* func;
+            struct Expr* expr;
+        } Call;
         struct {        // EXPR_FUNC
             Type type;
             struct Expr* expr;
-        };
+        } Func;
     };
 } Expr;
 
