@@ -103,6 +103,9 @@ TK lexer_ (TK_val* val) {
                 }
                 return TK_NONE;
 
+            case '=':
+                return c;
+
             default:
 
                 if (!isalpha(c)) {

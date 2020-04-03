@@ -120,6 +120,21 @@ void t_parser_decl (void) {
         assert(!strcmp(decl.err.msg, "(ln 1, col 7): unexpected `x`"));
         fclose(CUR.buf);
     }
+    {
+        parser_init(stropen("a = (x"));
+        Decl decl = parser_decl();
+        assert(decl.sub == DECL_NONE);
+        assert(!strcmp(decl.err.msg, "(ln 1, col 7): expected `)` : have end of file"));
+        fclose(CUR.buf);
+    }
+    {
+        parser_init(stropen("a = (x)"));
+        Decl decl = parser_decl();
+        assert(decl.sub == DECL_ATR);
+//puts(decl.err.msg);
+        assert(!strcmp(decl.expr.tk.val.s, "x"));
+        fclose(CUR.buf);
+    }
 }
 
 void t_parser (void) {

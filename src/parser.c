@@ -113,14 +113,22 @@ Decl parser_decl (void) {
     }
     Tk var = OLD.tk;
 
-    if (!pr_accept(TK_DECL)) {
-        return (Decl) { DECL_NONE, .err=expected("`::`") };
+    // DECL_SIG
+    if (pr_accept(TK_DECL)) {
+        Type tp = parser_type();
+        if (tp.sub == TYPE_NONE) {
+            return (Decl) { DECL_NONE, .err=tp.err };
+        }
+        return (Decl) { DECL_SIG, .var=var, .type=tp };
+
+    // DECL_ATR
+    } else if (pr_accept('=')) {
+        Expr e = parser_expr();
+        if (e.sub == EXPR_NONE) {
+            return (Decl) { DECL_NONE, .err=e.err };
+        }
+        return (Decl) { DECL_ATR, .patt=var, .expr=e };
     }
 
-    Type tp = parser_type();
-    if (tp.sub == TYPE_NONE) {
-        return (Decl) { DECL_NONE, .err=tp.err };
-    }
-
-    return (Decl) { DECL_SIG, .var=var, .type=tp };
+    return (Decl) { DECL_NONE, .err=expected("`::`") };
 }

@@ -12,7 +12,8 @@ typedef enum {
 
 typedef enum {
     DECL_NONE = 0,
-    DECL_SIG
+    DECL_SIG,
+    DECL_ATR
 } DECL;
 
 typedef struct {
@@ -40,9 +41,13 @@ typedef struct {
     DECL sub;
     union {
         Error err;
-        struct {
+        struct {        // DECL_SIG
             Tk   var;
             Type type;
+        };
+        struct {        // DECL_SIG
+            Tk   patt;
+            Expr expr;
         };
     };
 } Decl;
