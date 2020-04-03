@@ -3,17 +3,17 @@
 #include "lexer.h"
 #include "parser.h"
 
-EXP parser_exp (FILE* buf) {
-    TK tk = lexer(buf);
+EXP parser_exp () {
+    TK tk = lexer();
     switch (tk) {
         case '(':
-            tk = lexer(buf);
+            tk = lexer();
             if (tk == ')') {
                 return EXP_UNIT;
             } else {
-                ungetc(tk, buf);
-                EXP ret = parser_exp(buf);
-                tk = lexer(buf);
+                ungetc(tk, LX.buf);
+                EXP ret = parser_exp();
+                tk = lexer(LX.buf);
                 if (tk == ')') {
                     return ret;
                 } else {

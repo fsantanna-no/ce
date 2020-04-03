@@ -5,4 +5,4 @@ typedef enum EXP {
     EXP_CONS
 } EXP;
 
-EXP parser_exp (FILE* buf);
+EXP parser_exp ();
