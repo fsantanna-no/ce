@@ -65,20 +65,20 @@ void t_lexer (void) {
     }
 }
 
-void t_parser_exp (void) {
+void t_parser_expr (void) {
     {
         LX.buf = stropen("(())");
-        assert(parser_exp() == EXP_UNIT);
+        assert(parser_expr() == EXPR_UNIT);
         fclose(LX.buf);
     }
     {
         LX.buf = stropen("( ( ) )");
-        assert(parser_exp() == EXP_UNIT);
+        assert(parser_expr() == EXPR_UNIT);
         fclose(LX.buf);
     }
     {
         LX.buf = stropen("(\n( \n");
-        assert(parser_exp() == EXP_NONE); assert(!strcmp(LX.val.s, "(ln 2, col 2): expected `)`"));
+        assert(parser_expr() == EXPR_NONE); assert(!strcmp(LX.val.s, "(ln 2, col 2): expected `)`"));
         fclose(LX.buf);
     }
 }
@@ -86,12 +86,12 @@ void t_parser_exp (void) {
 void t_parser (void) {
     {
         LX.buf = stropen("xxx (  ) XXX");
-        assert(parser_exp() == EXP_VAR);  assert(!strcmp(LX.val.s, "xxx"));
-        assert(parser_exp() == EXP_UNIT);
-        assert(parser_exp() == EXP_CONS); assert(!strcmp(LX.val.s, "XXX"));
+        assert(parser_expr() == EXPR_VAR);  assert(!strcmp(LX.val.s, "xxx"));
+        assert(parser_expr() == EXPR_UNIT);
+        assert(parser_expr() == EXPR_CONS); assert(!strcmp(LX.val.s, "XXX"));
         fclose(LX.buf);
     }
-    t_parser_exp();
+    t_parser_expr();
 }
 
 int main (void) {

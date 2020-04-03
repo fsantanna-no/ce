@@ -1,8 +1,8 @@
-typedef enum EXP {
-    EXP_NONE = 0,
-    EXP_UNIT,
-    EXP_VAR,
-    EXP_CONS
-} EXP;
+typedef enum EXPR {
+    EXPR_NONE = 0,
+    EXPR_UNIT,
+    EXPR_VAR,
+    EXPR_CONS
+} EXPR;
 
-EXP parser_exp ();
+EXPR parser_expr ();

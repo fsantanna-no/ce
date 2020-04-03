@@ -45,28 +45,30 @@ void expected (const char* v) {
     sprintf(LX.val.s, "(ln %ld, col %ld): expected `%s`", stk.lin, stk.col, v);
 }
 
-EXP parser_exp () {
+///////////////////////////////////////////////////////////////////////////////
+
+EXPR parser_expr () {
     TK tk = push();
     switch (tk) {
         case '(':
             tk = push();
             if (tk == ')') {
-                return EXP_UNIT;
+                return EXPR_UNIT;
             } else {
                 pop();
-                EXP ret = parser_exp();
+                EXPR ret = parser_expr();
                 tk = push();
                 if (tk == ')') {
                     return ret;
                 } else {
                     expected(")");
-                    return EXP_NONE;
+                    return EXPR_NONE;
                 }
             }
         case TK_VAR:
-            return EXP_VAR;
+            return EXPR_VAR;
         case TK_DATA:
-            return EXP_CONS;
+            return EXPR_CONS;
     }
-    return EXP_NONE;
+    return EXPR_NONE;
 }
