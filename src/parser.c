@@ -17,21 +17,25 @@ struct {
     int stkn;
 } PR = { {}, 0 };
 
+///////////////////////////////////////////////////////////////////////////////
+
 Tk push () {
     STK stk = { ftell(LX.buf), 1, 1, lexer() };
 
     if (PR.stkn > 0) {
         STK prv = PR.stk[PR.stkn-1];
-        stk.lin = prv.lin;
-        stk.col = prv.col + (stk.off - prv.off);
         if (prv.tk.sym == TK_LINE) {
-            stk.lin++;
-            stk.col--;  // TODO \r\n
+            stk.lin = prv.lin + 1;
+            stk.col = 1;
+        } else {
+            stk.lin = prv.lin;
+            stk.col = prv.col + (stk.off - prv.off);
         }
     }
 
     assert(PR.stkn < sizeof(PR.stk)/sizeof(PR.stk[0]));
     PR.stk[PR.stkn++] = stk;
+printf("%ld %ld %s\n", stk.lin, stk.col, lexer_tk2str(&stk.tk));
     return stk.tk;
 }
 
@@ -40,11 +44,21 @@ void pop () {
     fseek(LX.buf, stk.off, SEEK_SET);
 }
 
-Error expected (const char* msg) {
+///////////////////////////////////////////////////////////////////////////////
+
+Error expected (const char* v) {
     Error ret;
     STK stk = PR.stk[PR.stkn-1];
     ret.off = stk.off;
-    sprintf(ret.msg, "(ln %ld, col %ld): expected %s", stk.lin, stk.col, msg);
+    sprintf(ret.msg, "(ln %ld, col %ld): expected %s", stk.lin, stk.col+lexer_tk2len(&stk.tk), v);
+    return ret;
+}
+
+Error unexpected (const char* v) {
+    Error ret;
+    STK stk = PR.stk[PR.stkn-1];
+    ret.off = stk.off;
+    sprintf(ret.msg, "(ln %ld, col %ld): unexpected %s", stk.lin, stk.col, v);
     return ret;
 }
 
@@ -57,6 +71,8 @@ Type parser_type () {
             tk = push();
             if (tk.sym == ')') {
                 return (Type) { TYPE_UNIT, {} };
+            } else {
+                return (Type) { TYPE_NONE, .err=unexpected(lexer_tk2str(&tk)) };
             }
     }
     return (Type) { TYPE_NONE, .err=expected("type") };
@@ -104,7 +120,7 @@ Decl parser_decl () {
 
     Type tp = parser_type();
     if (tp.sub == TYPE_NONE) {
-        return (Decl) { DECL_NONE, .err=expected("declaration type") };
+        return (Decl) { DECL_NONE, .err=tp.err };
     }
 
     return (Decl) { DECL_SIG, .var=var, .type=tp };

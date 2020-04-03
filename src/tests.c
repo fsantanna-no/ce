@@ -87,6 +87,7 @@ void t_parser_expr (void) {
     {
         LX.buf = stropen("(\n( \n");
         Expr e = parser_expr();
+        puts(e.err.msg);
         assert(e.sub == EXPR_NONE); assert(!strcmp(e.err.msg, "(ln 2, col 2): expected `)`"));
         fclose(LX.buf);
     }
@@ -99,6 +100,15 @@ void t_parser_decl (void) {
         assert(decl.var.sym  == TK_VAR);
         assert(!strcmp(decl.var.val.s, "a"));
         assert(decl.type.sub == TYPE_UNIT);
+        fclose(LX.buf);
+    }
+    {
+puts("=========");
+        LX.buf = stropen("a :: (x)");
+        Decl decl = parser_decl();
+        assert(decl.sub == DECL_NONE);
+        printf("%s\n", decl.err.msg);
+        assert(!strcmp(decl.err.msg, "(ln 1, col 7): unexpected `x`"));
         fclose(LX.buf);
     }
 }

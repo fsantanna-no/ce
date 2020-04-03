@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
@@ -18,10 +19,34 @@ int is_reserved (TK_val* val) {
     return 0;
 }
 
+int lexer_tk2len (Tk* tk) {
+    switch (tk->sym) {
+        case TK_LINE:
+            return tk->val.n;
+        case TK_VAR:
+            return strlen(tk->val.s);
+        default:
+            return 1;
+    }
+}
+
+const char* lexer_tk2str (Tk* tk) {
+    static char str[512];
+    switch (tk->sym) {
+        case TK_VAR:
+            sprintf(str, "`%s`", tk->val.s);
+            break;
+        default:
+            sprintf(str, "`%c`", tk->sym);
+            break;
+    }
+    return str;
+}
+
 TK lexer_ (TK_val* val) {
     while (1) {
         int c = fgetc(LX.buf);
-printf("0> %c\n", c);
+//printf("0> %c\n", c);
         switch (c)
         {
             case ' ':

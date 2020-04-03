@@ -31,4 +31,6 @@ struct {
     FILE* buf;
 } LX;
 
+const char* lexer_tk2str (Tk* tk);
+int lexer_tk2len (Tk* tk);
 Tk lexer ();
