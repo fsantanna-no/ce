@@ -9,7 +9,7 @@ typedef struct {
     long off;   // position before token (to fallback)
     long lin;   // line before token
     long col;   // column before token
-    TK   tk;
+    Tk   tk;
 } STK;
 
 struct {
@@ -17,14 +17,14 @@ struct {
     int stkn;
 } PR = { {}, 0 };
 
-TK push () {
+Tk push () {
     STK stk = { ftell(LX.buf), 1, 1, lexer() };
 
     if (PR.stkn > 0) {
         STK prv = PR.stk[PR.stkn-1];
         stk.lin = prv.lin;
         stk.col = prv.col + (stk.off - prv.off);
-        if (prv.tk == TK_LINE) {
+        if (prv.tk.sym == TK_LINE) {
             stk.lin++;
             stk.col--;  // TODO \r\n
         }
@@ -40,49 +40,51 @@ void pop () {
     fseek(LX.buf, stk.off, SEEK_SET);
 }
 
-void expected (const char* v) {
+Error expected (const char* msg) {
+    Error ret;
     STK stk = PR.stk[PR.stkn-1];
-    sprintf(LX.val.s, "(ln %ld, col %ld): expected `%s`", stk.lin, stk.col, v);
+    ret.off = stk.off;
+    sprintf(ret.msg, "(ln %ld, col %ld): expected `%s`", stk.lin, stk.col, msg);
+    return ret;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
 TYPE parser_type () {
-    TK tk = push();
-    switch (tk) {
+    Tk tk = push();
+    switch (tk.sym) {
         case '(':
             tk = push();
-            return (tk == ')') ? TYPE_UNIT : TYPE_NONE;
+            return (tk.sym == ')') ? TYPE_UNIT : TYPE_NONE;
     }
     return TYPE_NONE;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
-EXPR parser_expr () {
-    TK tk = push();
-    switch (tk) {
+Expr parser_expr () {
+    Tk tk = push();
+    switch (tk.sym) {
         case '(':
             tk = push();
-            if (tk == ')') {
-                return EXPR_UNIT;
+            if (tk.sym == ')') {
+                return (Expr) { EXPR_UNIT, {} };
             } else {
                 pop();
-                EXPR ret = parser_expr();
+                Expr ret = parser_expr();
                 tk = push();
-                if (tk == ')') {
+                if (tk.sym == ')') {
                     return ret;
                 } else {
-                    expected(")");
-                    return EXPR_NONE;
+                    return (Expr) { EXPR_NONE, .err=expected(")") };
                 }
             }
         case TK_VAR:
-            return EXPR_VAR;
+            return (Expr) { EXPR_VAR, .tk=tk };
         case TK_DATA:
-            return EXPR_CONS;
+            return (Expr) { EXPR_CONS, .tk=tk };
     }
-    return EXPR_NONE;
+    return (Expr) { EXPR_NONE, {} };
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -90,9 +92,9 @@ EXPR parser_expr () {
 Decl parser_decl () {
     Decl ret;
     ret.var = push();
-    assert(ret.var == TK_VAR);
-    TK dcl = push();
-    assert(dcl == TK_DECL);
+    assert(ret.var.sym == TK_VAR);
+    Tk dcl = push();
+    assert(dcl.sym == TK_DECL);
     ret.type = parser_type();
     assert(ret.type != TYPE_NONE);
     return ret;

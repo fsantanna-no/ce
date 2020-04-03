@@ -11,10 +11,23 @@ typedef enum {
 } EXPR;
 
 typedef struct {
-    TK   var;
+    long off;
+    char msg[256];
+} Error;
+
+typedef struct {
+    EXPR  sub;
+    union {
+        Error err;      // EXPR_NONE
+        Tk    tk;       // EXPR_UNIT, EXPR_VAR, EXPR_CONS
+    };
+} Expr;
+
+typedef struct {
+    Tk   var;
     TYPE type;
 } Decl;
 
 TYPE parser_type ();
-EXPR parser_expr ();
+Expr parser_expr ();
 Decl parser_decl ();

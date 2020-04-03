@@ -8,17 +8,17 @@ static char* reserved[] = {
     "let"
 };
 
-int is_reserved (void) {
+int is_reserved (TK_val* val) {
     int N = sizeof(reserved) / sizeof(reserved[0]);
     for (int i=0; i<N; i++) {
-        if (!strcmp(LX.val.s, reserved[i])) {
+        if (!strcmp(val->s, reserved[i])) {
             return TK_RESERVED+1 + i;
         }
     }
     return 0;
 }
 
-TK lexer () {
+TK lexer_ (TK_val* val) {
     while (1) {
         int c = fgetc(LX.buf);
 printf("0> %c\n", c);
@@ -40,10 +40,10 @@ printf("0> %c\n", c);
 
             case '\r':
                 c = fgetc(LX.buf);
-                LX.val.n = 2;
+                val->n = 2;
                 if (c != '\n') {
                     ungetc(c, LX.buf);
-                    LX.val.n--;
+                    val->n--;
                 }
                 return TK_LINE;
 
@@ -76,18 +76,25 @@ printf("0> %c\n", c);
 
                 int i = 0;
                 while (isalnum(c) || c=='_' || c=='\'' || c=='?' || c=='!') {
-                    LX.val.s[i++] = c;
+                    val->s[i++] = c;
                     c = fgetc(LX.buf);
                 }
-                LX.val.s[i] = '\0';
+                val->s[i] = '\0';
                 ungetc(c, LX.buf);
 
-                int key = is_reserved();
+                int key = is_reserved(val);
                 if (key) {
                     return key;
                 }
 
-                return (islower(LX.val.s[0]) ? TK_VAR : TK_DATA);
+                return (islower(val->s[0]) ? TK_VAR : TK_DATA);
         }
     }
+}
+
+Tk lexer () {
+    Tk ret;
+    TK tk = lexer_(&ret.val);
+    ret.sym = tk;
+    return ret;
 }

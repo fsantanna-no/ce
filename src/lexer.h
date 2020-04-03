@@ -17,12 +17,18 @@ typedef enum {
     TK_LET
 } TK;
 
+typedef union {
+        int  n;
+        char s[256];
+} TK_val;
+
+typedef struct {
+    TK     sym;
+    TK_val val;
+} Tk;
+
 struct {
     FILE* buf;
-    union {
-        int  n;
-        char s[255];
-    } val;
 } LX;
 
-TK lexer ();
+Tk lexer ();
