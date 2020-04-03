@@ -7,8 +7,8 @@
 
 typedef struct {
     long off;   // position before token (to fallback)
-    long line;  // line after token (if TK_LINE, already counts next)
-    long col;   // column after token
+    long lin;   // line before token
+    long col;   // column before token
     TK   tk;
 } STK;
 
@@ -18,11 +18,18 @@ struct {
 } PR = { {}, 0 };
 
 TK push () {
-    long ln = (PR.stkn == 0) ? 1 : PR.stk[PR.stkn-1].line;
-    STK stk = { ftell(LX.buf), ln, 0, lexer() };
-    if (stk.tk == TK_LINE) {
-        stk.line++;
+    STK stk = { ftell(LX.buf), 1, 1, lexer() };
+
+    if (PR.stkn > 0) {
+        STK prv = PR.stk[PR.stkn-1];
+        stk.lin = prv.lin;
+        stk.col = prv.col + (stk.off - prv.off);
+        if (prv.tk == TK_LINE) {
+            stk.lin++;
+            stk.col--;  // TODO \r\n
+        }
     }
+
     assert(PR.stkn < sizeof(PR.stk)/sizeof(PR.stk[0]));
     PR.stk[PR.stkn++] = stk;
     return stk.tk;
@@ -35,12 +42,11 @@ void pop () {
 
 void expected (const char* v) {
     STK stk = PR.stk[PR.stkn-1];
-    sprintf(LX.value, "(ln %ld, col %ld): expected `%s`", stk.line, stk.col, v);
+    sprintf(LX.value, "(ln %ld, col %ld): expected `%s`", stk.lin, stk.col, v);
 }
 
 EXP parser_exp () {
     TK tk = push();
-printf(">>> %d %c\n", tk);
     switch (tk) {
         case '(':
             tk = push();
@@ -54,7 +60,6 @@ printf(">>> %d %c\n", tk);
                     return ret;
                 } else {
                     expected(")");
-puts(LX.value);
                     return EXP_NONE;
                 }
             }

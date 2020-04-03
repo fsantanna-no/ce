@@ -71,7 +71,7 @@ void t_parser_exp (void) {
     }
     {
         LX.buf = stropen("(\n( \n");
-        assert(parser_exp() == EXP_NONE); assert(!strcmp(LX.value, "(ln 2, col X): expected `)`"));
+        assert(parser_exp() == EXP_NONE); assert(!strcmp(LX.value, "(ln 2, col 2): expected `)`"));
         fclose(LX.buf);
     }
 }
