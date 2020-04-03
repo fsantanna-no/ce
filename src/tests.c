@@ -102,9 +102,22 @@ void t_parser_expr (void) {
         assert(e.sub == EXPR_NONE); assert(!strcmp(e.err.msg, "(ln 1, col 2): expected `)` : have new line"));
         fclose(CUR.buf);
     }
+    {
+        parser_init(stropen("func :: () ()"));
+        assert(parser_expr().sub == EXPR_FUNC);
+        fclose(CUR.buf);
+    }
 }
 
 void t_parser_decl (void) {
+    {
+        parser_init(stropen("a"));
+        Decl decl = parser_decl();
+        assert(decl.sub == DECL_NONE);
+//puts(decl.err.msg);
+        assert(!strcmp(decl.err.msg, "(ln 1, col 2): expected `::` : have end of file"));
+        fclose(CUR.buf);
+    }
     {
         parser_init(stropen("a :: ()"));
         Decl decl = parser_decl();
@@ -131,7 +144,6 @@ void t_parser_decl (void) {
         parser_init(stropen("a = (x)"));
         Decl decl = parser_decl();
         assert(decl.sub == DECL_ATR);
-//puts(decl.err.msg);
         assert(!strcmp(decl.expr.tk.val.s, "x"));
         fclose(CUR.buf);
     }

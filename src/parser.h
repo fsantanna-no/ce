@@ -7,7 +7,8 @@ typedef enum {
     EXPR_NONE = 0,
     EXPR_UNIT,
     EXPR_VAR,
-    EXPR_CONS
+    EXPR_CONS,
+    EXPR_FUNC
 } EXPR;
 
 typedef enum {
@@ -15,6 +16,8 @@ typedef enum {
     DECL_SIG,
     DECL_ATR
 } DECL;
+
+///////////////////////////////////////////////////////////////////////////////
 
 typedef struct {
     long off;
@@ -29,11 +32,15 @@ typedef struct {
     };
 } Type;
 
-typedef struct {
+typedef struct Expr {
     EXPR sub;
     union {
         Error err;      // EXPR_NONE
         Tk    tk;       // EXPR_UNIT, EXPR_VAR, EXPR_CONS
+        struct {        // EXPR_FUNC
+            Type type;
+            struct Expr* expr;
+        };
     };
 } Expr;
 
@@ -51,6 +58,8 @@ typedef struct {
         };
     };
 } Decl;
+
+///////////////////////////////////////////////////////////////////////////////
 
 void parser_init (FILE* buf);
 Type parser_type (void);

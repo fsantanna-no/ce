@@ -10,7 +10,7 @@ Lexer CUR = { NULL,-1,0,0,{} };
 Lexer OLD = { NULL,-1,0,0,{} };
 
 static char* reserved[] = {
-    "let"
+    "func", "let"
 };
 
 int is_reserved (TK_val* val) {

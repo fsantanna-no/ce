@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
@@ -86,6 +87,7 @@ Type parser_type (void) {
 ///////////////////////////////////////////////////////////////////////////////
 
 Expr parser_expr (void) {
+    // PARENS
     if (pr_accept('(')) {
         if (pr_accept(')')) {
             return (Expr) { EXPR_UNIT, {} };
@@ -97,6 +99,25 @@ Expr parser_expr (void) {
                 return (Expr) { EXPR_NONE, .err=expected("`)`") };
             }
         }
+
+    // FUNC
+    } else if (pr_accept(TK_FUNC)) {
+        if (!pr_accept(TK_DECL)) {
+            return (Expr) { EXPR_NONE, .err=expected("`::`") };
+        }
+        Type tp = parser_type();
+        if (tp.sub == TYPE_NONE) {
+            return (Expr) { EXPR_NONE, .err=tp.err };
+        }
+        Expr e = parser_expr();
+        if (e.sub == EXPR_NONE) {
+            return e;
+        }
+        Expr* pe = malloc(sizeof *pe);
+        *pe = e;
+        return (Expr) { EXPR_FUNC, .type=tp, .expr=pe };
+
+    // VAR,DATA
     } else if (pr_accept(TK_VAR)) {
         return (Expr) { EXPR_VAR, .tk=OLD.tk };
     } else if (pr_accept(TK_DATA)) {
