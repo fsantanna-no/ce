@@ -47,6 +47,18 @@ void expected (const char* v) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
+TYPE parser_type () {
+    TK tk = push();
+    switch (tk) {
+        case '(':
+            tk = push();
+            return (tk == ')') ? TYPE_UNIT : TYPE_NONE;
+    }
+    return TYPE_NONE;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 EXPR parser_expr () {
     TK tk = push();
     switch (tk) {

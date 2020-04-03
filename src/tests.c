@@ -65,6 +65,14 @@ void t_lexer (void) {
     }
 }
 
+void t_parser_type (void) {
+    {
+        LX.buf = stropen("()");
+        assert(parser_type() == TYPE_UNIT);
+        fclose(LX.buf);
+    }
+}
+
 void t_parser_expr (void) {
     {
         LX.buf = stropen("(())");
@@ -91,6 +99,7 @@ void t_parser (void) {
         assert(parser_expr() == EXPR_CONS); assert(!strcmp(LX.val.s, "XXX"));
         fclose(LX.buf);
     }
+    t_parser_type();
     t_parser_expr();
 }
 

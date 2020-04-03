@@ -1,4 +1,4 @@
-typedef enum TK {
+typedef enum {
     TK_NONE = 0,
 
     // all single-char tokens
