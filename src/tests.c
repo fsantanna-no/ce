@@ -68,7 +68,7 @@ void t_lexer (void) {
 void t_parser_type (void) {
     {
         LX.buf = stropen("()");
-        assert(parser_type() == TYPE_UNIT);
+        assert(parser_type().sub == TYPE_UNIT);
         fclose(LX.buf);
     }
 }
@@ -98,7 +98,7 @@ void t_parser_decl (void) {
         Decl decl = parser_decl();
         assert(decl.var.sym  == TK_VAR);
         assert(!strcmp(decl.var.val.s, "a"));
-        assert(decl.type == TYPE_UNIT);
+        assert(decl.type.sub == TYPE_UNIT);
         fclose(LX.buf);
     }
 }

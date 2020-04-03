@@ -50,14 +50,16 @@ Error expected (const char* msg) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-TYPE parser_type () {
+Type parser_type () {
     Tk tk = push();
     switch (tk.sym) {
         case '(':
             tk = push();
-            return (tk.sym == ')') ? TYPE_UNIT : TYPE_NONE;
+            if (tk.sym == ')') {
+                return (Type) { TYPE_UNIT, {} };
+            }
     }
-    return TYPE_NONE;
+    return (Type) { TYPE_NONE, .err=expected("type") };
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -100,8 +102,8 @@ Decl parser_decl () {
         return (Decl) { DECL_NONE, .err=expected("`::`") };
     }
 
-    TYPE tp = parser_type();
-    if (tp == TYPE_NONE) {
+    Type tp = parser_type();
+    if (tp.sub == TYPE_NONE) {
         return (Decl) { DECL_NONE, .err=expected("declaration type") };
     }
 

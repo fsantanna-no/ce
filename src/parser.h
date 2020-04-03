@@ -21,6 +21,14 @@ typedef struct {
 } Error;
 
 typedef struct {
+    TYPE sub;
+    union {
+        Error err;      // TYPE_NONE
+        Tk    tk;       // TYPE_DATA
+    };
+} Type;
+
+typedef struct {
     EXPR sub;
     union {
         Error err;      // EXPR_NONE
@@ -34,11 +42,11 @@ typedef struct {
         Error err;
         struct {
             Tk   var;
-            TYPE type;
+            Type type;
         };
     };
 } Decl;
 
-TYPE parser_type ();
+Type parser_type ();
 Expr parser_expr ();
 Decl parser_decl ();
