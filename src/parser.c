@@ -7,29 +7,40 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void next () {
-    long off = ftell(LX.buf);
+void pr_next () {
+    OLD = CUR;
+
+    long off = ftell(CUR.buf);
     Tk   tk  = lexer();
 
-    if (LX.off == 0) {
-        LX.lin = 1;
-        LX.col = 1;
+    if (OLD.off == -1) {
+        CUR.lin = 1;
+        CUR.col = 1;
     } else {
-        if (LX.tk.sym == TK_LINE) {
-            LX.lin++;
-            LX.col = 1;
+        if (OLD.tk.sym == TK_LINE) {
+            CUR.lin = OLD.lin + 1;
+            CUR.col = 1;
         } else {
-            LX.col += (off - LX.off);
+            CUR.col = OLD.col + (off - OLD.off);
         }
     }
-    LX.tk  = tk;
-    LX.off = off;
-//printf("%ld %ld %s\n", LX.lin, stk.col, lexer_tk2str(&stk.tk));
+    CUR.tk  = tk;
+    CUR.off = off;
+    //printf("CUR: ln=%ld cl=%ld off=%ld tk=%s\n", CUR.lin, CUR.col, CUR.off, lexer_tk2str(&CUR.tk));
+}
+
+int pr_accept (TK tk) {
+    if (CUR.tk.sym == tk) {
+        pr_next();
+        return 1;
+    } else {
+        return 0;
+    }
 }
 
 #if 0
 void back () {
-    fseek(LX.buf, LX.off, SEEK_SET);
+    fseek(CUR.buf, CUR.off, SEEK_SET);
 }
 #endif
 
@@ -37,36 +48,37 @@ void back () {
 
 Error expected (const char* v) {
     Error ret;
-    ret.off = LX.off;
-    sprintf(ret.msg, "(ln %ld, col %ld): expected %s", LX.lin, LX.col+lexer_tk2len(&LX.tk), v);
+    ret.off = CUR.off;
+    //sprintf(ret.msg, "(ln %ld, col %ld): expected %s : have %s",
+        //CUR.lin, CUR.col+lexer_tk2len(&CUR.tk), v, lexer_tk2str(&CUR.tk));
+    sprintf(ret.msg, "(ln %ld, col %ld): expected %s : have %s",
+        CUR.lin, CUR.col, v, lexer_tk2str(&CUR.tk));
     return ret;
 }
 
 Error unexpected (const char* v) {
     Error ret;
-    ret.off = LX.off;
-    sprintf(ret.msg, "(ln %ld, col %ld): unexpected %s", LX.lin, LX.col, v);
+    ret.off = CUR.off;
+    sprintf(ret.msg, "(ln %ld, col %ld): unexpected %s", CUR.lin, CUR.col, v);
     return ret;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
 void parser_init (FILE* buf) {
-    LX = (Lexer) { buf,0,0,0,{} };
-    next();
+    CUR = (Lexer) { buf,-1,0,0,{} };
+    pr_next();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
 Type parser_type (void) {
-    switch (LX.tk.sym) {
-        case '(':
-            next();
-            if (LX.tk.sym == ')') {
-                return (Type) { TYPE_UNIT, {} };
-            } else {
-                return (Type) { TYPE_NONE, .err=unexpected(lexer_tk2str(&LX.tk)) };
-            }
+    if (pr_accept('(')) {
+        if (pr_accept(')')) {
+            return (Type) { TYPE_UNIT, {} };
+        } else {
+            return (Type) { TYPE_NONE, .err=unexpected(lexer_tk2str(&CUR.tk)) };
+        }
     }
     return (Type) { TYPE_NONE, .err=expected("type") };
 }
@@ -74,24 +86,21 @@ Type parser_type (void) {
 ///////////////////////////////////////////////////////////////////////////////
 
 Expr parser_expr (void) {
-    switch (LX.tk.sym) {
-        case '(':
-            next();
-            if (LX.tk.sym == ')') {
-                return (Expr) { EXPR_UNIT, {} };
+    if (pr_accept('(')) {
+        if (pr_accept(')')) {
+            return (Expr) { EXPR_UNIT, {} };
+        } else {
+            Expr ret = parser_expr();
+            if (pr_accept(')')) {
+                return ret;
             } else {
-                Expr ret = parser_expr();
-                next();
-                if (LX.tk.sym == ')') {
-                    return ret;
-                } else {
-                    return (Expr) { EXPR_NONE, .err=expected("`)`") };
-                }
+                return (Expr) { EXPR_NONE, .err=expected("`)`") };
             }
-        case TK_VAR:
-            return (Expr) { EXPR_VAR, .tk=LX.tk };
-        case TK_DATA:
-            return (Expr) { EXPR_CONS, .tk=LX.tk };
+        }
+    } else if (pr_accept(TK_VAR)) {
+        return (Expr) { EXPR_VAR, .tk=OLD.tk };
+    } else if (pr_accept(TK_DATA)) {
+        return (Expr) { EXPR_CONS, .tk=OLD.tk };
     }
     return (Expr) { EXPR_NONE, {} };
 }
@@ -99,17 +108,15 @@ Expr parser_expr (void) {
 ///////////////////////////////////////////////////////////////////////////////
 
 Decl parser_decl (void) {
-    if (LX.tk.sym != TK_VAR) {
+    if (!pr_accept(TK_VAR)) {
         return (Decl) { DECL_NONE, .err=expected("declaration") };
     }
-    Tk var = LX.tk;
+    Tk var = OLD.tk;
 
-    next();
-    if (LX.tk.sym != TK_DECL) {
+    if (!pr_accept(TK_DECL)) {
         return (Decl) { DECL_NONE, .err=expected("`::`") };
     }
 
-    next();
     Type tp = parser_type();
     if (tp.sub == TYPE_NONE) {
         return (Decl) { DECL_NONE, .err=tp.err };

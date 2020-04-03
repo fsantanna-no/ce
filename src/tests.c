@@ -11,23 +11,23 @@ FILE* stropen (char* str) {
 
 void t_lexer (void) {
     {
-        LX.buf = stropen("-- foobar");
+        CUR.buf = stropen("-- foobar");
         assert(lexer().sym == TK_COMMENT);
         assert(lexer().sym == TK_EOF);
-        fclose(LX.buf);
+        fclose(CUR.buf);
     }
     {
-        LX.buf = stropen("-- c1\n--c2\n\n");
+        CUR.buf = stropen("-- c1\n--c2\n\n");
         assert(lexer().sym == TK_COMMENT);
         assert(lexer().sym == TK_LINE);
         assert(lexer().sym == TK_COMMENT);
         assert(lexer().sym == TK_LINE);
         assert(lexer().sym == TK_LINE);
         assert(lexer().sym == TK_EOF);
-        fclose(LX.buf);
+        fclose(CUR.buf);
     }
     {
-        LX.buf = stropen(" c1\nc2 c3'  \n  \nc4");
+        CUR.buf = stropen(" c1\nc2 c3'  \n  \nc4");
         Tk tk1 = lexer(); assert(tk1.sym == TK_VAR); assert(!strcmp(tk1.val.s, "c1"));
         assert(lexer().sym == TK_LINE);
         Tk tk3 = lexer(); assert(tk3.sym == TK_VAR); assert(!strcmp(tk3.val.s, "c2"));
@@ -36,32 +36,32 @@ void t_lexer (void) {
         assert(lexer().sym == TK_LINE);
         Tk tk5 = lexer(); assert(tk5.sym == TK_VAR); assert(!strcmp(tk5.val.s, "c4"));
         assert(lexer().sym == TK_EOF);
-        fclose(LX.buf);
+        fclose(CUR.buf);
     }
     {
-        LX.buf = stropen(" c1 C1 C'a a'? C!!");
+        CUR.buf = stropen(" c1 C1 C'a a'? C!!");
         Tk tk1 = lexer(); assert(tk1.sym == TK_VAR);  assert(!strcmp(tk1.val.s, "c1"));
         Tk tk2 = lexer(); assert(tk2.sym == TK_DATA); assert(!strcmp(tk2.val.s, "C1"));
         Tk tk3 = lexer(); assert(tk3.sym == TK_DATA); assert(!strcmp(tk3.val.s, "C'a"));
         Tk tk4 = lexer(); assert(tk4.sym == TK_VAR);  assert(!strcmp(tk4.val.s, "a'?"));
         Tk tk5 = lexer(); assert(tk5.sym == TK_DATA); assert(!strcmp(tk5.val.s, "C!!"));
         assert(lexer().sym == TK_EOF);
-        fclose(LX.buf);
+        fclose(CUR.buf);
     }
     {
-        LX.buf = stropen("let xlet letx");
+        CUR.buf = stropen("let xlet letx");
         assert(lexer().sym == TK_LET);
         Tk tk1 = lexer(); assert(tk1.sym == TK_VAR); assert(!strcmp(tk1.val.s, "xlet"));
         Tk tk2 = lexer(); assert(tk2.sym == TK_VAR); assert(!strcmp(tk2.val.s, "letx"));
         assert(lexer().sym == TK_EOF);
-        fclose(LX.buf);
+        fclose(CUR.buf);
     }
     {
-        LX.buf = stropen(": :: :");
+        CUR.buf = stropen(": :: :");
         assert(lexer().sym == TK_NONE);
         assert(lexer().sym == TK_DECL);
         assert(lexer().sym == TK_NONE);
-        fclose(LX.buf);
+        fclose(CUR.buf);
     }
 }
 
@@ -69,7 +69,7 @@ void t_parser_type (void) {
     {
         parser_init(stropen("()"));
         assert(parser_type().sub == TYPE_UNIT);
-        fclose(LX.buf);
+        fclose(CUR.buf);
     }
 }
 
@@ -77,19 +77,30 @@ void t_parser_expr (void) {
     {
         parser_init(stropen("(())"));
         assert(parser_expr().sub == EXPR_UNIT);
-        fclose(LX.buf);
+        fclose(CUR.buf);
     }
     {
         parser_init(stropen("( ( ) )"));
         assert(parser_expr().sub == EXPR_UNIT);
-        fclose(LX.buf);
+        fclose(CUR.buf);
+    }
+    {
+        parser_init(stropen("("));
+        Expr e = parser_expr();
+        assert(e.sub == EXPR_NONE); assert(!strcmp(e.err.msg, "(ln 1, col 2): expected `)` : have end of file"));
+        fclose(CUR.buf);
+    }
+    {
+        parser_init(stropen("(("));
+        Expr e = parser_expr();
+        assert(e.sub == EXPR_NONE); assert(!strcmp(e.err.msg, "(ln 1, col 3): expected `)` : have end of file"));
+        fclose(CUR.buf);
     }
     {
         parser_init(stropen("(\n( \n"));
         Expr e = parser_expr();
-        puts(e.err.msg);
-        assert(e.sub == EXPR_NONE); assert(!strcmp(e.err.msg, "(ln 2, col 2): expected `)`"));
-        fclose(LX.buf);
+        assert(e.sub == EXPR_NONE); assert(!strcmp(e.err.msg, "(ln 1, col 2): expected `)` : have new line"));
+        fclose(CUR.buf);
     }
 }
 
@@ -100,15 +111,14 @@ void t_parser_decl (void) {
         assert(decl.var.sym  == TK_VAR);
         assert(!strcmp(decl.var.val.s, "a"));
         assert(decl.type.sub == TYPE_UNIT);
-        fclose(LX.buf);
+        fclose(CUR.buf);
     }
     {
         parser_init(stropen("a :: (x)"));
         Decl decl = parser_decl();
         assert(decl.sub == DECL_NONE);
-        printf("%s\n", decl.err.msg);
         assert(!strcmp(decl.err.msg, "(ln 1, col 7): unexpected `x`"));
-        fclose(LX.buf);
+        fclose(CUR.buf);
     }
 }
 
@@ -120,7 +130,7 @@ void t_parser (void) {
         assert(parser_expr().sub == EXPR_UNIT);
         Expr e2 = parser_expr();
         assert(e2.sub == EXPR_CONS); assert(!strcmp(e2.tk.val.s, "XXX"));
-        fclose(LX.buf);
+        fclose(CUR.buf);
     }
     t_parser_type();
     t_parser_expr();
@@ -130,4 +140,5 @@ void t_parser (void) {
 int main (void) {
     t_lexer();
     t_parser();
+    puts("OK");
 }

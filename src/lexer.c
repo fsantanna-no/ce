@@ -6,7 +6,8 @@
 #include "lexer.h"
 #include "parser.h"
 
-Lexer LX = { NULL,0,0,0,{} };
+Lexer CUR = { NULL,-1,0,0,{} };
+Lexer OLD = { NULL,-1,0,0,{} };
 
 static char* reserved[] = {
     "let"
@@ -36,6 +37,12 @@ int lexer_tk2len (Tk* tk) {
 const char* lexer_tk2str (Tk* tk) {
     static char str[512];
     switch (tk->sym) {
+        case TK_EOF:
+            sprintf(str, "end of file");
+            break;
+        case TK_LINE:
+            sprintf(str, "new line");
+            break;
         case TK_VAR:
             sprintf(str, "`%s`", tk->val.s);
             break;
@@ -48,7 +55,7 @@ const char* lexer_tk2str (Tk* tk) {
 
 TK lexer_ (TK_val* val) {
     while (1) {
-        int c = fgetc(LX.buf);
+        int c = fgetc(CUR.buf);
 //printf("0> %c\n", c);
         switch (c)
         {
@@ -67,28 +74,28 @@ TK lexer_ (TK_val* val) {
                 return TK_LINE;
 
             case '\r':
-                c = fgetc(LX.buf);
+                c = fgetc(CUR.buf);
                 val->n = 2;
                 if (c != '\n') {
-                    ungetc(c, LX.buf);
+                    ungetc(c, CUR.buf);
                     val->n--;
                 }
                 return TK_LINE;
 
             case ':':
-                c = fgetc(LX.buf);
+                c = fgetc(CUR.buf);
                 return (c == ':') ? TK_DECL : TK_NONE;
 
             case '-':
-                c = fgetc(LX.buf);
+                c = fgetc(CUR.buf);
                 if (c == '-') {
                     while (1) {
-                        c = fgetc(LX.buf);
+                        c = fgetc(CUR.buf);
                         if (c == EOF) {
                             break;      // EOF stops comment
                         }
                         if (c=='\n' || c=='\r') {
-                            ungetc(c, LX.buf);
+                            ungetc(c, CUR.buf);
                             break;      // NEWLINE stops comment
                         }
                     }
@@ -105,10 +112,10 @@ TK lexer_ (TK_val* val) {
                 int i = 0;
                 while (isalnum(c) || c=='_' || c=='\'' || c=='?' || c=='!') {
                     val->s[i++] = c;
-                    c = fgetc(LX.buf);
+                    c = fgetc(CUR.buf);
                 }
                 val->s[i] = '\0';
-                ungetc(c, LX.buf);
+                ungetc(c, CUR.buf);
 
                 int key = is_reserved(val);
                 if (key) {

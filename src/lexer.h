@@ -35,7 +35,7 @@ typedef struct {
     Tk    tk;
 } Lexer;
 
-extern Lexer LX;
+extern Lexer CUR, OLD;
 
 const char* lexer_tk2str (Tk* tk);
 int lexer_tk2len (Tk* tk);
