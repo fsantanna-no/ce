@@ -11,7 +11,7 @@ static char* reserved[] = {
 int is_reserved (void) {
     int N = sizeof(reserved) / sizeof(reserved[0]);
     for (int i=0; i<N; i++) {
-        if (!strcmp(LX.value, reserved[i])) {
+        if (!strcmp(LX.val.s, reserved[i])) {
             return TK_RESERVED+1 + i;
         }
     }
@@ -40,8 +40,10 @@ printf("0> %c\n", c);
 
             case '\r':
                 c = fgetc(LX.buf);
+                LX.val.n = 2;
                 if (c != '\n') {
                     ungetc(c, LX.buf);
+                    LX.val.n--;
                 }
                 return TK_LINE;
 
@@ -70,10 +72,10 @@ printf("0> %c\n", c);
 
                 int i = 0;
                 while (isalnum(c) || c=='_' || c=='\'' || c=='?' || c=='!') {
-                    LX.value[i++] = c;
+                    LX.val.s[i++] = c;
                     c = fgetc(LX.buf);
                 }
-                LX.value[i] = '\0';
+                LX.val.s[i] = '\0';
                 ungetc(c, LX.buf);
 
                 int key = is_reserved();
@@ -81,7 +83,7 @@ printf("0> %c\n", c);
                     return key;
                 }
 
-                return (islower(LX.value[0]) ? TK_VAR : TK_DATA);
+                return (islower(LX.val.s[0]) ? TK_VAR : TK_DATA);
         }
     }
 }

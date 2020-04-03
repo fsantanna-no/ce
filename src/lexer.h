@@ -18,7 +18,10 @@ typedef enum TK {
 
 struct {
     FILE* buf;
-    char  value[255];
+    union {
+        int  n;
+        char s[255];
+    } val;
 } LX;
 
 TK lexer ();

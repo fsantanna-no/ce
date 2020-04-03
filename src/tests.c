@@ -28,31 +28,31 @@ void t_lexer (void) {
     }
     {
         LX.buf = stropen(" c1\nc2 c3'  \n  \nc4");
-        assert(lexer() == TK_VAR);         assert(!strcmp(LX.value, "c1"));
+        assert(lexer() == TK_VAR);         assert(!strcmp(LX.val.s, "c1"));
         assert(lexer() == TK_LINE);
-        assert(lexer() == TK_VAR);         assert(!strcmp(LX.value, "c2"));
-        assert(lexer() == TK_VAR);         assert(!strcmp(LX.value, "c3'"));
+        assert(lexer() == TK_VAR);         assert(!strcmp(LX.val.s, "c2"));
+        assert(lexer() == TK_VAR);         assert(!strcmp(LX.val.s, "c3'"));
         assert(lexer() == TK_LINE);
         assert(lexer() == TK_LINE);
-        assert(lexer() == TK_VAR);         assert(!strcmp(LX.value, "c4"));
+        assert(lexer() == TK_VAR);         assert(!strcmp(LX.val.s, "c4"));
         assert(lexer() == TK_EOF);
         fclose(LX.buf);
     }
     {
         LX.buf = stropen(" c1 C1 C'a a'? C!!");
-        assert(lexer() == TK_VAR);  assert(!strcmp(LX.value, "c1"));
-        assert(lexer() == TK_DATA); assert(!strcmp(LX.value, "C1"));
-        assert(lexer() == TK_DATA); assert(!strcmp(LX.value, "C'a"));
-        assert(lexer() == TK_VAR);  assert(!strcmp(LX.value, "a'?"));
-        assert(lexer() == TK_DATA); assert(!strcmp(LX.value, "C!!"));
+        assert(lexer() == TK_VAR);  assert(!strcmp(LX.val.s, "c1"));
+        assert(lexer() == TK_DATA); assert(!strcmp(LX.val.s, "C1"));
+        assert(lexer() == TK_DATA); assert(!strcmp(LX.val.s, "C'a"));
+        assert(lexer() == TK_VAR);  assert(!strcmp(LX.val.s, "a'?"));
+        assert(lexer() == TK_DATA); assert(!strcmp(LX.val.s, "C!!"));
         assert(lexer() == TK_EOF);
         fclose(LX.buf);
     }
     {
         LX.buf = stropen("let xlet letx");
         assert(lexer() == TK_LET);
-        assert(lexer() == TK_VAR); assert(!strcmp(LX.value, "xlet"));
-        assert(lexer() == TK_VAR); assert(!strcmp(LX.value, "letx"));
+        assert(lexer() == TK_VAR); assert(!strcmp(LX.val.s, "xlet"));
+        assert(lexer() == TK_VAR); assert(!strcmp(LX.val.s, "letx"));
         assert(lexer() == TK_EOF);
         fclose(LX.buf);
     }
@@ -71,7 +71,7 @@ void t_parser_exp (void) {
     }
     {
         LX.buf = stropen("(\n( \n");
-        assert(parser_exp() == EXP_NONE); assert(!strcmp(LX.value, "(ln 2, col 2): expected `)`"));
+        assert(parser_exp() == EXP_NONE); assert(!strcmp(LX.val.s, "(ln 2, col 2): expected `)`"));
         fclose(LX.buf);
     }
 }
@@ -79,9 +79,9 @@ void t_parser_exp (void) {
 void t_parser (void) {
     {
         LX.buf = stropen("xxx (  ) XXX");
-        assert(parser_exp() == EXP_VAR);  assert(!strcmp(LX.value, "xxx"));
+        assert(parser_exp() == EXP_VAR);  assert(!strcmp(LX.val.s, "xxx"));
         assert(parser_exp() == EXP_UNIT);
-        assert(parser_exp() == EXP_CONS); assert(!strcmp(LX.value, "XXX"));
+        assert(parser_exp() == EXP_CONS); assert(!strcmp(LX.val.s, "XXX"));
         fclose(LX.buf);
     }
     t_parser_exp();

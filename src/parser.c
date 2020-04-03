@@ -42,7 +42,7 @@ void pop () {
 
 void expected (const char* v) {
     STK stk = PR.stk[PR.stkn-1];
-    sprintf(LX.value, "(ln %ld, col %ld): expected `%s`", stk.lin, stk.col, v);
+    sprintf(LX.val.s, "(ln %ld, col %ld): expected `%s`", stk.lin, stk.col, v);
 }
 
 EXP parser_exp () {
