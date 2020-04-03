@@ -91,6 +91,16 @@ void t_parser_expr (void) {
     }
 }
 
+void t_parser_decl (void) {
+    {
+        LX.buf = stropen("a :: ()");
+        Decl decl = parser_decl();
+        assert(decl.var  == TK_VAR);
+        assert(decl.type == TYPE_UNIT);
+        fclose(LX.buf);
+    }
+}
+
 void t_parser (void) {
     {
         LX.buf = stropen("xxx (  ) XXX");
@@ -101,6 +111,7 @@ void t_parser (void) {
     }
     t_parser_type();
     t_parser_expr();
+    t_parser_decl();
 }
 
 int main (void) {

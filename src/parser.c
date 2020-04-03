@@ -84,3 +84,16 @@ EXPR parser_expr () {
     }
     return EXPR_NONE;
 }
+
+///////////////////////////////////////////////////////////////////////////////
+
+Decl parser_decl () {
+    Decl ret;
+    ret.var = push();
+    assert(ret.var == TK_VAR);
+    TK dcl = push();
+    assert(dcl == TK_DECL);
+    ret.type = parser_type();
+    assert(ret.type != TYPE_NONE);
+    return ret;
+}

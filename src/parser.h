@@ -10,5 +10,11 @@ typedef enum {
     EXPR_CONS
 } EXPR;
 
+typedef struct {
+    TK   var;
+    TYPE type;
+} Decl;
+
 TYPE parser_type ();
 EXPR parser_expr ();
+Decl parser_decl ();
