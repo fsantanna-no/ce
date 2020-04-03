@@ -27,7 +27,13 @@ void t_lexer (void) {
         fclose(CUR.buf);
     }
     {
-        CUR.buf = stropen(" c1\nc2 c3'  \n  \nc4");
+        CUR.buf = stropen("\n  \n");
+        assert(lexer().sym == TK_NONE);
+        assert(lexer().sym == TK_LINE);
+        fclose(CUR.buf);
+    }
+    {
+        CUR.buf = stropen(" c1\nc2 c3'  \n    \nc4");
         Tk tk1 = lexer(); assert(tk1.sym == TK_VAR); assert(!strcmp(tk1.val.s, "c1"));
         assert(lexer().sym == TK_LINE);
         Tk tk3 = lexer(); assert(tk3.sym == TK_VAR); assert(!strcmp(tk3.val.s, "c2"));

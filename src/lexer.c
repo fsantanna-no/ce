@@ -25,6 +25,8 @@ int is_reserved (TK_val* val) {
 
 int lexer_tk2len (Tk* tk) {
     switch (tk->sym) {
+        case TK_LINE:
+            return tk->val.n;
         case TK_VAR:
             return strlen(tk->val.s);
         default:
@@ -67,8 +69,22 @@ TK lexer_ (TK_val* val) {
             case EOF:
                 return TK_EOF;
 
-            case '\n':
+            case '\n': {
+                int i = 0;
+                while (1) {
+                    c = fgetc(CUR.buf);
+                    if (c != ' ') {
+                        ungetc(c, CUR.buf);
+                        break;
+                    }
+                    i++;
+                }
+                if (i%4 != 0) {
+                    return TK_NONE;
+                }
+                val->n = i/4;
                 return TK_LINE;
+            }
 
             case ':':
                 c = fgetc(CUR.buf);
