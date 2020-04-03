@@ -58,9 +58,9 @@ void t_lexer (void) {
     }
     {
         CUR.buf = stropen(": :: :");
-        assert(lexer().sym == TK_NONE);
+        assert(lexer().sym == ':');
         assert(lexer().sym == TK_DECL);
-        assert(lexer().sym == TK_NONE);
+        assert(lexer().sym == ':');
         fclose(CUR.buf);
     }
 }
