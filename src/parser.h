@@ -47,6 +47,7 @@ typedef struct {
     };
 } Decl;
 
-Type parser_type ();
-Expr parser_expr ();
-Decl parser_decl ();
+void parser_init (FILE* buf);
+Type parser_type (void);
+Expr parser_expr (void);
+Decl parser_decl (void);

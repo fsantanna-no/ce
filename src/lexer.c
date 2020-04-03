@@ -4,6 +4,9 @@
 #include <string.h>
 
 #include "lexer.h"
+#include "parser.h"
+
+Lexer LX = { NULL,0,0,0,{} };
 
 static char* reserved[] = {
     "let"

@@ -67,7 +67,7 @@ void t_lexer (void) {
 
 void t_parser_type (void) {
     {
-        LX.buf = stropen("()");
+        parser_init(stropen("()"));
         assert(parser_type().sub == TYPE_UNIT);
         fclose(LX.buf);
     }
@@ -75,17 +75,17 @@ void t_parser_type (void) {
 
 void t_parser_expr (void) {
     {
-        LX.buf = stropen("(())");
+        parser_init(stropen("(())"));
         assert(parser_expr().sub == EXPR_UNIT);
         fclose(LX.buf);
     }
     {
-        LX.buf = stropen("( ( ) )");
+        parser_init(stropen("( ( ) )"));
         assert(parser_expr().sub == EXPR_UNIT);
         fclose(LX.buf);
     }
     {
-        LX.buf = stropen("(\n( \n");
+        parser_init(stropen("(\n( \n"));
         Expr e = parser_expr();
         puts(e.err.msg);
         assert(e.sub == EXPR_NONE); assert(!strcmp(e.err.msg, "(ln 2, col 2): expected `)`"));
@@ -95,7 +95,7 @@ void t_parser_expr (void) {
 
 void t_parser_decl (void) {
     {
-        LX.buf = stropen("a :: ()");
+        parser_init(stropen("a :: ()"));
         Decl decl = parser_decl();
         assert(decl.var.sym  == TK_VAR);
         assert(!strcmp(decl.var.val.s, "a"));
@@ -103,8 +103,7 @@ void t_parser_decl (void) {
         fclose(LX.buf);
     }
     {
-puts("=========");
-        LX.buf = stropen("a :: (x)");
+        parser_init(stropen("a :: (x)"));
         Decl decl = parser_decl();
         assert(decl.sub == DECL_NONE);
         printf("%s\n", decl.err.msg);
@@ -115,7 +114,7 @@ puts("=========");
 
 void t_parser (void) {
     {
-        LX.buf = stropen("xxx (  ) XXX");
+        parser_init(stropen("xxx (  ) XXX"));
         Expr e1 = parser_expr();
         assert(e1.sub == EXPR_VAR);  assert(!strcmp(e1.tk.val.s, "xxx"));
         assert(parser_expr().sub == EXPR_UNIT);

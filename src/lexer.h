@@ -27,9 +27,15 @@ typedef struct {
     TK_val val;
 } Tk;
 
-struct {
+typedef struct {
     FILE* buf;
-} LX;
+    long  off;   // position before token (to fallback)
+    long  lin;   // line before token
+    long  col;   // column before token
+    Tk    tk;
+} Lexer;
+
+extern Lexer LX;
 
 const char* lexer_tk2str (Tk* tk);
 int lexer_tk2len (Tk* tk);
