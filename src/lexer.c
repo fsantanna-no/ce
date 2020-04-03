@@ -47,6 +47,10 @@ printf("0> %c\n", c);
                 }
                 return TK_LINE;
 
+            case ':':
+                c = fgetc(LX.buf);
+                return (c == ':') ? TK_DECL : TK_NONE;
+
             case '-':
                 c = fgetc(LX.buf);
                 if (c == '-') {
@@ -62,7 +66,7 @@ printf("0> %c\n", c);
                     }
                     return TK_COMMENT;
                 }
-                return c;
+                return TK_NONE;
 
             default:
 

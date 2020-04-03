@@ -8,6 +8,7 @@ typedef enum TK {
     TK_COMMENT,
     TK_LINE,
 
+    TK_DECL,
     TK_VAR,
     TK_DATA,
 

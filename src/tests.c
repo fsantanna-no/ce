@@ -56,6 +56,13 @@ void t_lexer (void) {
         assert(lexer() == TK_EOF);
         fclose(LX.buf);
     }
+    {
+        LX.buf = stropen(": :: :");
+        assert(lexer() == TK_NONE);
+        assert(lexer() == TK_DECL);
+        assert(lexer() == TK_NONE);
+        fclose(LX.buf);
+    }
 }
 
 void t_parser_exp (void) {
