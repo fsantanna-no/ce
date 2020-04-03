@@ -6,7 +6,7 @@ typedef enum TK {
 
     TK_EOF,
     TK_COMMENT,
-    TK_NEWLINE,
+    TK_LINE,
 
     TK_VAR,
     TK_DATA,

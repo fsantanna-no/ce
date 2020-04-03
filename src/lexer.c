@@ -36,14 +36,14 @@ printf("0> %c\n", c);
                 return TK_EOF;
 
             case '\n':
-                return TK_NEWLINE;
+                return TK_LINE;
 
             case '\r':
                 c = fgetc(LX.buf);
                 if (c != '\n') {
                     ungetc(c, LX.buf);
                 }
-                return TK_NEWLINE;
+                return TK_LINE;
 
             case '-':
                 c = fgetc(LX.buf);

@@ -19,21 +19,21 @@ void t_lexer (void) {
     {
         LX.buf = stropen("-- c1\n--c2\n\n");
         assert(lexer() == TK_COMMENT);
-        assert(lexer() == TK_NEWLINE);
+        assert(lexer() == TK_LINE);
         assert(lexer() == TK_COMMENT);
-        assert(lexer() == TK_NEWLINE);
-        assert(lexer() == TK_NEWLINE);
+        assert(lexer() == TK_LINE);
+        assert(lexer() == TK_LINE);
         assert(lexer() == TK_EOF);
         fclose(LX.buf);
     }
     {
         LX.buf = stropen(" c1\nc2 c3'  \n  \nc4");
         assert(lexer() == TK_VAR);         assert(!strcmp(LX.value, "c1"));
-        assert(lexer() == TK_NEWLINE);
+        assert(lexer() == TK_LINE);
         assert(lexer() == TK_VAR);         assert(!strcmp(LX.value, "c2"));
         assert(lexer() == TK_VAR);         assert(!strcmp(LX.value, "c3'"));
-        assert(lexer() == TK_NEWLINE);
-        assert(lexer() == TK_NEWLINE);
+        assert(lexer() == TK_LINE);
+        assert(lexer() == TK_LINE);
         assert(lexer() == TK_VAR);         assert(!strcmp(LX.value, "c4"));
         assert(lexer() == TK_EOF);
         fclose(LX.buf);
@@ -60,9 +60,18 @@ void t_lexer (void) {
 
 void t_parser_exp (void) {
     {
-        printf(">>>\n");
         LX.buf = stropen("(())");
         assert(parser_exp() == EXP_UNIT);
+        fclose(LX.buf);
+    }
+    {
+        LX.buf = stropen("( ( ) )");
+        assert(parser_exp() == EXP_UNIT);
+        fclose(LX.buf);
+    }
+    {
+        LX.buf = stropen("(\n( \n");
+        assert(parser_exp() == EXP_NONE); assert(!strcmp(LX.value, "(ln 2, col X): expected `)`"));
         fclose(LX.buf);
     }
 }
