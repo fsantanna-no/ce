@@ -118,6 +118,11 @@ typedef union {
 typedef int (*List_F) (List_Item*);
 
 int parser_list (List* ret, List_F f, size_t unit) {
+    if (!pr_accept(':',1)) {
+        ret->err = expected("`:`");
+        return 0;
+    }
+
     NXT.ind++;
 
     if (!pr_accept(TK_LINE, NXT.tk.val.n==NXT.ind)) {
@@ -221,7 +226,7 @@ Expr parser_expr_one (void) {
         return (Expr) { EXPR_FUNC, .Func={tp,pe} };
 
     // EXPR_EXPRS
-    } else if (pr_accept(':',1)) {
+    } else if (pr_check(':',1)) {
         List lst;
         int ok = parser_list(&lst, &parser_expr_, sizeof(Expr));
         if (ok) {
@@ -264,44 +269,36 @@ Expr parser_expr (void) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-#if 0
-void* parser_decl (void) {
-    static Decl decl;
+int parser_decl (List_Item* item) {
+    static Decl d;
 
     if (!pr_accept(TK_VAR,1)) {
-        return (Decls) { DECLS_NONE, .err=expected("declaration") };
+        item->err = expected("declaration");
+        return 0;
     }
-    Tk var = PRV.tk;
+    d.var = PRV.tk;
 
-    // DECL_SIG
-    if (pr_accept(TK_DECL,1)) {
-        Type tp = parser_type();
-        if (tp.sub == TYPE_NONE) {
-            return (Decls) { DECLS_NONE, .err=tp.err };
-        }
-        //return (Decls) { DECL_SIG, .var=var, .type=tp };
-
+    if (!pr_accept(TK_DECL,1)) {
+        item->err = expected("`::`");
+        return 0;
     }
 
-    return (Decls) { DECLS_NONE, .err=expected("`::`") };
+    d.type = parser_type();
+    if (d.type.sub == TYPE_NONE) {
+        item->err = d.type.err;
+        return 0;
+    }
+
+    item->val = &d;
+    return 1;
 }
-#endif
 
 Decls parser_decls (void) {
-    if (!pr_accept(TK_VAR,1)) {
-        return (Decls) { DECLS_NONE, .err=expected("declaration") };
+    List lst;
+    int ok = parser_list(&lst, &parser_decl, sizeof(Decl));
+    if (ok) {
+        return (Decls) { DECLS_SOME, .size=lst.size, .vec=lst.vec };
+    } else {
+        return (Decls) { DECLS_NONE, .err=lst.err };
     }
-    Tk var = PRV.tk;
-
-    // DECL_SIG
-    if (pr_accept(TK_DECL,1)) {
-        Type tp = parser_type();
-        if (tp.sub == TYPE_NONE) {
-            return (Decls) { DECLS_NONE, .err=tp.err };
-        }
-        //return (Decls) { DECL_SIG, .var=var, .type=tp };
-
-    }
-
-    return (Decls) { DECLS_NONE, .err=expected("`::`") };
 }

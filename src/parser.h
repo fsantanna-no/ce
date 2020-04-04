@@ -16,7 +16,7 @@ typedef enum {
 
 typedef enum {
     DECLS_NONE = 0,
-    DECLS_OK
+    DECLS_SOME
 } DECLS;
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -45,7 +45,7 @@ typedef struct {
         Error err;
         struct {
             int size;
-            struct Decl* vec;
+            Decl* vec;
         };
     };
 } Decls;
