@@ -100,6 +100,60 @@ Type parser_type (void) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
+typedef union {
+    Error err;
+    struct {
+        int size;
+        void* vec;
+    };
+} List;
+
+int parser_list (List* ret, void* (*f) (void), size_t unit, const char* xp) {
+    CUR.ind++;
+
+    if (!pr_accept(TK_LINE, CUR.tk.val.n==CUR.ind)) {
+        ret->err = unexpected("indentation level");
+        return 0;
+    }
+
+    void* vec = NULL;
+    int i = 0;
+    while (1) {
+        void* e = f();
+        if (e == NULL) {
+            if (i == 0) {
+                ret->err = expected(xp);
+                return 0;
+            } else {
+                break;
+            }
+        }
+        vec = realloc(vec, (i+1)*unit);
+        memcpy(vec+i*unit, e, unit);
+        i++;
+        if (pr_accept(TK_EOF,1) || pr_accept(TK_LINE, CUR.tk.val.n<CUR.ind)) {
+            break;
+        }
+        if (!pr_accept(TK_LINE, CUR.tk.val.n==CUR.ind)) {
+            ret->err = unexpected("indentation level");
+            return 0;
+        }
+    }
+
+    CUR.ind--;
+    ret->size = i;
+    ret->vec  = vec;
+    return 1;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+void* parser_expr_ (void) {
+    static Expr e;
+    e = parser_expr();
+    return &e;
+}
+
 Expr parser_expr_one (void) {
     // PARENS
     if (pr_accept('(',1)) {
@@ -152,35 +206,13 @@ Expr parser_expr_one (void) {
 
     // EXPR_EXPRS
     } else if (pr_accept(':',1)) {
-        CUR.ind++;
-
-        if (!pr_accept(TK_LINE, CUR.tk.val.n==CUR.ind)) {
-            return (Expr) { EXPR_NONE, .err=unexpected("indentation level") };
+        List lst;
+        int ok = parser_list(&lst, &parser_expr_, sizeof(Expr), "expression");
+        if (ok) {
+            return (Expr) { EXPR_EXPRS, .exprs={lst.size,lst.vec} };
+        } else {
+            return (Expr) { EXPR_NONE,  .err=lst.err };
         }
-
-        Expr* vec = NULL;
-        int i = 0;
-        while (1) {
-            Expr e = parser_expr();
-            if (e.sub == EXPR_NONE) {
-                if (i == 0) {
-                    return (Expr) { EXPR_NONE, .err=expected("expression") };
-                } else {
-                    break;
-                }
-            }
-            vec = realloc(vec, (i+1)*sizeof(vec[0]));
-            vec[i++] = e;
-            if (pr_accept(TK_EOF,1) || pr_accept(TK_LINE, CUR.tk.val.n<CUR.ind)) {
-                break;
-            }
-            if (!pr_accept(TK_LINE, CUR.tk.val.n==CUR.ind)) {
-                return (Expr) { EXPR_NONE, .err=unexpected("indentation level") };
-            }
-        }
-
-        CUR.ind--;
-        return (Expr) { EXPR_EXPRS, .exprs={i,vec} };
 
     // EXPR_VAR,EXPR_DATA
     } else if (pr_accept(TK_VAR,1)) {
