@@ -29,29 +29,29 @@ void parser_dump_expr (Expr e, int spc) {
 ///////////////////////////////////////////////////////////////////////////////
 
 void pr_next () {
-    OLD = CUR;
+    PRV = NXT;
 
-    long off = ftell(CUR.buf);
+    long off = ftell(NXT.buf);
     Tk   tk  = lexer();
 
-    if (OLD.off == -1) {
-        CUR.lin = 1;
-        CUR.col = 1;
+    if (PRV.off == -1) {
+        NXT.lin = 1;
+        NXT.col = 1;
     } else {
-        if (OLD.tk.sym == TK_LINE) {
-            CUR.lin = OLD.lin + 1;
-            CUR.col = (off - OLD.off);
+        if (PRV.tk.sym == TK_LINE) {
+            NXT.lin = PRV.lin + 1;
+            NXT.col = (off - PRV.off);
         } else {
-            CUR.col = OLD.col + (off - OLD.off);
+            NXT.col = PRV.col + (off - PRV.off);
         }
     }
-    CUR.tk  = tk;
-    CUR.off = off;
-    printf("CUR: ln=%ld cl=%ld off=%ld tk=%s\n", CUR.lin, CUR.col, CUR.off, lexer_tk2str(&CUR.tk));
+    NXT.tk  = tk;
+    NXT.off = off;
+    printf("NXT: ln=%ld cl=%ld off=%ld tk=%s\n", NXT.lin, NXT.col, NXT.off, lexer_tk2str(&NXT.tk));
 }
 
 int pr_accept (TK tk, int ok) {
-    if (CUR.tk.sym==tk && ok) {
+    if (NXT.tk.sym==tk && ok) {
         pr_next();
         return 1;
     } else {
@@ -63,23 +63,23 @@ int pr_accept (TK tk, int ok) {
 
 Error expected (const char* v) {
     Error ret;
-    ret.off = CUR.off;
+    ret.off = NXT.off;
     sprintf(ret.msg, "(ln %ld, col %ld): expected %s : have %s",
-        CUR.lin, CUR.col, v, lexer_tk2str(&CUR.tk));
+        NXT.lin, NXT.col, v, lexer_tk2str(&NXT.tk));
     return ret;
 }
 
 Error unexpected (const char* v) {
     Error ret;
-    ret.off = CUR.off;
-    sprintf(ret.msg, "(ln %ld, col %ld): unexpected %s", CUR.lin, CUR.col, v);
+    ret.off = NXT.off;
+    sprintf(ret.msg, "(ln %ld, col %ld): unexpected %s", NXT.lin, NXT.col, v);
     return ret;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
 void parser_init (FILE* buf) {
-    CUR = (Lexer) { buf,0,-1,0,0,{} };
+    NXT = (Lexer) { buf,0,-1,0,0,{} };
     pr_next();
 }
 
@@ -90,7 +90,7 @@ Type parser_type (void) {
         if (pr_accept(')',1)) {
             return (Type) { TYPE_UNIT, {} };
         } else {
-            return (Type) { TYPE_NONE, .err=unexpected(lexer_tk2str(&CUR.tk)) };
+            return (Type) { TYPE_NONE, .err=unexpected(lexer_tk2str(&NXT.tk)) };
         }
     }
     return (Type) { TYPE_NONE, .err=expected("type") };
@@ -114,9 +114,9 @@ typedef union {
 typedef int (*List_F) (List_Item*);
 
 int parser_list (List* ret, List_F f, size_t unit) {
-    CUR.ind++;
+    NXT.ind++;
 
-    if (!pr_accept(TK_LINE, CUR.tk.val.n==CUR.ind)) {
+    if (!pr_accept(TK_LINE, NXT.tk.val.n==NXT.ind)) {
         ret->err = unexpected("indentation level");
         return 0;
     }
@@ -132,11 +132,11 @@ int parser_list (List* ret, List_F f, size_t unit) {
         vec = realloc(vec, (i+1)*unit);
         memcpy(vec+i*unit, item.val, unit);
         i++;
-        if (pr_accept(TK_EOF,1) || pr_accept(TK_LINE, CUR.tk.val.n<CUR.ind)) {
+        if (pr_accept(TK_EOF,1) || pr_accept(TK_LINE, NXT.tk.val.n<NXT.ind)) {
             break;
         }
-        if (!pr_accept(TK_LINE, CUR.tk.val.n==CUR.ind)) {
-            if (pr_accept(TK_LINE, CUR.tk.val.n>CUR.ind)) {
+        if (!pr_accept(TK_LINE, NXT.tk.val.n==NXT.ind)) {
+            if (pr_accept(TK_LINE, NXT.tk.val.n>NXT.ind)) {
                 ret->err = unexpected("indentation level");
                 return 0;
             } else {
@@ -146,7 +146,7 @@ int parser_list (List* ret, List_F f, size_t unit) {
         }
     }
 
-    CUR.ind--;
+    NXT.ind--;
     ret->size = i;
     ret->vec  = vec;
     return 1;
@@ -185,7 +185,7 @@ Expr parser_expr_one (void) {
         if (!pr_accept(TK_VAR,1)) {
             return (Expr) { EXPR_NONE, .err=expected("variable") };
         }
-        Tk var = OLD.tk;
+        Tk var = PRV.tk;
         if (!pr_accept('=',1)) {
             return (Expr) { EXPR_NONE, .err=expected("`=`") };
         }
@@ -228,9 +228,9 @@ Expr parser_expr_one (void) {
 
     // EXPR_VAR,EXPR_DATA
     } else if (pr_accept(TK_VAR,1)) {
-        return (Expr) { EXPR_VAR, .tk=OLD.tk };
+        return (Expr) { EXPR_VAR, .tk=PRV.tk };
     } else if (pr_accept(TK_DATA,1)) {
-        return (Expr) { EXPR_CONS, .tk=OLD.tk };
+        return (Expr) { EXPR_CONS, .tk=PRV.tk };
     }
     return (Expr) { EXPR_NONE, {} };
 }
@@ -241,10 +241,10 @@ Expr parser_expr (void) {
         return e1;
     }
 
-    Lexer BAK = CUR;
+    Lexer BAK = NXT;
     Expr e2 = parser_expr_one();
     if (e2.sub == EXPR_NONE) {
-        CUR = BAK;
+        NXT = BAK;
         fseek(BAK.buf, BAK.off, SEEK_SET);
         pr_next();
         return e1;
@@ -267,7 +267,7 @@ void* parser_decl (void) {
     if (!pr_accept(TK_VAR,1)) {
         return (Decls) { DECLS_NONE, .err=expected("declaration") };
     }
-    Tk var = OLD.tk;
+    Tk var = PRV.tk;
 
     // DECL_SIG
     if (pr_accept(TK_DECL,1)) {
@@ -287,7 +287,7 @@ Decls parser_decls (void) {
     if (!pr_accept(TK_VAR,1)) {
         return (Decls) { DECLS_NONE, .err=expected("declaration") };
     }
-    Tk var = OLD.tk;
+    Tk var = PRV.tk;
 
     // DECL_SIG
     if (pr_accept(TK_DECL,1)) {

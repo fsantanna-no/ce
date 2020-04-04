@@ -6,8 +6,8 @@
 #include "lexer.h"
 #include "parser.h"
 
-Lexer CUR = { NULL,0,-1,0,0,{} };
-Lexer OLD = { NULL,0,-1,0,0,{} };
+Lexer NXT = { NULL,0,-1,0,0,{} };
+Lexer PRV = { NULL,0,-1,0,0,{} };
 
 static char* reserved[] = {
     "func", "let", "set"
@@ -44,7 +44,7 @@ const char* lexer_tk2str (Tk* tk) {
 
 TK lexer_ (TK_val* val) {
     while (1) {
-        int c = fgetc(CUR.buf);
+        int c = fgetc(NXT.buf);
 //printf("0> [%c] [%d]\n", c, c);
         switch (c)
         {
@@ -58,9 +58,9 @@ TK lexer_ (TK_val* val) {
             case '\n': {
                 int i = 0;
                 while (1) {
-                    c = fgetc(CUR.buf);
+                    c = fgetc(NXT.buf);
                     if (c != ' ') {
-                        ungetc(c, CUR.buf);
+                        ungetc(c, NXT.buf);
                         break;
                     }
                     i++;
@@ -73,24 +73,24 @@ TK lexer_ (TK_val* val) {
             }
 
             case ':':
-                c = fgetc(CUR.buf);
+                c = fgetc(NXT.buf);
                 if (c == ':') {
                     return TK_DECL;
                 } else {
-                    ungetc(c, CUR.buf);
+                    ungetc(c, NXT.buf);
                     return ':';
                 }
 
             case '-':
-                c = fgetc(CUR.buf);
+                c = fgetc(NXT.buf);
                 if (c == '-') {
                     while (1) {
-                        c = fgetc(CUR.buf);
+                        c = fgetc(NXT.buf);
                         if (c == EOF) {
                             break;      // EOF stops comment
                         }
                         if (c=='\n' || c=='\r') {
-                            ungetc(c, CUR.buf);
+                            ungetc(c, NXT.buf);
                             break;      // NEWLINE stops comment
                         }
                     }
@@ -110,10 +110,10 @@ TK lexer_ (TK_val* val) {
                 int i = 0;
                 while (isalnum(c) || c=='_' || c=='\'' || c=='?' || c=='!') {
                     val->s[i++] = c;
-                    c = fgetc(CUR.buf);
+                    c = fgetc(NXT.buf);
                 }
                 val->s[i] = '\0';
-                ungetc(c, CUR.buf);
+                ungetc(c, NXT.buf);
 
                 int key = is_reserved(val);
                 if (key) {
@@ -129,9 +129,9 @@ Tk lexer () {
     Tk ret;
     TK tk = lexer_(&ret.val);
     while (1) {
-        int c = fgetc(CUR.buf);
+        int c = fgetc(NXT.buf);
         if (c != ' ') {
-            ungetc(c, CUR.buf);
+            ungetc(c, NXT.buf);
             break;
         }
     }
