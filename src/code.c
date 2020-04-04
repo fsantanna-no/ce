@@ -3,6 +3,12 @@
 #include "parser.h"
 #include "code.h"
 
+void code_ret (const char* ret) {
+    if (ret != NULL) {
+        fputs("ret = ", NXT.out);
+    }
+}
+
 void code_type (Type tp) {
     switch (tp.sub) {
         case TYPE_UNIT:
@@ -13,9 +19,10 @@ void code_type (Type tp) {
     }
 }
 
-void code_expr (int spc, Expr e) {
+void code_expr (int spc, Expr e, const char* ret) {
     switch (e.sub) {
         case EXPR_VAR:
+            code_ret(ret);
             fputs(e.tk.val.s, NXT.out);
             break;
     }
@@ -31,7 +38,16 @@ void code_decls (int spc, Decls ds) {
     }
 }
 
-void code_block (int spc, Block blk) {
+void code_block (int spc, Block blk, const char* ret) {
     code_decls(spc, blk.decls);
-    code_expr (spc, blk.expr);
+    for (int i=0; i<spc; i++) fputs(" ", NXT.out);
+    code_expr (spc, blk.expr, ret);
+    fputs(";\n", NXT.out);
+}
+
+void code (Block blk) {
+    fputs("int main (void) {\n    int ret;\n", NXT.out);
+    code_block(4, blk, "ret");
+    fprintf(NXT.out, "    printf(\"%%d\", ret);\n");
+    fputs("}", NXT.out);
 }

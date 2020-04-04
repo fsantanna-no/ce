@@ -294,7 +294,7 @@ void t_code (void) {
         e.sub = EXPR_VAR;
         e.tk.sym = TK_VAR;
         strcpy(e.tk.val.s, "xxx");
-        code_expr(0, e);
+        code_expr(0, e, NULL);
         fclose(NXT.out);
         assert(!strcmp(out,"xxx"));
     }
@@ -313,10 +313,21 @@ void t_code (void) {
             ds.sub = DECLS_OK;
             ds.size = 1;
             ds.vec = &d;
-        code_block(0, (Block) { BLOCK_OK, .decls=ds, .expr=e });
+        code_block(0, (Block) { BLOCK_OK, .decls=ds, .expr=e }, "ret");
         fclose(NXT.out);
         //puts(out);
-        assert(!strcmp(out,"int /* () */ xxx;\nxxx"));
+        assert(!strcmp(out,"int /* () */ xxx;\nret = xxx;\n"));
+    }
+    {
+        char out[256];
+        init (
+            stropen("w", sizeof(out), out),
+            stropen("r", 0, "a:\n    a :: ()")
+        );
+        Block b = parser_block();
+        code(b);
+        fclose(NXT.out);
+        puts(out);
     }
 }
 
