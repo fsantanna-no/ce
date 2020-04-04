@@ -111,9 +111,16 @@ void t_parser_expr (void) {
     }
     // EXPR_VAR
     {
-        parser_init(stropen("x("));
+        parser_init(stropen("x:"));
         Expr e = parser_expr();
         assert(e.sub == EXPR_VAR);
+        fclose(NXT.buf);
+    }
+    {
+        parser_init(stropen("x("));
+        Expr e = parser_expr();
+        assert(e.sub == EXPR_NONE);
+        assert(!strcmp(e.err.msg, "(ln 1, col 3): expected `)` : have end of file"));
         fclose(NXT.buf);
     }
     // EXPR_SET
@@ -176,17 +183,22 @@ void t_parser_expr (void) {
         fclose(NXT.buf);
     }
     {
-        parser_init(stropen(":\n    x("));
+        parser_init(stropen(":\n    x x"));
         Expr e = parser_expr();
-        assert(!strcmp(e.err.msg, "(ln 2, col 6): expected new line : have `(`"));
+        assert(!strcmp(e.err.msg, "(ln 2, col 7): expected new line : have `x`"));
         fclose(NXT.buf);
     }
     {
-puts(">>>");
-        parser_init(stropen(":\n    x\n    y("));
+        parser_init(stropen(":\n    x\n    y ("));
         Expr e = parser_expr();
-puts(e.err.msg);
-        assert(!strcmp(e.err.msg, "(ln 3, col 6): expected new line : have `(`"));
+        assert(!strcmp(e.err.msg, "(ln 3, col 8): expected `)` : have end of file"));
+        fclose(NXT.buf);
+    }
+    {
+        parser_init(stropen(":\n    x\n    y y"));
+        Expr e = parser_expr();
+//puts(e.err.msg);
+        assert(!strcmp(e.err.msg, "(ln 3, col 7): expected new line : have `y`"));
         fclose(NXT.buf);
     }
     {

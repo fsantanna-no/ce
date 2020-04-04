@@ -47,7 +47,7 @@ void pr_next () {
     }
     NXT.tk  = tk;
     NXT.off = off;
-    printf("NXT: ln=%ld cl=%ld off=%ld tk=%s\n", NXT.lin, NXT.col, NXT.off, lexer_tk2str(&NXT.tk));
+    //printf("NXT: ln=%ld cl=%ld off=%ld tk=%s\n", NXT.lin, NXT.col, NXT.off, lexer_tk2str(&NXT.tk));
 }
 
 int pr_accept (TK tk, int ok) {
@@ -57,6 +57,10 @@ int pr_accept (TK tk, int ok) {
     } else {
         return 0;
     }
+}
+
+int pr_check (TK tk, int ok) {
+    return (NXT.tk.sym==tk && ok);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -241,13 +245,13 @@ Expr parser_expr (void) {
         return e1;
     }
 
-    Lexer BAK = NXT;
-    Expr e2 = parser_expr_one();
-    if (e2.sub == EXPR_NONE) {
-        NXT = BAK;
-        fseek(BAK.buf, BAK.off, SEEK_SET);
-        pr_next();
+    if (!pr_check('(',1)) {
         return e1;
+    }
+
+    Expr e2 = parser_expr();
+    if (e2.sub == EXPR_NONE) {
+        return e2;
     }
 
     Expr* pe1 = malloc(sizeof(*pe1));
