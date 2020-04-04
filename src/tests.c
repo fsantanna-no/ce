@@ -109,6 +109,13 @@ void t_parser_expr (void) {
         assert(e.sub == EXPR_NONE); assert(!strcmp(e.err.msg, "(ln 1, col 2): expected `)` : have new line"));
         fclose(CUR.buf);
     }
+    // EXPR_VAR
+    {
+        parser_init(stropen("x("));
+        Expr e = parser_expr();
+        assert(e.sub == EXPR_VAR);
+        fclose(CUR.buf);
+    }
     // EXPR_SET
     {
         parser_init(stropen("set () = (x"));
@@ -166,6 +173,20 @@ void t_parser_expr (void) {
         Expr e = parser_expr();
         assert(e.sub == EXPR_EXPRS);
         assert(e.exprs.size == 1);
+        fclose(CUR.buf);
+    }
+    {
+        parser_init(stropen(":\n    x("));
+        Expr e = parser_expr();
+        assert(!strcmp(e.err.msg, "(ln 2, col 6): expected new line : have `(`"));
+        fclose(CUR.buf);
+    }
+    {
+puts(">>>");
+        parser_init(stropen(":\n    x\n    y("));
+        Expr e = parser_expr();
+puts(e.err.msg);
+        assert(!strcmp(e.err.msg, "(ln 3, col 6): expected new line : have `(`"));
         fclose(CUR.buf);
     }
     {

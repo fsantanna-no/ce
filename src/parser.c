@@ -40,14 +40,14 @@ void pr_next () {
     } else {
         if (OLD.tk.sym == TK_LINE) {
             CUR.lin = OLD.lin + 1;
-            CUR.col = 1;
+            CUR.col = (off - OLD.off);
         } else {
             CUR.col = OLD.col + (off - OLD.off);
         }
     }
     CUR.tk  = tk;
     CUR.off = off;
-    //printf("CUR: ln=%ld cl=%ld off=%ld tk=%s\n", CUR.lin, CUR.col, CUR.off, lexer_tk2str(&CUR.tk));
+    printf("CUR: ln=%ld cl=%ld off=%ld tk=%s\n", CUR.lin, CUR.col, CUR.off, lexer_tk2str(&CUR.tk));
 }
 
 int pr_accept (TK tk, int ok) {
@@ -64,8 +64,6 @@ int pr_accept (TK tk, int ok) {
 Error expected (const char* v) {
     Error ret;
     ret.off = CUR.off;
-    //sprintf(ret.msg, "(ln %ld, col %ld): expected %s : have %s",
-        //CUR.lin, CUR.col+lexer_tk2len(&CUR.tk), v, lexer_tk2str(&CUR.tk));
     sprintf(ret.msg, "(ln %ld, col %ld): expected %s : have %s",
         CUR.lin, CUR.col, v, lexer_tk2str(&CUR.tk));
     return ret;
@@ -108,7 +106,14 @@ typedef union {
     };
 } List;
 
-int parser_list (List* ret, void* (*f) (void), size_t unit, const char* xp) {
+typedef union {
+    Error err;
+    void* val;
+} List_Item;
+
+typedef int (*List_F) (List_Item*);
+
+int parser_list (List* ret, List_F f, size_t unit) {
     CUR.ind++;
 
     if (!pr_accept(TK_LINE, CUR.tk.val.n==CUR.ind)) {
@@ -119,24 +124,25 @@ int parser_list (List* ret, void* (*f) (void), size_t unit, const char* xp) {
     void* vec = NULL;
     int i = 0;
     while (1) {
-        void* e = f();
-        if (e == NULL) {
-            if (i == 0) {
-                ret->err = expected(xp);
-                return 0;
-            } else {
-                break;
-            }
+        List_Item item;
+        if (!f(&item)) {
+            ret->err = item.err;
+            return 0;
         }
         vec = realloc(vec, (i+1)*unit);
-        memcpy(vec+i*unit, e, unit);
+        memcpy(vec+i*unit, item.val, unit);
         i++;
         if (pr_accept(TK_EOF,1) || pr_accept(TK_LINE, CUR.tk.val.n<CUR.ind)) {
             break;
         }
         if (!pr_accept(TK_LINE, CUR.tk.val.n==CUR.ind)) {
-            ret->err = unexpected("indentation level");
-            return 0;
+            if (pr_accept(TK_LINE, CUR.tk.val.n>CUR.ind)) {
+                ret->err = unexpected("indentation level");
+                return 0;
+            } else {
+                ret->err = expected("new line");
+                return 0;
+            }
         }
     }
 
@@ -148,10 +154,16 @@ int parser_list (List* ret, void* (*f) (void), size_t unit, const char* xp) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void* parser_expr_ (void) {
+int parser_expr_ (List_Item* item) {
     static Expr e;
     e = parser_expr();
-    return &e;
+    if (e.sub == EXPR_NONE) {
+        item->err = e.err;
+        return 0;
+    } else {
+        item->val = &e;
+        return 1;
+    }
 }
 
 Expr parser_expr_one (void) {
@@ -173,7 +185,7 @@ Expr parser_expr_one (void) {
         if (!pr_accept(TK_VAR,1)) {
             return (Expr) { EXPR_NONE, .err=expected("variable") };
         }
-        Tk var = CUR.tk;
+        Tk var = OLD.tk;
         if (!pr_accept('=',1)) {
             return (Expr) { EXPR_NONE, .err=expected("`=`") };
         }
@@ -207,7 +219,7 @@ Expr parser_expr_one (void) {
     // EXPR_EXPRS
     } else if (pr_accept(':',1)) {
         List lst;
-        int ok = parser_list(&lst, &parser_expr_, sizeof(Expr), "expression");
+        int ok = parser_list(&lst, &parser_expr_, sizeof(Expr));
         if (ok) {
             return (Expr) { EXPR_EXPRS, .exprs={lst.size,lst.vec} };
         } else {
@@ -232,6 +244,7 @@ Expr parser_expr (void) {
     Lexer BAK = CUR;
     Expr e2 = parser_expr_one();
     if (e2.sub == EXPR_NONE) {
+        CUR = BAK;
         fseek(BAK.buf, BAK.off, SEEK_SET);
         pr_next();
         return e1;
@@ -246,6 +259,29 @@ Expr parser_expr (void) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+
+#if 0
+void* parser_decl (void) {
+    static Decl decl;
+
+    if (!pr_accept(TK_VAR,1)) {
+        return (Decls) { DECLS_NONE, .err=expected("declaration") };
+    }
+    Tk var = OLD.tk;
+
+    // DECL_SIG
+    if (pr_accept(TK_DECL,1)) {
+        Type tp = parser_type();
+        if (tp.sub == TYPE_NONE) {
+            return (Decls) { DECLS_NONE, .err=tp.err };
+        }
+        //return (Decls) { DECL_SIG, .var=var, .type=tp };
+
+    }
+
+    return (Decls) { DECLS_NONE, .err=expected("`::`") };
+}
+#endif
 
 Decls parser_decls (void) {
     if (!pr_accept(TK_VAR,1)) {

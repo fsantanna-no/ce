@@ -23,17 +23,6 @@ int is_reserved (TK_val* val) {
     return 0;
 }
 
-int lexer_tk2len (Tk* tk) {
-    switch (tk->sym) {
-        case TK_LINE:
-            return tk->val.n;
-        case TK_VAR:
-            return strlen(tk->val.s);
-        default:
-            return 1;
-    }
-}
-
 const char* lexer_tk2str (Tk* tk) {
     static char str[512];
     switch (tk->sym) {
