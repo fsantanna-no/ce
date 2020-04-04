@@ -49,5 +49,5 @@ void code (Block blk) {
     fputs("int main (void) {\n    int ret;\n", NXT.out);
     code_block(4, blk, "ret");
     fprintf(NXT.out, "    printf(\"%%d\", ret);\n");
-    fputs("}", NXT.out);
+    fputs("}\n", NXT.out);
 }

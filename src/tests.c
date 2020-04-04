@@ -327,7 +327,14 @@ void t_code (void) {
         Block b = parser_block();
         code(b);
         fclose(NXT.out);
-        puts(out);
+        char* ret =
+            "int main (void) {\n"
+            "    int ret;\n"
+            "    int /* () */ a;\n"
+            "    ret = a;\n"
+            "    printf(\"%d\", ret);\n"
+            "}\n";
+        assert(!strcmp(out,ret));
     }
 }
 
