@@ -10,7 +10,7 @@ Lexer CUR = { NULL,0,-1,0,0,{} };
 Lexer OLD = { NULL,0,-1,0,0,{} };
 
 static char* reserved[] = {
-    "func", "let"
+    "func", "let", "set"
 };
 
 int is_reserved (TK_val* val) {
@@ -59,9 +59,6 @@ TK lexer_ (TK_val* val) {
 //printf("0> [%c] [%d]\n", c, c);
         switch (c)
         {
-            case ' ':
-                break;
-
             case '(':
             case ')':
                 return c;
@@ -142,6 +139,13 @@ TK lexer_ (TK_val* val) {
 Tk lexer () {
     Tk ret;
     TK tk = lexer_(&ret.val);
+    while (1) {
+        int c = fgetc(CUR.buf);
+        if (c != ' ') {
+            ungetc(c, CUR.buf);
+            break;
+        }
+    }
     ret.sym = tk;
     return ret;
 }

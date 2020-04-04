@@ -114,7 +114,25 @@ Expr parser_expr_one (void) {
             }
         }
 
-    // FUNC
+    // EXPR_SET
+    } else if (pr_accept(TK_SET,1)) {
+        if (!pr_accept(TK_VAR,1)) {
+            return (Expr) { EXPR_NONE, .err=expected("variable") };
+        }
+        Tk var = CUR.tk;
+        if (!pr_accept('=',1)) {
+            return (Expr) { EXPR_NONE, .err=expected("`=`") };
+        }
+        Expr e = parser_expr();
+        if (e.sub == EXPR_NONE) {
+            return (Expr) { EXPR_NONE, .err=e.err };
+        }
+        Expr* pe = malloc(sizeof(*pe));
+        assert(pe != NULL);
+        *pe = e;
+        return (Expr) { EXPR_SET, .Set={var,pe} };
+
+    // EXPR_FUNC
     } else if (pr_accept(TK_FUNC,1)) {
         if (!pr_accept(TK_DECL,1)) {
             return (Expr) { EXPR_NONE, .err=expected("`::`") };
@@ -132,7 +150,7 @@ Expr parser_expr_one (void) {
         *pe = e;
         return (Expr) { EXPR_FUNC, .Func={tp,pe} };
 
-    // EXPRS
+    // EXPR_EXPRS
     } else if (pr_accept(':',1)) {
         CUR.ind++;
 
@@ -164,7 +182,7 @@ Expr parser_expr_one (void) {
         CUR.ind--;
         return (Expr) { EXPR_EXPRS, .exprs={i,vec} };
 
-    // VAR,DATA
+    // EXPR_VAR,EXPR_DATA
     } else if (pr_accept(TK_VAR,1)) {
         return (Expr) { EXPR_VAR, .tk=OLD.tk };
     } else if (pr_accept(TK_DATA,1)) {
@@ -211,13 +229,6 @@ Decl parser_decl (void) {
         }
         return (Decl) { DECL_SIG, .var=var, .type=tp };
 
-    // DECL_ATR
-    } else if (pr_accept('=',1)) {
-        Expr e = parser_expr();
-        if (e.sub == EXPR_NONE) {
-            return (Decl) { DECL_NONE, .err=e.err };
-        }
-        return (Decl) { DECL_ATR, .patt=var, .expr=e };
     }
 
     return (Decl) { DECL_NONE, .err=expected("`::`") };
