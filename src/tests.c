@@ -13,29 +13,29 @@ FILE* stropen (const char* mode, size_t size, char* str) {
 
 void t_lexer (void) {
     {
-        NXT.inp = stropen("r", 0, "-- foobar");
+        ALL.inp = stropen("r", 0, "-- foobar");
         assert(lexer().sym == TK_COMMENT);
         assert(lexer().sym == TK_EOF);
-        fclose(NXT.inp);
+        fclose(ALL.inp);
     }
     {
-        NXT.inp = stropen("r", 0, "-- c1\n--c2\n\n");
+        ALL.inp = stropen("r", 0, "-- c1\n--c2\n\n");
         assert(lexer().sym == TK_COMMENT);
         assert(lexer().sym == TK_LINE);
         assert(lexer().sym == TK_COMMENT);
         assert(lexer().sym == TK_LINE);
         assert(lexer().sym == TK_LINE);
         assert(lexer().sym == TK_EOF);
-        fclose(NXT.inp);
+        fclose(ALL.inp);
     }
     {
-        NXT.inp = stropen("r", 0, "\n  \n");
+        ALL.inp = stropen("r", 0, "\n  \n");
         assert(lexer().sym == TK_ERR);
         assert(lexer().sym == TK_LINE);
-        fclose(NXT.inp);
+        fclose(ALL.inp);
     }
     {
-        NXT.inp = stropen("r", 0, "c1\nc2 c3'  \n    \nc4");
+        ALL.inp = stropen("r", 0, "c1\nc2 c3'  \n    \nc4");
         Tk tk1 = lexer(); assert(tk1.sym == TK_IDVAR); assert(!strcmp(tk1.val.s, "c1"));
         assert(lexer().sym == TK_LINE);
         Tk tk3 = lexer(); assert(tk3.sym == TK_IDVAR); assert(!strcmp(tk3.val.s, "c2"));
@@ -44,32 +44,32 @@ void t_lexer (void) {
         assert(lexer().sym == TK_LINE);
         Tk tk5 = lexer(); assert(tk5.sym == TK_IDVAR); assert(!strcmp(tk5.val.s, "c4"));
         assert(lexer().sym == TK_EOF);
-        fclose(NXT.inp);
+        fclose(ALL.inp);
     }
     {
-        NXT.inp = stropen("r", 0, "c1 C1 C'a a'? C!!");
+        ALL.inp = stropen("r", 0, "c1 C1 C'a a'? C!!");
         Tk tk1 = lexer(); assert(tk1.sym == TK_IDVAR);  assert(!strcmp(tk1.val.s, "c1"));
         Tk tk2 = lexer(); assert(tk2.sym == TK_DATA); assert(!strcmp(tk2.val.s, "C1"));
         Tk tk3 = lexer(); assert(tk3.sym == TK_DATA); assert(!strcmp(tk3.val.s, "C'a"));
         Tk tk4 = lexer(); assert(tk4.sym == TK_IDVAR);  assert(!strcmp(tk4.val.s, "a'?"));
         Tk tk5 = lexer(); assert(tk5.sym == TK_DATA); assert(!strcmp(tk5.val.s, "C!!"));
         assert(lexer().sym == TK_EOF);
-        fclose(NXT.inp);
+        fclose(ALL.inp);
     }
     {
-        NXT.inp = stropen("r", 0, "let xlet letx");
+        ALL.inp = stropen("r", 0, "let xlet letx");
         assert(lexer().sym == TK_LET);
         Tk tk1 = lexer(); assert(tk1.sym == TK_IDVAR); assert(!strcmp(tk1.val.s, "xlet"));
         Tk tk2 = lexer(); assert(tk2.sym == TK_IDVAR); assert(!strcmp(tk2.val.s, "letx"));
         assert(lexer().sym == TK_EOF);
-        fclose(NXT.inp);
+        fclose(ALL.inp);
     }
     {
-        NXT.inp = stropen("r", 0, ": :: :");
+        ALL.inp = stropen("r", 0, ": :: :");
         assert(lexer().sym == ':');
         assert(lexer().sym == TK_DECL);
         assert(lexer().sym == ':');
-        fclose(NXT.inp);
+        fclose(ALL.inp);
     }
 }
 
@@ -79,7 +79,7 @@ void t_parser_type (void) {
         Type tp;
         parser_type(&tp);
         assert(tp.sub == TYPE_UNIT);
-        fclose(NXT.inp);
+        fclose(ALL.inp);
     }
 }
 
@@ -90,35 +90,35 @@ void t_parser_expr (void) {
         Expr e;
         assert(parser_expr(&e));
         assert(e.sub == EXPR_UNIT);
-        fclose(NXT.inp);
+        fclose(ALL.inp);
     }
     {
         init(NULL, stropen("r", 0, "( ( ) )"));
         Expr e;
         assert(parser_expr(&e));
         assert(e.sub == EXPR_UNIT);
-        fclose(NXT.inp);
+        fclose(ALL.inp);
     }
     {
         init(NULL, stropen("r", 0, "("));
         Expr e;
         assert(!parser_expr(&e));
-        assert(!strcmp(NXT.err, "(ln 1, col 2): expected expression : have end of file"));
-        fclose(NXT.inp);
+        assert(!strcmp(ALL.err, "(ln 1, col 2): expected expression : have end of file"));
+        fclose(ALL.inp);
     }
     {
         init(NULL, stropen("r", 0, "(("));
         Expr e;
         assert(!parser_expr(&e));
-        assert(!strcmp(NXT.err, "(ln 1, col 3): expected expression : have end of file"));
-        fclose(NXT.inp);
+        assert(!strcmp(ALL.err, "(ln 1, col 3): expected expression : have end of file"));
+        fclose(ALL.inp);
     }
     {
         init(NULL, stropen("r", 0, "(\n( \n"));
         Expr e;
         assert(!parser_expr(&e));
-        assert(!strcmp(NXT.err, "(ln 1, col 2): expected expression : have new line"));
-        fclose(NXT.inp);
+        assert(!strcmp(ALL.err, "(ln 1, col 2): expected expression : have new line"));
+        fclose(ALL.inp);
     }
     // EXPR_VAR
     {
@@ -126,29 +126,29 @@ void t_parser_expr (void) {
         Expr e;
         assert(parser_expr(&e));
         assert(e.sub == EXPR_VAR);
-        fclose(NXT.inp);
+        fclose(ALL.inp);
     }
     {
         init(NULL, stropen("r", 0, "x("));
         Expr e;
         assert(!parser_expr(&e));
-        assert(!strcmp(NXT.err, "(ln 1, col 3): expected expression : have end of file"));
-        fclose(NXT.inp);
+        assert(!strcmp(ALL.err, "(ln 1, col 3): expected expression : have end of file"));
+        fclose(ALL.inp);
     }
     // EXPR_SET
     {
         init(NULL, stropen("r", 0, "set () = (x"));
         Expr e;
         assert(!parser_expr(&e));
-        assert(!strcmp(NXT.err, "(ln 1, col 5): expected variable : have `(`"));
-        fclose(NXT.inp);
+        assert(!strcmp(ALL.err, "(ln 1, col 5): expected variable : have `(`"));
+        fclose(ALL.inp);
     }
     {
         init(NULL, stropen("r", 0, "set a = (x"));
         Expr e;
         assert(!parser_expr(&e));
-        assert(!strcmp(NXT.err, "(ln 1, col 11): expected `)` : have end of file"));
-        fclose(NXT.inp);
+        assert(!strcmp(ALL.err, "(ln 1, col 11): expected `)` : have end of file"));
+        fclose(ALL.inp);
     }
     {
         init(NULL, stropen("r", 0, "set a = (x)"));
@@ -157,7 +157,7 @@ void t_parser_expr (void) {
         assert(e.sub == EXPR_SET);
         assert(!strcmp(e.Set.var.val.s, "a"));
         assert(!strcmp(e.Set.expr->tk.val.s, "x"));
-        fclose(NXT.inp);
+        fclose(ALL.inp);
     }
     // EXPR_FUNC
     {
@@ -165,7 +165,7 @@ void t_parser_expr (void) {
         Expr e;
         assert(parser_expr(&e));
         assert(e.sub == EXPR_FUNC);
-        fclose(NXT.inp);
+        fclose(ALL.inp);
     }
     // EXPR_CALL
     {
@@ -176,22 +176,22 @@ void t_parser_expr (void) {
         assert(e.Call.func->sub == EXPR_VAR);
         assert(!strcmp(e.Call.func->tk.val.s, "xxx"));
         assert(e.Call.expr->sub == EXPR_UNIT);
-        fclose(NXT.inp);
+        fclose(ALL.inp);
     }
     // EXPR_EXPRS
     {
         init(NULL, stropen("r", 0, ": x"));
         Expr e;
         assert(!parser_expr(&e));
-        assert(!strcmp(NXT.err, "(ln 1, col 3): unexpected indentation level"));
-        fclose(NXT.inp);
+        assert(!strcmp(ALL.err, "(ln 1, col 3): unexpected indentation level"));
+        fclose(ALL.inp);
     }
     {
         init(NULL, stropen("r", 0, ":\nx"));
         Expr e;
         assert(!parser_expr(&e));
-        assert(!strcmp(NXT.err, "(ln 1, col 2): unexpected indentation level"));
-        fclose(NXT.inp);
+        assert(!strcmp(ALL.err, "(ln 1, col 2): unexpected indentation level"));
+        fclose(ALL.inp);
     }
     {
         init(NULL, stropen("r", 0, ":\n    x"));
@@ -199,29 +199,29 @@ void t_parser_expr (void) {
         assert(parser_expr(&e));
         assert(e.sub == EXPR_EXPRS);
         assert(e.exprs.size == 1);
-        fclose(NXT.inp);
+        fclose(ALL.inp);
     }
     {
         init(NULL, stropen("r", 0, ":\n    x x"));
         Expr e;
         assert(!parser_expr(&e));
-        assert(!strcmp(NXT.err, "(ln 2, col 7): expected new line : have `x`"));
-        fclose(NXT.inp);
+        assert(!strcmp(ALL.err, "(ln 2, col 7): expected new line : have `x`"));
+        fclose(ALL.inp);
     }
     {
         init(NULL, stropen("r", 0, ":\n    x\n    y ("));
         Expr e;
         assert(!parser_expr(&e));
-//puts(NXT.err);
-        assert(!strcmp(NXT.err, "(ln 3, col 8): expected expression : have end of file"));
-        fclose(NXT.inp);
+//puts(ALL.err);
+        assert(!strcmp(ALL.err, "(ln 3, col 8): expected expression : have end of file"));
+        fclose(ALL.inp);
     }
     {
         init(NULL, stropen("r", 0, ":\n    x\n    y y"));
         Expr e;
         assert(!parser_expr(&e));
-        assert(!strcmp(NXT.err, "(ln 3, col 7): expected new line : have `y`"));
-        fclose(NXT.inp);
+        assert(!strcmp(ALL.err, "(ln 3, col 7): expected new line : have `y`"));
+        fclose(ALL.inp);
     }
     {
         init(NULL, stropen("r", 0,
@@ -236,7 +236,7 @@ void t_parser_expr (void) {
         assert(e.sub == EXPR_EXPRS);
         assert(e.exprs.size == 2);
         assert(!strcmp(e.exprs.vec[1].exprs.vec[0].tk.val.s, "y"));
-        fclose(NXT.inp);
+        fclose(ALL.inp);
     }
 }
 
@@ -245,15 +245,15 @@ void t_parser_decls (void) {
         init(NULL, stropen("r", 0, "a"));
         Decls ds;
         assert(!parser_decls(&ds));
-        assert(!strcmp(NXT.err, "(ln 1, col 1): expected `:` : have `a`"));
-        fclose(NXT.inp);
+        assert(!strcmp(ALL.err, "(ln 1, col 1): expected `:` : have `a`"));
+        fclose(ALL.inp);
     }
     {
         init(NULL, stropen("r", 0, ":\n    a"));
         Decls ds;
         assert(!parser_decls(&ds));
-        assert(!strcmp(NXT.err, "(ln 2, col 6): expected `::` : have end of file"));
-        fclose(NXT.inp);
+        assert(!strcmp(ALL.err, "(ln 2, col 6): expected `::` : have end of file"));
+        fclose(ALL.inp);
     }
     {
         init(NULL, stropen("r", 0, ":\n    a :: ()"));
@@ -262,14 +262,14 @@ void t_parser_decls (void) {
         assert(ds.size == 1);
         assert(!strcmp(ds.vec[0].var.val.s, "a"));
         assert(ds.vec[0].type.sub == TYPE_UNIT);
-        fclose(NXT.inp);
+        fclose(ALL.inp);
     }
     {
         init(NULL, stropen("r", 0, ":\n    a :: (x)"));
         Decls ds;
         assert(!parser_decls(&ds));
-        assert(!strcmp(NXT.err, "(ln 2, col 11): unexpected `x`"));
-        fclose(NXT.inp);
+        assert(!strcmp(ALL.err, "(ln 2, col 11): unexpected `x`"));
+        fclose(ALL.inp);
     }
 }
 
@@ -278,7 +278,7 @@ void t_parser_block (void) {
         init(NULL, stropen("r", 0, "a:\n    a :: ()"));
         Block blk;
         assert(parser_block(&blk));
-        fclose(NXT.inp);
+        fclose(ALL.inp);
     }
     {
         init(NULL, stropen("r", 0,
@@ -294,7 +294,7 @@ void t_parser_block (void) {
         assert(blk.expr.sub == EXPR_EXPRS);
         assert(blk.expr.exprs.size == 2);
         assert(blk.decls.size == 2);
-        fclose(NXT.inp);
+        fclose(ALL.inp);
     }
 }
 
@@ -314,7 +314,7 @@ void t_code (void) {
         e.tk.sym = TK_IDVAR;
         strcpy(e.tk.val.s, "xxx");
         code_expr(0, e, NULL);
-        fclose(NXT.out);
+        fclose(ALL.out);
         assert(!strcmp(out,"xxx"));
     }
     {
@@ -331,7 +331,7 @@ void t_code (void) {
         Decls ds = { 1, &d };
         Block blk = { ds, e };
         code_block(0, blk, "ret");
-        fclose(NXT.out);
+        fclose(ALL.out);
         //puts(out);
         assert(!strcmp(out,"int /* () */ xxx;\nret = xxx;\n"));
     }
@@ -344,7 +344,7 @@ void t_code (void) {
         Block b;
         parser_block(&b);
         code(b);
-        fclose(NXT.out);
+        fclose(ALL.out);
         char* ret =
             "#include <stdio.h>\n"
             "int main (void) {\n"
@@ -364,7 +364,7 @@ void t_code (void) {
         Block b;
         parser_block(&b);
         code(b);
-        fclose(NXT.out);
+        fclose(ALL.out);
         compile(out);
         FILE* f = popen("./a.out", "r");
         assert(f != NULL);

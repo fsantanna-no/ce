@@ -35,13 +35,17 @@ typedef struct {
     FILE* inp;
     char  err[256];
     int   ind;
+} State_All;
+
+typedef struct {
     long  off;   // position before token (to fallback)
     long  lin;   // line before token
     long  col;   // column before token
     Tk    tk;
-} State;
+} State_Tok;
 
-extern State NXT, PRV;
+extern State_All ALL;
+extern State_Tok NXT, PRV;
 
 const char* lexer_tk2str (Tk* tk);
 int lexer_tk2len (Tk* tk);

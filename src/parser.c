@@ -31,7 +31,7 @@ void dump_expr (Expr e, int spc) {
 void pr_next () {
     PRV = NXT;
 
-    long off = ftell(NXT.inp);
+    long off = ftell(ALL.inp);
     Tk   tk  = lexer();
 
     if (PRV.off == -1) {
@@ -66,20 +66,21 @@ int pr_check (TK tk, int ok) {
 ///////////////////////////////////////////////////////////////////////////////
 
 int err_expected (const char* v) {
-    sprintf(NXT.err, "(ln %ld, col %ld): expected %s : have %s",
+    sprintf(ALL.err, "(ln %ld, col %ld): expected %s : have %s",
         NXT.lin, NXT.col, v, lexer_tk2str(&NXT.tk));
     return 0;
 }
 
 int err_unexpected (const char* v) {
-    sprintf(NXT.err, "(ln %ld, col %ld): unexpected %s", NXT.lin, NXT.col, v);
+    sprintf(ALL.err, "(ln %ld, col %ld): unexpected %s", NXT.lin, NXT.col, v);
     return 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
 void init (FILE* out, FILE* inp) {
-    NXT = (State) { out,inp,{},0,-1,0,0,{} };
+    ALL = (State_All) { out,inp,{},0 };
+    NXT = (State_Tok) { -1,0,0,{} };
     if (inp != NULL) {
         pr_next();
     }
@@ -113,9 +114,9 @@ int parser_list (List* ret, List_F f, size_t unit) {
         return err_expected("`:`");
     }
 
-    NXT.ind++;
+    ALL.ind++;
 
-    if (!pr_accept(TK_LINE, NXT.tk.val.n==NXT.ind)) {
+    if (!pr_accept(TK_LINE, NXT.tk.val.n==ALL.ind)) {
         return err_unexpected("indentation level");
     }
 
@@ -129,11 +130,11 @@ int parser_list (List* ret, List_F f, size_t unit) {
         vec = realloc(vec, (i+1)*unit);
         memcpy(vec+i*unit, item, unit);
         i++;
-        if (pr_accept(TK_EOF,1) || pr_accept(TK_LINE, NXT.tk.val.n<NXT.ind)) {
+        if (pr_accept(TK_EOF,1) || pr_accept(TK_LINE, NXT.tk.val.n<ALL.ind)) {
             break;
         }
-        if (!pr_accept(TK_LINE, NXT.tk.val.n==NXT.ind)) {
-            if (pr_accept(TK_LINE, NXT.tk.val.n>NXT.ind)) {
+        if (!pr_accept(TK_LINE, NXT.tk.val.n==ALL.ind)) {
+            if (pr_accept(TK_LINE, NXT.tk.val.n>ALL.ind)) {
                 return err_unexpected("indentation level");
             } else {
                 return err_expected("new line");
@@ -141,7 +142,7 @@ int parser_list (List* ret, List_F f, size_t unit) {
         }
     }
 
-    NXT.ind--;
+    ALL.ind--;
     ret->size = i;
     ret->vec  = vec;
     return 1;
