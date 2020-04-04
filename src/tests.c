@@ -258,8 +258,8 @@ void t_parser_decls (void) {
 void t_parser_block (void) {
     {
         init(NULL, stropen("r", 0, "a:\n    a :: ()"));
-        Block blk = parser_block();
-        assert(blk.sub == BLOCK_OK);
+        Block blk;
+        assert(parser_block(&blk));
         fclose(NXT.inp);
     }
     {
@@ -271,8 +271,8 @@ void t_parser_block (void) {
             "    a :: ()\n"
             "    b :: ()\n"
         ));
-        Block blk = parser_block();
-        assert(blk.sub == BLOCK_OK);
+        Block blk;
+        assert(parser_block(&blk));
         assert(blk.expr.sub == EXPR_EXPRS);
         assert(blk.expr.exprs.size == 2);
         assert(blk.decls.size == 2);
@@ -311,7 +311,8 @@ void t_code (void) {
             strcpy(d.var.val.s, "xxx");
             d.type.sub = TYPE_UNIT;
         Decls ds = { 1, &d };
-        code_block(0, (Block) { BLOCK_OK, .decls=ds, .expr=e }, "ret");
+        Block blk = { ds, e };
+        code_block(0, blk, "ret");
         fclose(NXT.out);
         //puts(out);
         assert(!strcmp(out,"int /* () */ xxx;\nret = xxx;\n"));
@@ -322,7 +323,8 @@ void t_code (void) {
             stropen("w", sizeof(out), out),
             stropen("r", 0, "a:\n    a :: ()")
         );
-        Block b = parser_block();
+        Block b;
+        parser_block(&b);
         code(b);
         fclose(NXT.out);
         char* ret =
@@ -341,7 +343,8 @@ void t_code (void) {
             stropen("w", sizeof(out), out),
             stropen("r", 0, "a:\n    a :: ()")
         );
-        Block b = parser_block();
+        Block b;
+        parser_block(&b);
         code(b);
         fclose(NXT.out);
         compile(out);

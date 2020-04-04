@@ -324,17 +324,18 @@ int parser_decls (Decls* ret) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-Block parser_block (void) {
+int parser_block (Block* ret) {
     Expr e = parser_expr();
     if (e.sub == EXPR_ERR) {
-        return (Block) { BLOCK_ERR, .err=e.err };
+        strcpy(NXT.err, e.err.msg);
+        return 0;
     }
 
     Decls ds;
     if (!parser_decls(&ds)) {
-        Error err;
-        strcpy(err.msg, NXT.err);
-        return (Block) { BLOCK_ERR, .err=err };
+        return 0;
     }
-    return (Block) { BLOCK_OK, .decls=ds, .expr=e };
+
+    *ret = (Block) { ds, e };
+    return 1;
 }

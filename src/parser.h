@@ -14,11 +14,6 @@ typedef enum {
     EXPR_EXPRS
 } EXPR;
 
-typedef enum {
-    BLOCK_ERR = 0,
-    BLOCK_OK
-} BLOCK;
-
 ///////////////////////////////////////////////////////////////////////////////
 
 typedef struct {
@@ -69,14 +64,8 @@ typedef struct Expr {
 } Expr;
 
 typedef struct {
-    BLOCK sub;
-    union {
-        Error err;
-        struct {
-            Decls decls;
-            Expr  expr;
-        };
-    };
+    Decls decls;
+    Expr  expr;
 } Block;
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -87,4 +76,4 @@ void  init (FILE* out, FILE* inp);
 int parser_type  (Type*  ret);
 int parser_decls (Decls* ret);
 Expr  parser_expr  (void);
-Block parser_block (void);
+int parser_block (Block* ret);
