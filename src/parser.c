@@ -83,7 +83,7 @@ Error unexpected (const char* v) {
 ///////////////////////////////////////////////////////////////////////////////
 
 void parser_init (FILE* buf) {
-    NXT = (Lexer) { buf,0,-1,0,0,{} };
+    NXT = (State) { buf,0,-1,0,0,{} };
     pr_next();
 }
 
