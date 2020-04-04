@@ -8,7 +8,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void parser_dump_expr (Expr e, int spc) {
+void dump_expr (Expr e, int spc) {
     for (int i=0; i<spc; i++) printf(" ");
     switch (e.sub) {
         case EXPR_VAR:
@@ -17,7 +17,7 @@ void parser_dump_expr (Expr e, int spc) {
         case EXPR_EXPRS:
             printf(": [%d]\n", e.exprs.size);
             for (int i=0; i<e.exprs.size; i++) {
-                parser_dump_expr(e.exprs.vec[i], spc+4);
+                dump_expr(e.exprs.vec[i], spc+4);
             }
             break;
         default:
@@ -82,7 +82,7 @@ Error unexpected (const char* v) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void parser_init (FILE* out, FILE* inp) {
+void init (FILE* out, FILE* inp) {
     NXT = (State) { out,inp,0,-1,0,0,{} };
     pr_next();
 }
