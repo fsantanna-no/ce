@@ -251,10 +251,37 @@ void t_parser_decls (void) {
     }
 }
 
+void t_parser_block (void) {
+    {
+        parser_init(stropen("a:\n    a :: ()"));
+        Block blk = parser_block();
+        assert(blk.sub == BLOCK_OK);
+        fclose(NXT.buf);
+    }
+    {
+        parser_init(stropen(
+            ":\n"
+            "    a\n"
+            "    b\n"
+            ":\n"
+            "    a :: ()\n"
+            "    b :: ()\n"
+        ));
+        Block blk = parser_block();
+        assert(blk.sub == BLOCK_OK);
+        assert(blk.expr.sub == EXPR_EXPRS);
+        assert(blk.expr.exprs.size == 2);
+        assert(blk.decls.sub == DECLS_OK);
+        assert(blk.decls.size == 2);
+        fclose(NXT.buf);
+    }
+}
+
 void t_parser (void) {
     t_parser_type();
     t_parser_expr();
     t_parser_decls();
+    t_parser_block();
 }
 
 int main (void) {

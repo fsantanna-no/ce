@@ -19,6 +19,11 @@ typedef enum {
     DECLS_OK
 } DECLS;
 
+typedef enum {
+    BLOCK_ERR = 0,
+    BLOCK_OK
+} BLOCK;
+
 ///////////////////////////////////////////////////////////////////////////////
 
 typedef struct {
@@ -77,10 +82,23 @@ typedef struct Expr {
     };
 } Expr;
 
+typedef struct {
+    BLOCK sub;
+    union {
+        Error err;
+        struct {
+            Decls decls;
+            Expr  expr;
+        };
+    };
+} Block;
+
 ///////////////////////////////////////////////////////////////////////////////
 
-void  parser_init      (FILE* buf);
-Type  parser_type      (void);
-Expr  parser_expr      (void);
-Decls parser_decls     (void);
 void  parser_dump_expr (Expr e, int spc);
+void  parser_init (FILE* buf);
+
+Type  parser_type  (void);
+Expr  parser_expr  (void);
+Decls parser_decls (void);
+Block parser_block (void);

@@ -302,3 +302,15 @@ Decls parser_decls (void) {
         return (Decls) { DECLS_ERR, .err=lst.err };
     }
 }
+
+Block parser_block (void) {
+    Expr e = parser_expr();
+    if (e.sub == EXPR_ERR) {
+        return (Block) { BLOCK_ERR, .err=e.err };
+    }
+    Decls ds = parser_decls();
+    if (ds.sub == DECLS_ERR) {
+        return (Block) { BLOCK_ERR, .err=ds.err };
+    }
+    return (Block) { BLOCK_OK, .decls=ds, .expr=e };
+}
