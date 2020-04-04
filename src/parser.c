@@ -31,7 +31,7 @@ void parser_dump_expr (Expr e, int spc) {
 void pr_next () {
     PRV = NXT;
 
-    long off = ftell(NXT.buf);
+    long off = ftell(NXT.inp);
     Tk   tk  = lexer();
 
     if (PRV.off == -1) {
@@ -82,8 +82,8 @@ Error unexpected (const char* v) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void parser_init (FILE* buf) {
-    NXT = (State) { buf,0,-1,0,0,{} };
+void parser_init (FILE* out, FILE* inp) {
+    NXT = (State) { out,inp,0,-1,0,0,{} };
     pr_next();
 }
 

@@ -96,7 +96,7 @@ typedef struct {
 ///////////////////////////////////////////////////////////////////////////////
 
 void  parser_dump_expr (Expr e, int spc);
-void  parser_init (FILE* buf);
+void  parser_init (FILE* out, FILE* inp);
 
 Type  parser_type  (void);
 Expr  parser_expr  (void);

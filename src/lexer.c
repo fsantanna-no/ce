@@ -6,8 +6,8 @@
 #include "lexer.h"
 #include "parser.h"
 
-State NXT = { NULL,0,-1,0,0,{} };
-State PRV = { NULL,0,-1,0,0,{} };
+State NXT = { NULL,NULL,0,-1,0,0,{} };
+State PRV = { NULL,NULL,0,-1,0,0,{} };
 
 static char* reserved[] = {
     "func", "let", "set"
@@ -44,7 +44,7 @@ const char* lexer_tk2str (Tk* tk) {
 
 TK lexer_ (TK_val* val) {
     while (1) {
-        int c = fgetc(NXT.buf);
+        int c = fgetc(NXT.inp);
 //printf("0> [%c] [%d]\n", c, c);
         switch (c)
         {
@@ -58,9 +58,9 @@ TK lexer_ (TK_val* val) {
             case '\n': {
                 int i = 0;
                 while (1) {
-                    c = fgetc(NXT.buf);
+                    c = fgetc(NXT.inp);
                     if (c != ' ') {
-                        ungetc(c, NXT.buf);
+                        ungetc(c, NXT.inp);
                         break;
                     }
                     i++;
@@ -73,24 +73,24 @@ TK lexer_ (TK_val* val) {
             }
 
             case ':':
-                c = fgetc(NXT.buf);
+                c = fgetc(NXT.inp);
                 if (c == ':') {
                     return TK_DECL;
                 } else {
-                    ungetc(c, NXT.buf);
+                    ungetc(c, NXT.inp);
                     return ':';
                 }
 
             case '-':
-                c = fgetc(NXT.buf);
+                c = fgetc(NXT.inp);
                 if (c == '-') {
                     while (1) {
-                        c = fgetc(NXT.buf);
+                        c = fgetc(NXT.inp);
                         if (c == EOF) {
                             break;      // EOF stops comment
                         }
                         if (c=='\n' || c=='\r') {
-                            ungetc(c, NXT.buf);
+                            ungetc(c, NXT.inp);
                             break;      // NEWLINE stops comment
                         }
                     }
@@ -110,10 +110,10 @@ TK lexer_ (TK_val* val) {
                 int i = 0;
                 while (isalnum(c) || c=='_' || c=='\'' || c=='?' || c=='!') {
                     val->s[i++] = c;
-                    c = fgetc(NXT.buf);
+                    c = fgetc(NXT.inp);
                 }
                 val->s[i] = '\0';
-                ungetc(c, NXT.buf);
+                ungetc(c, NXT.inp);
 
                 int key = is_reserved(val);
                 if (key) {
@@ -129,9 +129,9 @@ Tk lexer () {
     Tk ret;
     TK tk = lexer_(&ret.val);
     while (1) {
-        int c = fgetc(NXT.buf);
+        int c = fgetc(NXT.inp);
         if (c != ' ') {
-            ungetc(c, NXT.buf);
+            ungetc(c, NXT.inp);
             break;
         }
     }
