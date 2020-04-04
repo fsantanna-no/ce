@@ -11,12 +11,13 @@ typedef enum {
     TK_LINE,
 
     TK_DECL,
-    TK_VAR,
-    TK_DATA,
+
+    TK_IDVAR,
+    TK_IDDATA,
 
     // all reserved keywords
     TK_RESERVED,
-    TK_FUNC, TK_LET, TK_SET
+    TK_DATA, TK_FUNC, TK_LET, TK_SET
 } TK;
 
 typedef union {

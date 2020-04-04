@@ -10,7 +10,7 @@ State NXT = { NULL,NULL,0,-1,0,0,{} };
 State PRV = { NULL,NULL,0,-1,0,0,{} };
 
 static char* reserved[] = {
-    "func", "let", "set"
+    "data", "func", "let", "set"
 };
 
 int is_reserved (TK_val* val) {
@@ -32,7 +32,7 @@ const char* lexer_tk2str (Tk* tk) {
         case TK_LINE:
             sprintf(str, "new line");
             break;
-        case TK_VAR:
+        case TK_IDVAR:
             sprintf(str, "`%s`", tk->val.s);
             break;
         default:
@@ -120,7 +120,7 @@ TK lexer_ (TK_val* val) {
                     return key;
                 }
 
-                return (islower(val->s[0]) ? TK_VAR : TK_DATA);
+                return (islower(val->s[0]) ? TK_IDVAR : TK_DATA);
         }
     }
 }

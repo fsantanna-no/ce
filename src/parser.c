@@ -165,6 +165,8 @@ int parser_list (List* ret, List_F f, size_t unit) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
+///////////////////////////////////////////////////////////////////////////////
+
 int parser_expr_ (List_Item* item) {
     static Expr e;
     e = parser_expr();
@@ -193,7 +195,7 @@ Expr parser_expr_one (void) {
 
     // EXPR_SET
     } else if (pr_accept(TK_SET,1)) {
-        if (!pr_accept(TK_VAR,1)) {
+        if (!pr_accept(TK_IDVAR,1)) {
             return (Expr) { EXPR_ERR, .err=expected("variable") };
         }
         Tk var = PRV.tk;
@@ -238,7 +240,7 @@ Expr parser_expr_one (void) {
         }
 
     // EXPR_VAR,EXPR_DATA
-    } else if (pr_accept(TK_VAR,1)) {
+    } else if (pr_accept(TK_IDVAR,1)) {
         return (Expr) { EXPR_VAR, .tk=PRV.tk };
     } else if (pr_accept(TK_DATA,1)) {
         return (Expr) { EXPR_CONS, .tk=PRV.tk };
@@ -274,7 +276,7 @@ Expr parser_expr (void) {
 int parser_decl (List_Item* item) {
     static Decl d;
 
-    if (!pr_accept(TK_VAR,1)) {
+    if (!pr_accept(TK_IDVAR,1)) {
         item->err = expected("declaration");
         return 0;
     }
@@ -304,6 +306,8 @@ Decls parser_decls (void) {
         return (Decls) { DECLS_ERR, .err=lst.err };
     }
 }
+
+///////////////////////////////////////////////////////////////////////////////
 
 Block parser_block (void) {
     Expr e = parser_expr();
