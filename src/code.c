@@ -46,8 +46,20 @@ void code_block (int spc, Block blk, const char* ret) {
 }
 
 void code (Block blk) {
-    fputs("int main (void) {\n    int ret;\n", NXT.out);
+    fputs (
+        "#include <stdio.h>\n"
+        "int main (void) {\n"
+        "    int ret;\n",
+        NXT.out
+    );
     code_block(4, blk, "ret");
-    fprintf(NXT.out, "    printf(\"%%d\", ret);\n");
+    fprintf(NXT.out, "    printf(\"%%d\\n\", ret);\n");
     fputs("}\n", NXT.out);
+}
+
+void compile (const char* inp) {
+    FILE* f = popen("gcc -xc -", "w");
+    assert(f != NULL);
+    fputs(inp, f);
+    fclose(f);
 }

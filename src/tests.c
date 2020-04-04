@@ -328,13 +328,30 @@ void t_code (void) {
         code(b);
         fclose(NXT.out);
         char* ret =
+            "#include <stdio.h>\n"
             "int main (void) {\n"
             "    int ret;\n"
             "    int /* () */ a;\n"
             "    ret = a;\n"
-            "    printf(\"%d\", ret);\n"
+            "    printf(\"%d\\n\", ret);\n"
             "}\n";
         assert(!strcmp(out,ret));
+    }
+    {
+        char out[256];
+        init (
+            stropen("w", sizeof(out), out),
+            stropen("r", 0, "a:\n    a :: ()")
+        );
+        Block b = parser_block();
+        code(b);
+        fclose(NXT.out);
+        compile(out);
+        FILE* f = popen("./a.out", "r");
+        assert(f != NULL);
+        fgets(out, sizeof(out), f);
+        fclose(f);
+        assert(!strcmp(out,"0\n"));
     }
 }
 
