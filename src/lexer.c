@@ -6,8 +6,8 @@
 #include "lexer.h"
 #include "parser.h"
 
-State NXT = { NULL,NULL,0,-1,0,0,{} };
-State PRV = { NULL,NULL,0,-1,0,0,{} };
+State NXT = { NULL,NULL,{},0,-1,0,0,{} };
+State PRV = { NULL,NULL,{},0,-1,0,0,{} };
 
 static char* reserved[] = {
     "data", "func", "let", "set"

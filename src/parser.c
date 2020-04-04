@@ -80,10 +80,21 @@ Error unexpected (const char* v) {
     return ret;
 }
 
+int err_expected (const char* v) {
+    sprintf(NXT.err, "(ln %ld, col %ld): expected %s : have %s",
+        NXT.lin, NXT.col, v, lexer_tk2str(&NXT.tk));
+    return 0;
+}
+
+int err_unexpected (const char* v) {
+    sprintf(NXT.err, "(ln %ld, col %ld): unexpected %s", NXT.lin, NXT.col, v);
+    return 0;
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 
 void init (FILE* out, FILE* inp) {
-    NXT = (State) { out,inp,0,-1,0,0,{} };
+    NXT = (State) { out,inp,{},0,-1,0,0,{} };
     if (inp != NULL) {
         pr_next();
     }
@@ -91,15 +102,16 @@ void init (FILE* out, FILE* inp) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-Type parser_type (void) {
+int parser_type (Type* ret) {
     if (pr_accept('(',1)) {
         if (pr_accept(')',1)) {
-            return (Type) { TYPE_UNIT, {} };
+            *ret = (Type) { TYPE_UNIT, {} };
+            return 1;
         } else {
-            return (Type) { TYPE_ERR, .err=unexpected(lexer_tk2str(&NXT.tk)) };
+            return err_unexpected(lexer_tk2str(&NXT.tk));
         }
     }
-    return (Type) { TYPE_ERR, .err=expected("type") };
+    return err_expected("type");
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -216,9 +228,11 @@ Expr parser_expr_one (void) {
         if (!pr_accept(TK_DECL,1)) {
             return (Expr) { EXPR_ERR, .err=expected("`::`") };
         }
-        Type tp = parser_type();
-        if (tp.sub == TYPE_ERR) {
-            return (Expr) { EXPR_ERR, .err=tp.err };
+        Type tp;
+        if (!parser_type(&tp)) {
+            Error err;
+            strcpy(err.msg, NXT.err);
+            return (Expr) { EXPR_ERR, .err=err };
         }
         Expr e = parser_expr();
         if (e.sub == EXPR_ERR) {
@@ -287,9 +301,8 @@ int parser_decl (List_Item* item) {
         return 0;
     }
 
-    d.type = parser_type();
-    if (d.type.sub == TYPE_ERR) {
-        item->err = d.type.err;
+    if (!parser_type(&d.type)) {
+        strcpy(item->err.msg, NXT.err);
         return 0;
     }
 

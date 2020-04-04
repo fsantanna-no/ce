@@ -33,6 +33,7 @@ typedef struct {
 typedef struct {
     FILE* out;
     FILE* inp;
+    char  err[256];
     int   ind;
     long  off;   // position before token (to fallback)
     long  lin;   // line before token

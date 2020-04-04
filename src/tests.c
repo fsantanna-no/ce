@@ -76,7 +76,9 @@ void t_lexer (void) {
 void t_parser_type (void) {
     {
         init(NULL, stropen("r", 0, "()"));
-        assert(parser_type().sub == TYPE_UNIT);
+        Type tp;
+        parser_type(&tp);
+        assert(tp.sub == TYPE_UNIT);
         fclose(NXT.inp);
     }
 }

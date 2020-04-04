@@ -1,6 +1,6 @@
 typedef enum {
-    TYPE_ERR = 0,
-    TYPE_UNIT
+    TYPE_UNIT,
+    TYPE_DATA
 } TYPE;
 
 typedef enum {
@@ -33,10 +33,7 @@ typedef struct {
 
 typedef struct {
     TYPE sub;
-    union {
-        Error err;      // TYPE_ERR
-        Tk    tk;       // TYPE_DATA
-    };
+    Tk   tk;
 } Type;
 
 typedef struct {
@@ -98,7 +95,7 @@ typedef struct {
 void  dump_expr (Expr e, int spc);
 void  init (FILE* out, FILE* inp);
 
-Type  parser_type  (void);
+int parser_type (Type* ret);
 Expr  parser_expr  (void);
 Decls parser_decls (void);
 Block parser_block (void);
