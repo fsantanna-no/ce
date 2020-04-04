@@ -66,7 +66,7 @@ TK lexer_ (TK_val* val) {
                     i++;
                 }
                 if (i%4 != 0) {
-                    return TK_NONE;
+                    return TK_ERR;
                 }
                 val->n = i/4;
                 return TK_LINE;
@@ -96,7 +96,7 @@ TK lexer_ (TK_val* val) {
                     }
                     return TK_COMMENT;
                 }
-                return TK_NONE;
+                return TK_ERR;
 
             case '=':
                 return c;
@@ -104,7 +104,7 @@ TK lexer_ (TK_val* val) {
             default:
 
                 if (!isalpha(c)) {
-                    return TK_NONE;
+                    return TK_ERR;
                 }
 
                 int i = 0;

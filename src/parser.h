@@ -1,10 +1,10 @@
 typedef enum {
-    TYPE_NONE = 0,
+    TYPE_ERR = 0,
     TYPE_UNIT
 } TYPE;
 
 typedef enum {
-    EXPR_NONE = 0,
+    EXPR_ERR = 0,
     EXPR_UNIT,
     EXPR_VAR,
     EXPR_CONS,
@@ -15,8 +15,8 @@ typedef enum {
 } EXPR;
 
 typedef enum {
-    DECLS_NONE = 0,
-    DECLS_SOME
+    DECLS_ERR = 0,
+    DECLS_OK
 } DECLS;
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -29,7 +29,7 @@ typedef struct {
 typedef struct {
     TYPE sub;
     union {
-        Error err;      // TYPE_NONE
+        Error err;      // TYPE_ERR
         Tk    tk;       // TYPE_DATA
     };
 } Type;
@@ -59,7 +59,7 @@ typedef struct {
 typedef struct Expr {
     EXPR sub;
     union {
-        Error err;      // EXPR_NONE
+        Error err;      // EXPR_ERR
         Tk tk;          // EXPR_UNIT, EXPR_VAR, EXPR_CONS
         Exprs exprs;    // EXPR_EXPRS
         struct {        // EXPR_SET

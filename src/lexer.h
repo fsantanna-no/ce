@@ -1,5 +1,5 @@
 typedef enum {
-    TK_NONE = 0,
+    TK_ERR = 0,
 
     // all single-char tokens
     TK_CHAR = 256,

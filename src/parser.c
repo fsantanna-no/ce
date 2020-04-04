@@ -94,10 +94,10 @@ Type parser_type (void) {
         if (pr_accept(')',1)) {
             return (Type) { TYPE_UNIT, {} };
         } else {
-            return (Type) { TYPE_NONE, .err=unexpected(lexer_tk2str(&NXT.tk)) };
+            return (Type) { TYPE_ERR, .err=unexpected(lexer_tk2str(&NXT.tk)) };
         }
     }
-    return (Type) { TYPE_NONE, .err=expected("type") };
+    return (Type) { TYPE_ERR, .err=expected("type") };
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -166,7 +166,7 @@ int parser_list (List* ret, List_F f, size_t unit) {
 int parser_expr_ (List_Item* item) {
     static Expr e;
     e = parser_expr();
-    if (e.sub == EXPR_NONE) {
+    if (e.sub == EXPR_ERR) {
         item->err = e.err;
         return 0;
     } else {
@@ -185,22 +185,22 @@ Expr parser_expr_one (void) {
             if (pr_accept(')',1)) {
                 return ret;
             } else {
-                return (Expr) { EXPR_NONE, .err=expected("`)`") };
+                return (Expr) { EXPR_ERR, .err=expected("`)`") };
             }
         }
 
     // EXPR_SET
     } else if (pr_accept(TK_SET,1)) {
         if (!pr_accept(TK_VAR,1)) {
-            return (Expr) { EXPR_NONE, .err=expected("variable") };
+            return (Expr) { EXPR_ERR, .err=expected("variable") };
         }
         Tk var = PRV.tk;
         if (!pr_accept('=',1)) {
-            return (Expr) { EXPR_NONE, .err=expected("`=`") };
+            return (Expr) { EXPR_ERR, .err=expected("`=`") };
         }
         Expr e = parser_expr();
-        if (e.sub == EXPR_NONE) {
-            return (Expr) { EXPR_NONE, .err=e.err };
+        if (e.sub == EXPR_ERR) {
+            return (Expr) { EXPR_ERR, .err=e.err };
         }
         Expr* pe = malloc(sizeof(*pe));
         assert(pe != NULL);
@@ -210,14 +210,14 @@ Expr parser_expr_one (void) {
     // EXPR_FUNC
     } else if (pr_accept(TK_FUNC,1)) {
         if (!pr_accept(TK_DECL,1)) {
-            return (Expr) { EXPR_NONE, .err=expected("`::`") };
+            return (Expr) { EXPR_ERR, .err=expected("`::`") };
         }
         Type tp = parser_type();
-        if (tp.sub == TYPE_NONE) {
-            return (Expr) { EXPR_NONE, .err=tp.err };
+        if (tp.sub == TYPE_ERR) {
+            return (Expr) { EXPR_ERR, .err=tp.err };
         }
         Expr e = parser_expr();
-        if (e.sub == EXPR_NONE) {
+        if (e.sub == EXPR_ERR) {
             return e;
         }
         Expr* pe = malloc(sizeof(*pe));
@@ -232,7 +232,7 @@ Expr parser_expr_one (void) {
         if (ok) {
             return (Expr) { EXPR_EXPRS, .exprs={lst.size,lst.vec} };
         } else {
-            return (Expr) { EXPR_NONE,  .err=lst.err };
+            return (Expr) { EXPR_ERR,  .err=lst.err };
         }
 
     // EXPR_VAR,EXPR_DATA
@@ -241,12 +241,12 @@ Expr parser_expr_one (void) {
     } else if (pr_accept(TK_DATA,1)) {
         return (Expr) { EXPR_CONS, .tk=PRV.tk };
     }
-    return (Expr) { EXPR_NONE, {} };
+    return (Expr) { EXPR_ERR, {} };
 }
 
 Expr parser_expr (void) {
     Expr e1 = parser_expr_one();
-    if (e1.sub == EXPR_NONE) {
+    if (e1.sub == EXPR_ERR) {
         return e1;
     }
 
@@ -255,7 +255,7 @@ Expr parser_expr (void) {
     }
 
     Expr e2 = parser_expr();
-    if (e2.sub == EXPR_NONE) {
+    if (e2.sub == EXPR_ERR) {
         return e2;
     }
 
@@ -284,7 +284,7 @@ int parser_decl (List_Item* item) {
     }
 
     d.type = parser_type();
-    if (d.type.sub == TYPE_NONE) {
+    if (d.type.sub == TYPE_ERR) {
         item->err = d.type.err;
         return 0;
     }
@@ -297,8 +297,8 @@ Decls parser_decls (void) {
     List lst;
     int ok = parser_list(&lst, &parser_decl, sizeof(Decl));
     if (ok) {
-        return (Decls) { DECLS_SOME, .size=lst.size, .vec=lst.vec };
+        return (Decls) { DECLS_OK, .size=lst.size, .vec=lst.vec };
     } else {
-        return (Decls) { DECLS_NONE, .err=lst.err };
+        return (Decls) { DECLS_ERR, .err=lst.err };
     }
 }
