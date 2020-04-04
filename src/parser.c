@@ -310,13 +310,15 @@ int parser_decl (List_Item* item) {
     return 1;
 }
 
-Decls parser_decls (void) {
+int parser_decls (Decls* ret) {
     List lst;
     int ok = parser_list(&lst, &parser_decl, sizeof(Decl));
     if (ok) {
-        return (Decls) { DECLS_OK, .size=lst.size, .vec=lst.vec };
+        *ret = (Decls) { lst.size, lst.vec };
+        return 1;
     } else {
-        return (Decls) { DECLS_ERR, .err=lst.err };
+        strcpy(NXT.err, lst.err.msg);
+        return 0;
     }
 }
 
@@ -327,9 +329,12 @@ Block parser_block (void) {
     if (e.sub == EXPR_ERR) {
         return (Block) { BLOCK_ERR, .err=e.err };
     }
-    Decls ds = parser_decls();
-    if (ds.sub == DECLS_ERR) {
-        return (Block) { BLOCK_ERR, .err=ds.err };
+
+    Decls ds;
+    if (!parser_decls(&ds)) {
+        Error err;
+        strcpy(err.msg, NXT.err);
+        return (Block) { BLOCK_ERR, .err=err };
     }
     return (Block) { BLOCK_OK, .decls=ds, .expr=e };
 }

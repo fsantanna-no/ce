@@ -223,24 +223,24 @@ void t_parser_expr (void) {
 void t_parser_decls (void) {
     {
         init(NULL, stropen("r", 0, "a"));
-        Decls ds = parser_decls();
-        assert(ds.sub == DECLS_ERR);
-        assert(!strcmp(ds.err.msg, "(ln 1, col 1): expected `:` : have `a`"));
+        Decls ds;
+        assert(!parser_decls(&ds));
+        assert(!strcmp(NXT.err, "(ln 1, col 1): expected `:` : have `a`"));
         fclose(NXT.inp);
     }
     {
         init(NULL, stropen("r", 0, ":\n    a"));
-        Decls ds = parser_decls();
-        assert(ds.sub == DECLS_ERR);
-        assert(!strcmp(ds.err.msg, "(ln 2, col 6): expected `::` : have end of file"));
+        Decls ds;
+        assert(!parser_decls(&ds));
+        assert(!strcmp(NXT.err, "(ln 2, col 6): expected `::` : have end of file"));
         fclose(NXT.inp);
     }
     {
 //puts(">>>");
 //puts(ds.err.msg);
         init(NULL, stropen("r", 0, ":\n    a :: ()"));
-        Decls ds = parser_decls();
-        assert(ds.sub == DECLS_OK);
+        Decls ds;
+        assert(parser_decls(&ds));
         assert(ds.size == 1);
         assert(!strcmp(ds.vec[0].var.val.s, "a"));
         assert(ds.vec[0].type.sub == TYPE_UNIT);
@@ -248,9 +248,9 @@ void t_parser_decls (void) {
     }
     {
         init(NULL, stropen("r", 0, ":\n    a :: (x)"));
-        Decls ds = parser_decls();
-        assert(ds.sub == DECLS_ERR);
-        assert(!strcmp(ds.err.msg, "(ln 2, col 11): unexpected `x`"));
+        Decls ds;
+        assert(!parser_decls(&ds));
+        assert(!strcmp(NXT.err, "(ln 2, col 11): unexpected `x`"));
         fclose(NXT.inp);
     }
 }
@@ -275,7 +275,6 @@ void t_parser_block (void) {
         assert(blk.sub == BLOCK_OK);
         assert(blk.expr.sub == EXPR_EXPRS);
         assert(blk.expr.exprs.size == 2);
-        assert(blk.decls.sub == DECLS_OK);
         assert(blk.decls.size == 2);
         fclose(NXT.inp);
     }
@@ -311,10 +310,7 @@ void t_code (void) {
             d.var.sym = TK_IDVAR;
             strcpy(d.var.val.s, "xxx");
             d.type.sub = TYPE_UNIT;
-        Decls ds;
-            ds.sub = DECLS_OK;
-            ds.size = 1;
-            ds.vec = &d;
+        Decls ds = { 1, &d };
         code_block(0, (Block) { BLOCK_OK, .decls=ds, .expr=e }, "ret");
         fclose(NXT.out);
         //puts(out);
