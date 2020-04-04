@@ -84,7 +84,9 @@ Error unexpected (const char* v) {
 
 void init (FILE* out, FILE* inp) {
     NXT = (State) { out,inp,0,-1,0,0,{} };
-    pr_next();
+    if (inp != NULL) {
+        pr_next();
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
