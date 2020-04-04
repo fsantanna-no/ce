@@ -9,7 +9,8 @@ typedef enum {
     EXPR_VAR,
     EXPR_CONS,
     EXPR_CALL,
-    EXPR_FUNC
+    EXPR_FUNC,
+    EXPR_EXPRS
 } EXPR;
 
 typedef enum {
@@ -33,11 +34,18 @@ typedef struct {
     };
 } Type;
 
+struct Expr;
+typedef struct {
+    int size;
+    struct Expr* vec;
+} Exprs;
+
 typedef struct Expr {
     EXPR sub;
     union {
         Error err;      // EXPR_NONE
         Tk    tk;       // EXPR_UNIT, EXPR_VAR, EXPR_CONS
+        Exprs exprs;    // EXPR_EXPRS
         struct {        // EXPR_CALL
             struct Expr* func;
             struct Expr* expr;
@@ -70,3 +78,4 @@ void parser_init (FILE* buf);
 Type parser_type (void);
 Expr parser_expr (void);
 Decl parser_decl (void);
+void parser_dump_expr (Expr e, int spc);

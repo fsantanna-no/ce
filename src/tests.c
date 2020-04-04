@@ -80,6 +80,7 @@ void t_parser_type (void) {
 }
 
 void t_parser_expr (void) {
+    // PARENS
     {
         parser_init(stropen("(())"));
         assert(parser_expr().sub == EXPR_UNIT);
@@ -108,16 +109,54 @@ void t_parser_expr (void) {
         assert(e.sub == EXPR_NONE); assert(!strcmp(e.err.msg, "(ln 1, col 2): expected `)` : have new line"));
         fclose(CUR.buf);
     }
+    // FUNC
     {
         parser_init(stropen("func :: () ()"));
         assert(parser_expr().sub == EXPR_FUNC);
         fclose(CUR.buf);
     }
+    // CALL
     {
         parser_init(stropen("xxx (  )"));
         Expr e = parser_expr();
-        assert(e.Call.func->sub == EXPR_VAR);  assert(!strcmp(e.Call.func->tk.val.s, "xxx"));
+        assert(e.sub == EXPR_CALL);
+        assert(e.Call.func->sub == EXPR_VAR);
+        assert(!strcmp(e.Call.func->tk.val.s, "xxx"));
         assert(e.Call.expr->sub == EXPR_UNIT);
+        fclose(CUR.buf);
+    }
+    // EXPRS
+    {
+        parser_init(stropen(": x"));
+        Expr e = parser_expr();
+        assert(!strcmp(e.err.msg, "(ln 1, col 2): unexpected indentation level"));
+        fclose(CUR.buf);
+    }
+    {
+        parser_init(stropen(":\nx"));
+        Expr e = parser_expr();
+        assert(!strcmp(e.err.msg, "(ln 1, col 2): unexpected indentation level"));
+        fclose(CUR.buf);
+    }
+    {
+        parser_init(stropen(":\n    x"));
+        Expr e = parser_expr();
+        assert(e.sub == EXPR_EXPRS);
+        assert(e.exprs.size == 1);
+        fclose(CUR.buf);
+    }
+    {
+        parser_init(stropen(
+            ":\n"
+            "    x\n"
+            "    :\n"
+            "        y\n"
+        ));
+        Expr e = parser_expr();
+        //parser_dump_expr(e,0);
+        assert(e.sub == EXPR_EXPRS);
+        assert(e.exprs.size == 2);
+        assert(!strcmp(e.exprs.vec[1].exprs.vec[0].tk.val.s, "y"));
         fclose(CUR.buf);
     }
 }

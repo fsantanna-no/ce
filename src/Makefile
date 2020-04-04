@@ -4,4 +4,4 @@ CFLAGS = -Wall -Wno-switch
 SRC=$(wildcard *.c)
 
 tests: $(SRC)
-	gcc -o $@ $^ $(CFLAGS) $(LIBS)
+	gcc -g -o $@ $^ $(CFLAGS) $(LIBS)

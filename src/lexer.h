@@ -29,6 +29,7 @@ typedef struct {
 
 typedef struct {
     FILE* buf;
+    int   ind;
     long  off;   // position before token (to fallback)
     long  lin;   // line before token
     long  col;   // column before token

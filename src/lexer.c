@@ -6,8 +6,8 @@
 #include "lexer.h"
 #include "parser.h"
 
-Lexer CUR = { NULL,-1,0,0,{} };
-Lexer OLD = { NULL,-1,0,0,{} };
+Lexer CUR = { NULL,0,-1,0,0,{} };
+Lexer OLD = { NULL,0,-1,0,0,{} };
 
 static char* reserved[] = {
     "func", "let"
@@ -56,7 +56,7 @@ const char* lexer_tk2str (Tk* tk) {
 TK lexer_ (TK_val* val) {
     while (1) {
         int c = fgetc(CUR.buf);
-//printf("0> %c\n", c);
+//printf("0> [%c] [%d]\n", c, c);
         switch (c)
         {
             case ' ':

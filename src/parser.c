@@ -8,6 +8,26 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 
+void parser_dump_expr (Expr e, int spc) {
+    for (int i=0; i<spc; i++) printf(" ");
+    switch (e.sub) {
+        case EXPR_VAR:
+            puts(e.tk.val.s);
+            break;
+        case EXPR_EXPRS:
+            printf(": [%d]\n", e.exprs.size);
+            for (int i=0; i<e.exprs.size; i++) {
+                parser_dump_expr(e.exprs.vec[i], spc+4);
+            }
+            break;
+        default:
+            printf(">>> %d\n", e.sub);
+            assert(0 && "TODO");
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 void pr_next () {
     OLD = CUR;
 
@@ -30,8 +50,8 @@ void pr_next () {
     //printf("CUR: ln=%ld cl=%ld off=%ld tk=%s\n", CUR.lin, CUR.col, CUR.off, lexer_tk2str(&CUR.tk));
 }
 
-int pr_accept (TK tk) {
-    if (CUR.tk.sym == tk) {
+int pr_accept (TK tk, int ok) {
+    if (CUR.tk.sym==tk && ok) {
         pr_next();
         return 1;
     } else {
@@ -61,15 +81,15 @@ Error unexpected (const char* v) {
 ///////////////////////////////////////////////////////////////////////////////
 
 void parser_init (FILE* buf) {
-    CUR = (Lexer) { buf,-1,0,0,{} };
+    CUR = (Lexer) { buf,0,-1,0,0,{} };
     pr_next();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
 Type parser_type (void) {
-    if (pr_accept('(')) {
-        if (pr_accept(')')) {
+    if (pr_accept('(',1)) {
+        if (pr_accept(')',1)) {
             return (Type) { TYPE_UNIT, {} };
         } else {
             return (Type) { TYPE_NONE, .err=unexpected(lexer_tk2str(&CUR.tk)) };
@@ -82,12 +102,12 @@ Type parser_type (void) {
 
 Expr parser_expr_one (void) {
     // PARENS
-    if (pr_accept('(')) {
-        if (pr_accept(')')) {
+    if (pr_accept('(',1)) {
+        if (pr_accept(')',1)) {
             return (Expr) { EXPR_UNIT, {} };
         } else {
             Expr ret = parser_expr();
-            if (pr_accept(')')) {
+            if (pr_accept(')',1)) {
                 return ret;
             } else {
                 return (Expr) { EXPR_NONE, .err=expected("`)`") };
@@ -95,8 +115,8 @@ Expr parser_expr_one (void) {
         }
 
     // FUNC
-    } else if (pr_accept(TK_FUNC)) {
-        if (!pr_accept(TK_DECL)) {
+    } else if (pr_accept(TK_FUNC,1)) {
+        if (!pr_accept(TK_DECL,1)) {
             return (Expr) { EXPR_NONE, .err=expected("`::`") };
         }
         Type tp = parser_type();
@@ -107,14 +127,47 @@ Expr parser_expr_one (void) {
         if (e.sub == EXPR_NONE) {
             return e;
         }
-        Expr* pe = malloc(sizeof *pe);
+        Expr* pe = malloc(sizeof(*pe));
+        assert(pe != NULL);
         *pe = e;
         return (Expr) { EXPR_FUNC, .Func={tp,pe} };
 
+    // EXPRS
+    } else if (pr_accept(':',1)) {
+        CUR.ind++;
+
+        if (!pr_accept(TK_LINE, CUR.tk.val.n==CUR.ind)) {
+            return (Expr) { EXPR_NONE, .err=unexpected("indentation level") };
+        }
+
+        Expr* vec = NULL;
+        int i = 0;
+        while (1) {
+            Expr e = parser_expr();
+            if (e.sub == EXPR_NONE) {
+                if (i == 0) {
+                    return (Expr) { EXPR_NONE, .err=expected("expression") };
+                } else {
+                    break;
+                }
+            }
+            vec = realloc(vec, (i+1)*sizeof(vec[0]));
+            vec[i++] = e;
+            if (pr_accept(TK_EOF,1) || pr_accept(TK_LINE, CUR.tk.val.n<CUR.ind)) {
+                break;
+            }
+            if (!pr_accept(TK_LINE, CUR.tk.val.n==CUR.ind)) {
+                return (Expr) { EXPR_NONE, .err=unexpected("indentation level") };
+            }
+        }
+
+        CUR.ind--;
+        return (Expr) { EXPR_EXPRS, .exprs={i,vec} };
+
     // VAR,DATA
-    } else if (pr_accept(TK_VAR)) {
+    } else if (pr_accept(TK_VAR,1)) {
         return (Expr) { EXPR_VAR, .tk=OLD.tk };
-    } else if (pr_accept(TK_DATA)) {
+    } else if (pr_accept(TK_DATA,1)) {
         return (Expr) { EXPR_CONS, .tk=OLD.tk };
     }
     return (Expr) { EXPR_NONE, {} };
@@ -130,11 +183,13 @@ Expr parser_expr (void) {
     Expr e2 = parser_expr_one();
     if (e2.sub == EXPR_NONE) {
         fseek(BAK.buf, BAK.off, SEEK_SET);
+        pr_next();
         return e1;
     }
 
-    Expr* pe1 = malloc(sizeof *pe1);
-    Expr* pe2 = malloc(sizeof *pe2);
+    Expr* pe1 = malloc(sizeof(*pe1));
+    Expr* pe2 = malloc(sizeof(*pe2));
+    assert(pe1!=NULL && pe2!=NULL);
     *pe1 = e1;
     *pe2 = e2;
     return (Expr) { EXPR_CALL, .Call={pe1,pe2} };
@@ -143,13 +198,13 @@ Expr parser_expr (void) {
 ///////////////////////////////////////////////////////////////////////////////
 
 Decl parser_decl (void) {
-    if (!pr_accept(TK_VAR)) {
+    if (!pr_accept(TK_VAR,1)) {
         return (Decl) { DECL_NONE, .err=expected("declaration") };
     }
     Tk var = OLD.tk;
 
     // DECL_SIG
-    if (pr_accept(TK_DECL)) {
+    if (pr_accept(TK_DECL,1)) {
         Type tp = parser_type();
         if (tp.sub == TYPE_NONE) {
             return (Decl) { DECL_NONE, .err=tp.err };
@@ -157,7 +212,7 @@ Decl parser_decl (void) {
         return (Decl) { DECL_SIG, .var=var, .type=tp };
 
     // DECL_ATR
-    } else if (pr_accept('=')) {
+    } else if (pr_accept('=',1)) {
         Expr e = parser_expr();
         if (e.sub == EXPR_NONE) {
             return (Decl) { DECL_NONE, .err=e.err };
