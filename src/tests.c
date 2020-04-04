@@ -87,64 +87,73 @@ void t_parser_expr (void) {
     // PARENS
     {
         init(NULL, stropen("r", 0, "(())"));
-        assert(parser_expr().sub == EXPR_UNIT);
+        Expr e;
+        assert(parser_expr(&e));
+        assert(e.sub == EXPR_UNIT);
         fclose(NXT.inp);
     }
     {
         init(NULL, stropen("r", 0, "( ( ) )"));
-        assert(parser_expr().sub == EXPR_UNIT);
+        Expr e;
+        assert(parser_expr(&e));
+        assert(e.sub == EXPR_UNIT);
         fclose(NXT.inp);
     }
     {
         init(NULL, stropen("r", 0, "("));
-        Expr e = parser_expr();
-        assert(e.sub == EXPR_ERR); assert(!strcmp(e.err.msg, "(ln 1, col 2): expected `)` : have end of file"));
+        Expr e;
+        assert(!parser_expr(&e));
+        assert(!strcmp(NXT.err, "(ln 1, col 2): expected expression : have end of file"));
         fclose(NXT.inp);
     }
     {
         init(NULL, stropen("r", 0, "(("));
-        Expr e = parser_expr();
-        assert(e.sub == EXPR_ERR); assert(!strcmp(e.err.msg, "(ln 1, col 3): expected `)` : have end of file"));
+        Expr e;
+        assert(!parser_expr(&e));
+        assert(!strcmp(NXT.err, "(ln 1, col 3): expected expression : have end of file"));
         fclose(NXT.inp);
     }
     {
         init(NULL, stropen("r", 0, "(\n( \n"));
-        Expr e = parser_expr();
-        assert(e.sub == EXPR_ERR); assert(!strcmp(e.err.msg, "(ln 1, col 2): expected `)` : have new line"));
+        Expr e;
+        assert(!parser_expr(&e));
+        assert(!strcmp(NXT.err, "(ln 1, col 2): expected expression : have new line"));
         fclose(NXT.inp);
     }
     // EXPR_VAR
     {
         init(NULL, stropen("r", 0, "x:"));
-        Expr e = parser_expr();
+        Expr e;
+        assert(parser_expr(&e));
         assert(e.sub == EXPR_VAR);
         fclose(NXT.inp);
     }
     {
         init(NULL, stropen("r", 0, "x("));
-        Expr e = parser_expr();
-        assert(e.sub == EXPR_ERR);
-        assert(!strcmp(e.err.msg, "(ln 1, col 3): expected `)` : have end of file"));
+        Expr e;
+        assert(!parser_expr(&e));
+        assert(!strcmp(NXT.err, "(ln 1, col 3): expected expression : have end of file"));
         fclose(NXT.inp);
     }
     // EXPR_SET
     {
         init(NULL, stropen("r", 0, "set () = (x"));
-        Expr e = parser_expr();
-        assert(e.sub == EXPR_ERR);
-        assert(!strcmp(e.err.msg, "(ln 1, col 5): expected variable : have `(`"));
+        Expr e;
+        assert(!parser_expr(&e));
+        assert(!strcmp(NXT.err, "(ln 1, col 5): expected variable : have `(`"));
         fclose(NXT.inp);
     }
     {
         init(NULL, stropen("r", 0, "set a = (x"));
-        Expr e = parser_expr();
-        assert(e.sub == EXPR_ERR);
-        assert(!strcmp(e.err.msg, "(ln 1, col 11): expected `)` : have end of file"));
+        Expr e;
+        assert(!parser_expr(&e));
+        assert(!strcmp(NXT.err, "(ln 1, col 11): expected `)` : have end of file"));
         fclose(NXT.inp);
     }
     {
         init(NULL, stropen("r", 0, "set a = (x)"));
-        Expr e = parser_expr();
+        Expr e;
+        assert(parser_expr(&e));
         assert(e.sub == EXPR_SET);
         assert(!strcmp(e.Set.var.val.s, "a"));
         assert(!strcmp(e.Set.expr->tk.val.s, "x"));
@@ -153,13 +162,16 @@ void t_parser_expr (void) {
     // EXPR_FUNC
     {
         init(NULL, stropen("r", 0, "func :: () ()"));
-        assert(parser_expr().sub == EXPR_FUNC);
+        Expr e;
+        assert(parser_expr(&e));
+        assert(e.sub == EXPR_FUNC);
         fclose(NXT.inp);
     }
     // EXPR_CALL
     {
         init(NULL, stropen("r", 0, "xxx (  )"));
-        Expr e = parser_expr();
+        Expr e;
+        assert(parser_expr(&e));
         assert(e.sub == EXPR_CALL);
         assert(e.Call.func->sub == EXPR_VAR);
         assert(!strcmp(e.Call.func->tk.val.s, "xxx"));
@@ -169,39 +181,46 @@ void t_parser_expr (void) {
     // EXPR_EXPRS
     {
         init(NULL, stropen("r", 0, ": x"));
-        Expr e = parser_expr();
-        assert(!strcmp(e.err.msg, "(ln 1, col 3): unexpected indentation level"));
+        Expr e;
+        assert(!parser_expr(&e));
+        assert(!strcmp(NXT.err, "(ln 1, col 3): unexpected indentation level"));
         fclose(NXT.inp);
     }
     {
         init(NULL, stropen("r", 0, ":\nx"));
-        Expr e = parser_expr();
-        assert(!strcmp(e.err.msg, "(ln 1, col 2): unexpected indentation level"));
+        Expr e;
+        assert(!parser_expr(&e));
+        assert(!strcmp(NXT.err, "(ln 1, col 2): unexpected indentation level"));
         fclose(NXT.inp);
     }
     {
         init(NULL, stropen("r", 0, ":\n    x"));
-        Expr e = parser_expr();
+        Expr e;
+        assert(parser_expr(&e));
         assert(e.sub == EXPR_EXPRS);
         assert(e.exprs.size == 1);
         fclose(NXT.inp);
     }
     {
         init(NULL, stropen("r", 0, ":\n    x x"));
-        Expr e = parser_expr();
-        assert(!strcmp(e.err.msg, "(ln 2, col 7): expected new line : have `x`"));
+        Expr e;
+        assert(!parser_expr(&e));
+        assert(!strcmp(NXT.err, "(ln 2, col 7): expected new line : have `x`"));
         fclose(NXT.inp);
     }
     {
         init(NULL, stropen("r", 0, ":\n    x\n    y ("));
-        Expr e = parser_expr();
-        assert(!strcmp(e.err.msg, "(ln 3, col 8): expected `)` : have end of file"));
+        Expr e;
+        assert(!parser_expr(&e));
+//puts(NXT.err);
+        assert(!strcmp(NXT.err, "(ln 3, col 8): expected expression : have end of file"));
         fclose(NXT.inp);
     }
     {
         init(NULL, stropen("r", 0, ":\n    x\n    y y"));
-        Expr e = parser_expr();
-        assert(!strcmp(e.err.msg, "(ln 3, col 7): expected new line : have `y`"));
+        Expr e;
+        assert(!parser_expr(&e));
+        assert(!strcmp(NXT.err, "(ln 3, col 7): expected new line : have `y`"));
         fclose(NXT.inp);
     }
     {
@@ -211,7 +230,8 @@ void t_parser_expr (void) {
             "    :\n"
             "        y\n"
         ));
-        Expr e = parser_expr();
+        Expr e;
+        assert(parser_expr(&e));
         //dump_expr(e,0);
         assert(e.sub == EXPR_EXPRS);
         assert(e.exprs.size == 2);
@@ -236,8 +256,6 @@ void t_parser_decls (void) {
         fclose(NXT.inp);
     }
     {
-//puts(">>>");
-//puts(ds.err.msg);
         init(NULL, stropen("r", 0, ":\n    a :: ()"));
         Decls ds;
         assert(parser_decls(&ds));

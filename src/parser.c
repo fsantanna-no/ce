@@ -65,21 +65,6 @@ int pr_check (TK tk, int ok) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-Error expected (const char* v) {
-    Error ret;
-    ret.off = NXT.off;
-    sprintf(ret.msg, "(ln %ld, col %ld): expected %s : have %s",
-        NXT.lin, NXT.col, v, lexer_tk2str(&NXT.tk));
-    return ret;
-}
-
-Error unexpected (const char* v) {
-    Error ret;
-    ret.off = NXT.off;
-    sprintf(ret.msg, "(ln %ld, col %ld): unexpected %s", NXT.lin, NXT.col, v);
-    return ret;
-}
-
 int err_expected (const char* v) {
     sprintf(NXT.err, "(ln %ld, col %ld): expected %s : have %s",
         NXT.lin, NXT.col, v, lexer_tk2str(&NXT.tk));
@@ -116,55 +101,42 @@ int parser_type (Type* ret) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-typedef union {
-    Error err;
-    struct {
-        int size;
-        void* vec;
-    };
+typedef struct {
+    int size;
+    void* vec;
 } List;
 
-typedef union {
-    Error err;
-    void* val;
-} List_Item;
-
-typedef int (*List_F) (List_Item*);
+typedef int (*List_F) (void**);
 
 int parser_list (List* ret, List_F f, size_t unit) {
     if (!pr_accept(':',1)) {
-        ret->err = expected("`:`");
-        return 0;
+        return err_expected("`:`");
     }
 
     NXT.ind++;
 
     if (!pr_accept(TK_LINE, NXT.tk.val.n==NXT.ind)) {
-        ret->err = unexpected("indentation level");
-        return 0;
+        return err_unexpected("indentation level");
     }
 
     void* vec = NULL;
     int i = 0;
     while (1) {
-        List_Item item;
+        void* item;
         if (!f(&item)) {
-            ret->err = item.err;
             return 0;
         }
         vec = realloc(vec, (i+1)*unit);
-        memcpy(vec+i*unit, item.val, unit);
+        memcpy(vec+i*unit, item, unit);
         i++;
         if (pr_accept(TK_EOF,1) || pr_accept(TK_LINE, NXT.tk.val.n<NXT.ind)) {
             break;
         }
         if (!pr_accept(TK_LINE, NXT.tk.val.n==NXT.ind)) {
             if (pr_accept(TK_LINE, NXT.tk.val.n>NXT.ind)) {
-                ret->err = unexpected("indentation level");
-                return 0;
+                return err_unexpected("indentation level");
             } else {
-                ret->err = expected("new line");
-                return 0;
+                return err_expected("new line");
             }
         }
     }
@@ -179,102 +151,104 @@ int parser_list (List* ret, List_F f, size_t unit) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-int parser_expr_ (List_Item* item) {
+int parser_expr_ (void** item) {
     static Expr e;
-    e = parser_expr();
-    if (e.sub == EXPR_ERR) {
-        item->err = e.err;
+    if (!parser_expr(&e)) {
         return 0;
-    } else {
-        item->val = &e;
-        return 1;
     }
+    *item = &e;
+    return 1;
 }
 
-Expr parser_expr_one (void) {
+int parser_expr_one (Expr* ret) {
     // PARENS
     if (pr_accept('(',1)) {
         if (pr_accept(')',1)) {
-            return (Expr) { EXPR_UNIT, {} };
+            *ret = (Expr) { EXPR_UNIT, {} };
+            return 1;
         } else {
-            Expr ret = parser_expr();
-            if (pr_accept(')',1)) {
-                return ret;
-            } else {
-                return (Expr) { EXPR_ERR, .err=expected("`)`") };
+            if (!parser_expr(ret)) {
+                return 0;
             }
+            if (!pr_accept(')',1)) {
+                return err_expected("`)`");
+            }
+            return 1;
         }
 
     // EXPR_SET
     } else if (pr_accept(TK_SET,1)) {
         if (!pr_accept(TK_IDVAR,1)) {
-            return (Expr) { EXPR_ERR, .err=expected("variable") };
+            return err_expected("variable");
         }
         Tk var = PRV.tk;
         if (!pr_accept('=',1)) {
-            return (Expr) { EXPR_ERR, .err=expected("`=`") };
+            return err_expected("`=`");
         }
-        Expr e = parser_expr();
-        if (e.sub == EXPR_ERR) {
-            return (Expr) { EXPR_ERR, .err=e.err };
+        Expr e;
+        if (!parser_expr(&e)) {
+            return 0;
         }
         Expr* pe = malloc(sizeof(*pe));
         assert(pe != NULL);
         *pe = e;
-        return (Expr) { EXPR_SET, .Set={var,pe} };
+        *ret = (Expr) { EXPR_SET, .Set={var,pe} };
+        return 1;
 
     // EXPR_FUNC
     } else if (pr_accept(TK_FUNC,1)) {
         if (!pr_accept(TK_DECL,1)) {
-            return (Expr) { EXPR_ERR, .err=expected("`::`") };
+            return err_expected("`::`");
         }
         Type tp;
         if (!parser_type(&tp)) {
-            Error err;
-            strcpy(err.msg, NXT.err);
-            return (Expr) { EXPR_ERR, .err=err };
+            return 0;
         }
-        Expr e = parser_expr();
-        if (e.sub == EXPR_ERR) {
-            return e;
+        Expr e;
+        if (!parser_expr(&e)) {
+            return 0;
         }
         Expr* pe = malloc(sizeof(*pe));
         assert(pe != NULL);
         *pe = e;
-        return (Expr) { EXPR_FUNC, .Func={tp,pe} };
+        *ret = (Expr) { EXPR_FUNC, .Func={tp,pe} };
+        return 1;
 
     // EXPR_EXPRS
     } else if (pr_check(':',1)) {
         List lst;
-        int ok = parser_list(&lst, &parser_expr_, sizeof(Expr));
-        if (ok) {
-            return (Expr) { EXPR_EXPRS, .exprs={lst.size,lst.vec} };
-        } else {
-            return (Expr) { EXPR_ERR,  .err=lst.err };
+        if (!parser_list(&lst, &parser_expr_, sizeof(Expr))) {
+            return 0;
         }
+        *ret = (Expr) { EXPR_EXPRS, .exprs={lst.size,lst.vec} };
+        return 1;
 
     // EXPR_VAR,EXPR_DATA
     } else if (pr_accept(TK_IDVAR,1)) {
-        return (Expr) { EXPR_VAR, .tk=PRV.tk };
+        *ret = (Expr) { EXPR_VAR, .tk=PRV.tk };
+        return 1;
     } else if (pr_accept(TK_DATA,1)) {
-        return (Expr) { EXPR_CONS, .tk=PRV.tk };
+        *ret = (Expr) { EXPR_CONS, .tk=PRV.tk };
+        return 1;
     }
-    return (Expr) { EXPR_ERR, {} };
+
+    return err_expected("expression");
 }
 
-Expr parser_expr (void) {
-    Expr e1 = parser_expr_one();
-    if (e1.sub == EXPR_ERR) {
-        return e1;
+int parser_expr (Expr* ret) {
+    Expr e1;
+    if (!parser_expr_one(&e1)) {
+        return 0;
     }
 
     if (!pr_check('(',1)) {
-        return e1;
+        *ret = e1;
+        return 1;
     }
 
-    Expr e2 = parser_expr();
-    if (e2.sub == EXPR_ERR) {
-        return e2;
+    Expr e2;
+    if (!parser_expr(&e2)) {
+        return 0;
     }
 
     Expr* pe1 = malloc(sizeof(*pe1));
@@ -282,52 +256,46 @@ Expr parser_expr (void) {
     assert(pe1!=NULL && pe2!=NULL);
     *pe1 = e1;
     *pe2 = e2;
-    return (Expr) { EXPR_CALL, .Call={pe1,pe2} };
+    *ret = (Expr) { EXPR_CALL, .Call={pe1,pe2} };
+    return 1;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
-int parser_decl (List_Item* item) {
+int parser_decl (void** item) {
     static Decl d;
 
     if (!pr_accept(TK_IDVAR,1)) {
-        item->err = expected("declaration");
-        return 0;
+        return err_expected("declaration");
     }
     d.var = PRV.tk;
 
     if (!pr_accept(TK_DECL,1)) {
-        item->err = expected("`::`");
-        return 0;
+        return err_expected("`::`");
     }
 
     if (!parser_type(&d.type)) {
-        strcpy(item->err.msg, NXT.err);
         return 0;
     }
 
-    item->val = &d;
+    *item = &d;
     return 1;
 }
 
 int parser_decls (Decls* ret) {
     List lst;
-    int ok = parser_list(&lst, &parser_decl, sizeof(Decl));
-    if (ok) {
-        *ret = (Decls) { lst.size, lst.vec };
-        return 1;
-    } else {
-        strcpy(NXT.err, lst.err.msg);
+    if (!parser_list(&lst, &parser_decl, sizeof(Decl))) {
         return 0;
     }
+    *ret = (Decls) { lst.size, lst.vec };
+    return 1;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
 int parser_block (Block* ret) {
-    Expr e = parser_expr();
-    if (e.sub == EXPR_ERR) {
-        strcpy(NXT.err, e.err.msg);
+    Expr e;
+    if (!parser_expr(&e)) {
         return 0;
     }
 

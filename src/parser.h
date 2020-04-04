@@ -4,7 +4,6 @@ typedef enum {
 } TYPE;
 
 typedef enum {
-    EXPR_ERR = 0,
     EXPR_UNIT,
     EXPR_VAR,
     EXPR_CONS,
@@ -15,11 +14,6 @@ typedef enum {
 } EXPR;
 
 ///////////////////////////////////////////////////////////////////////////////
-
-typedef struct {
-    long off;
-    char msg[256];
-} Error;
 
 typedef struct {
     TYPE sub;
@@ -45,7 +39,6 @@ typedef struct {
 typedef struct Expr {
     EXPR sub;
     union {
-        Error err;      // EXPR_ERR
         Tk tk;          // EXPR_UNIT, EXPR_VAR, EXPR_CONS
         Exprs exprs;    // EXPR_EXPRS
         struct {        // EXPR_SET
@@ -70,10 +63,10 @@ typedef struct {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void  dump_expr (Expr e, int spc);
-void  init (FILE* out, FILE* inp);
+void dump_expr (Expr e, int spc);
+void init (FILE* out, FILE* inp);
 
 int parser_type  (Type*  ret);
 int parser_decls (Decls* ret);
-Expr  parser_expr  (void);
+int parser_expr  (Expr*  ret);
 int parser_block (Block* ret);
