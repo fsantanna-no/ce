@@ -215,9 +215,9 @@ Expr parser_expr (void) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-Decl parser_decl (void) {
+Decls parser_decls (void) {
     if (!pr_accept(TK_VAR,1)) {
-        return (Decl) { DECL_NONE, .err=expected("declaration") };
+        return (Decls) { DECLS_NONE, .err=expected("declaration") };
     }
     Tk var = OLD.tk;
 
@@ -225,11 +225,11 @@ Decl parser_decl (void) {
     if (pr_accept(TK_DECL,1)) {
         Type tp = parser_type();
         if (tp.sub == TYPE_NONE) {
-            return (Decl) { DECL_NONE, .err=tp.err };
+            return (Decls) { DECLS_NONE, .err=tp.err };
         }
-        return (Decl) { DECL_SIG, .var=var, .type=tp };
+        //return (Decls) { DECL_SIG, .var=var, .type=tp };
 
     }
 
-    return (Decl) { DECL_NONE, .err=expected("`::`") };
+    return (Decls) { DECLS_NONE, .err=expected("`::`") };
 }

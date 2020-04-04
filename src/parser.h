@@ -15,10 +15,9 @@ typedef enum {
 } EXPR;
 
 typedef enum {
-    DECL_NONE = 0,
-    DECL_SIG,
-    DECL_ATR
-} DECL;
+    DECLS_NONE = 0,
+    DECLS_OK
+} DECLS;
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -34,6 +33,22 @@ typedef struct {
         Tk    tk;       // TYPE_DATA
     };
 } Type;
+
+typedef struct {
+    Tk   var;
+    Type type;
+} Decl;
+
+typedef struct {
+    DECLS sub;
+    union {
+        Error err;
+        struct {
+            int size;
+            struct Decl* vec;
+        };
+    };
+} Decls;
 
 struct Expr;
 typedef struct {
@@ -62,21 +77,10 @@ typedef struct Expr {
     };
 } Expr;
 
-typedef struct {
-    DECL sub;
-    union {
-        Error err;
-        struct {        // DECL_SIG
-            Tk   var;
-            Type type;
-        };
-    };
-} Decl;
-
 ///////////////////////////////////////////////////////////////////////////////
 
-void parser_init (FILE* buf);
-Type parser_type (void);
-Expr parser_expr (void);
-Decl parser_decl (void);
-void parser_dump_expr (Expr e, int spc);
+void  parser_init      (FILE* buf);
+Type  parser_type      (void);
+Expr  parser_expr      (void);
+Decls parser_decls     (void);
+void  parser_dump_expr (Expr e, int spc);

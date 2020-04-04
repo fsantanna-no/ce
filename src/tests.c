@@ -152,7 +152,6 @@ void t_parser_expr (void) {
     {
         parser_init(stropen(": x"));
         Expr e = parser_expr();
-//puts(e.err.msg);
         assert(!strcmp(e.err.msg, "(ln 1, col 3): unexpected indentation level"));
         fclose(CUR.buf);
     }
@@ -185,27 +184,30 @@ void t_parser_expr (void) {
     }
 }
 
-void t_parser_decl (void) {
+void t_parser_decls (void) {
     {
         parser_init(stropen("a"));
-        Decl decl = parser_decl();
-        assert(decl.sub == DECL_NONE);
-        assert(!strcmp(decl.err.msg, "(ln 1, col 2): expected `::` : have end of file"));
+        Decls ds = parser_decls();
+        assert(ds.sub == DECLS_NONE);
+        assert(!strcmp(ds.err.msg, "(ln 1, col 2): expected `::` : have end of file"));
         fclose(CUR.buf);
     }
+#if 0
     {
         parser_init(stropen("a :: ()"));
-        Decl decl = parser_decl();
-        assert(decl.var.sym  == TK_VAR);
-        assert(!strcmp(decl.var.val.s, "a"));
-        assert(decl.type.sub == TYPE_UNIT);
+        Decls ds = parser_decls();
+        assert(ds.var.sym  == TK_VAR);
+        assert(!strcmp(ds.var.val.s, "a"));
+        assert(ds.type.sub == TYPE_UNIT);
         fclose(CUR.buf);
     }
+#endif
     {
         parser_init(stropen("a :: (x)"));
-        Decl decl = parser_decl();
-        assert(decl.sub == DECL_NONE);
-        assert(!strcmp(decl.err.msg, "(ln 1, col 7): unexpected `x`"));
+        Decls ds = parser_decls();
+        assert(ds.sub == DECLS_NONE);
+//puts(ds.err.msg);
+        assert(!strcmp(ds.err.msg, "(ln 1, col 7): unexpected `x`"));
         fclose(CUR.buf);
     }
 }
@@ -213,7 +215,7 @@ void t_parser_decl (void) {
 void t_parser (void) {
     t_parser_type();
     t_parser_expr();
-    t_parser_decl();
+    t_parser_decls();
 }
 
 int main (void) {
