@@ -18,7 +18,10 @@ int all (const char* xp, char* src) {
         stropen("r", 0, src)
     );
     Block b;
-    parser_block(&b);
+    if (!parser_block(&b)) {
+        puts(ALL.err);
+        return !strcmp(ALL.err, xp);
+    }
     code(b);
     fclose(ALL.out);
     compile(out);
@@ -426,6 +429,15 @@ void t_all (void) {
     assert(all(
         "0\n",
         "a:\n    a :: ()"
+    ));
+puts(">>>");
+    assert(all(
+        "True\n",
+        "main:\n"
+        "    data Bool:\n"
+        "        False = ()\n"
+        "        True = ()\n"
+        "    set main = True\n"
     ));
 }
 

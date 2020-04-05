@@ -328,7 +328,7 @@ int parser_expr_one (Expr* ret) {
     } else if (pr_accept(TK_IDVAR,1)) {
         *ret = (Expr) { EXPR_VAR, .tk=PRV.tk };
         return 1;
-    } else if (pr_accept(TK_DATA,1)) {
+    } else if (pr_accept(TK_IDDATA,1)) {
         *ret = (Expr) { EXPR_CONS, .tk=PRV.tk };
         return 1;
     }

@@ -34,10 +34,17 @@ const char* lexer_tk2str (Tk* tk) {
             sprintf(str, "new line");
             break;
         case TK_IDVAR:
+        case TK_IDDATA:
             sprintf(str, "`%s`", tk->val.s);
             break;
         default:
-            sprintf(str, "`%c`", tk->sym);
+            if (tk->sym < TK_CHAR) {
+                sprintf(str, "`%c`", tk->sym);
+            } else if (tk->sym > TK_RESERVED) {
+                sprintf(str, "`%s`", reserved[tk->sym-TK_RESERVED-1]);
+            } else {
+                assert(0 && "TODO");
+            }
             break;
     }
     return str;

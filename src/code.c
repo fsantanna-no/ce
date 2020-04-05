@@ -14,8 +14,9 @@ void code_type (Type tp) {
         case TYPE_UNIT:
             fputs("int /* () */", ALL.out);
             break;
-        default:
-            assert(0 && "TODO");
+        case TYPE_DATA:
+            fputs(tp.tk.val.s, ALL.out);
+            break;
     }
 }
 
