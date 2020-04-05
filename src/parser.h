@@ -24,14 +24,14 @@ typedef enum {
 
 /*
  *
- * Cons  ::= IDDATA `=` Type
- * Data  ::= data IDDATA [`=` Type] [`:` { Cons }]
+ * Cons  ::= <Id> `=` Type
+ * Data  ::= data <Id> [`=` Type] [`:` { Cons }]
  *
- * Decl  ::= IDVAR `::` Type [`=` Expr]
+ * Decl  ::= <id> `::` Type [`=` Expr]
  * Decls ::= { Decl }
  *
- * Expr  ::= `(` `)` | IDVAR | IDDATA
- *        |  set IDVAR `=` Expr
+ * Expr  ::= `(` `)` | <id> | <Id>
+ *        |  set <id> `=` Expr
  *        |  func `::` Type Expr
  *        |  `:` { Expr }           // sequence
  *        |  Expr `(` Expr `)`      // call

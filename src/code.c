@@ -45,7 +45,9 @@ void code_expr (int spc, Expr e, const char* ret) {
             code_decls(spc, *e.Block.decls);
             code_spc(spc);
             code_expr (spc, *e.Block.ret, ret);
+            break;
         default:
+            //printf("%d\n", e.sub);
             assert(0 && "TODO");
     }
 }
@@ -65,7 +67,6 @@ void code_decls (int spc, Decls ds) {
     for (int i=0; i<ds.size; i++) {
         code_spc(spc);
         code_decl(spc, ds.vec[i]);
-        fputs(";\n", ALL.out);
     }
 }
 
@@ -82,9 +83,9 @@ void code_prog (int spc, Prog prog) {
                 break;
             case GLOB_EXPR:
                 code_expr(spc, g.expr, NULL);
+                fputs(";\n", ALL.out);
                 break;
         }
-        fputs(";\n", ALL.out);
     }
 }
 

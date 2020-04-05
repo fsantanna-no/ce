@@ -300,7 +300,6 @@ void t_parser_expr (void) {
         ));
         Expr e;
         assert(parser_expr(&e));
-        //dump_expr(e,0);
         assert(e.sub == EXPR_SEQ);
         assert(e.seq.size == 2);
         assert(!strcmp(e.seq.vec[1].seq.vec[0].tk.val.s, "y"));
@@ -351,42 +350,34 @@ void t_parser_block (void) {
     {
         init(NULL, stropen("r", 0,
             ":\n"
-            "    a\n"
-            "    b\n"
-            ":\n"
-            "    a :: ()\n"
-            "    b :: ()\n"
+            "    a:\n"
+            "        a :: ()\n"
+            "    b:\n"
+            "        b :: ()\n"
         ));
         Expr e;
         assert(parser_expr(&e));
-        assert(e.Block.ret->sub == EXPR_SEQ);
-        assert(e.Block.ret->seq.size == 2);
-        assert(e.Block.decls->size == 2);
+        assert(e.sub == EXPR_SEQ);
+        assert(e.seq.size == 2);
+        assert(e.seq.vec[0].sub == EXPR_BLOCK);
+        assert(e.seq.vec[1].sub == EXPR_BLOCK);
+        assert(e.seq.vec[0].Block.decls->size == 1);
+        assert(e.seq.vec[1].Block.decls->size == 1);
         fclose(ALL.inp);
     }
     {
         init(NULL, stropen("r", 0,
-            ":\n"
+            "x:\n"
+            "    x :: () = y:\n"
+            "        y :: ()\n"
             "    a :: ()\n"
-            "    :\n"
-            "        x :: ()\n"
-            "    b :: ()\n"
         ));
         Expr e;
         assert(parser_expr(&e));
-        assert(e.Block.ret->sub == EXPR_SEQ);
-        assert(e.Block.ret->seq.size == 2);
+        assert(e.Block.ret->sub == EXPR_VAR);
         assert(e.Block.decls->size == 2);
         fclose(ALL.inp);
     }
-    assert(all(
-        "True\n",
-        ":\n"
-        "    data Bool:\n"
-        "        False = ()\n"
-        "        True = ()\n"
-        "    set ret = True\n"
-    ));
 }
 
 void t_parser (void) {
@@ -417,15 +408,16 @@ void t_code (void) {
             e.tk.sym = TK_IDVAR;
             strcpy(e.tk.val.s, "xxx");
         Decl d;
+            d.set = NULL;
             d.var.sym = TK_IDVAR;
             strcpy(d.var.val.s, "xxx");
             d.type.sub = TYPE_UNIT;
         Decls ds = { 1, &d };
         Expr blk = { EXPR_BLOCK, .Block={&e,&ds} };
+        // xxx: xxx::()
         code_expr(0, blk, "ret");
         fclose(ALL.out);
-        //puts(out);
-        assert(!strcmp(out,"int /* () */ xxx;\nret = xxx;\n"));
+        assert(!strcmp(out,"int /* () */ xxx;\nret = xxx"));
     }
     {
         char out[256];
@@ -460,7 +452,7 @@ void t_all (void) {
         "    data Bool:\n"
         "        False = ()\n"
         "        True = ()\n"
-        "    set ret = True\n"
+        "    set ret = True"
     ));
 }
 

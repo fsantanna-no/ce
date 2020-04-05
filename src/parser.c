@@ -116,7 +116,8 @@ int parser_list (List* ret, List_F f, size_t unit) {
         vec = realloc(vec, (i+1)*unit);
         memcpy(vec+i*unit, item, unit);
         i++;
-        if (pr_accept(TK_EOF,1) || pr_accept(TK_LINE, NXT.tk.val.n<ALL.ind)) {
+        if (pr_check(TK_EOF,1) || pr_check(TK_LINE, NXT.tk.val.n<ALL.ind)) {
+            //pr_accept(TK_LINE, NXT.tk.val.n==ALL.ind-1);
             break;
         }
         if (!pr_accept(TK_LINE, NXT.tk.val.n==ALL.ind)) {
