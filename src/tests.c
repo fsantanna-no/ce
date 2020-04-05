@@ -11,7 +11,7 @@ FILE* stropen (const char* mode, size_t size, char* str) {
     return fmemopen(str, size, mode);
 }
 
-int all (char* src, const char* xp) {
+int all (const char* xp, char* src) {
     static char out[65000];
     init (
         stropen("w", sizeof(out), out),
@@ -420,15 +420,13 @@ void t_code (void) {
             "}\n";
         assert(!strcmp(out,ret));
     }
-    {
-        assert(all(
-            "a:\n    a :: ()",
-            "0\n"
-        ));
-    }
 }
 
 void t_all (void) {
+    assert(all(
+        "0\n",
+        "a:\n    a :: ()"
+    ));
 }
 
 int main (void) {
