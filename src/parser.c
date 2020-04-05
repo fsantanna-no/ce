@@ -144,6 +144,9 @@ int parser_type (Type* ret) {
         } else {
             return err_unexpected(lexer_tk2str(&NXT.tk));
         }
+    } else if (pr_accept(TK_IDDATA,1)) {
+        *ret = (Type) { TYPE_UNIT, PRV.tk };
+        return 1;
     }
     return err_expected("type");
 }
@@ -180,18 +183,39 @@ int parser_datas (Datas* ret) {
     if (!pr_accept(TK_IDDATA,1)) {
         return err_expected("data identifier");
     }
+    Tk id = PRV.tk;
 
     Type tp;
-    int tp_ok = parser_type(&tp);
+    int tp_ok = pr_accept('=', 1);
+    if (tp_ok) {
+        parser_type(&tp);
+    }
 
-    List lst;
+    List lst = { 0, NULL };
     int lst_ok = parser_list(&lst, &parser_data, sizeof(Data));
 
     if (!tp_ok && !lst_ok) {
         return err_expected("`=` or `:`");
     }
 
-    *ret = (Datas) { lst.size, lst.vec };
+    *ret = (Datas) { id, lst.size, lst.vec };
+    for (int i=0; i<ret->size; i++) {
+        ret->vec[i].idx = i;
+    }
+
+    // realloc TP more spaces inside each CONS
+    if (tp_ok) {
+        if (lst_ok) {
+            assert(0 && "TODO");
+        } else {
+            ret->size = 1;
+            ret->vec  = malloc(sizeof(Data));
+
+            Data dt = (Data) { 0, {}, tp };
+            ret->vec[0] = dt;
+        }
+    }
+
     return 1;
 }
 

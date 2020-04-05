@@ -96,22 +96,26 @@ void t_parser_datas (void) {
         Datas dts;
         parser_datas(&dts);
         assert(dts.size == 1);
+        assert(!strcmp(dts.tk.val.s,"Km"));
         assert(dts.vec[0].idx == 0);
-        assert(!strcmp(dts.vec[0].tk.val.s,"Km"));
         assert(dts.vec[0].type.sub == TYPE_UNIT);
         fclose(ALL.inp);
     }
     {
-        init(NULL, stropen("r", 0, "data Bool:\n    True = ()\n    False = ()"));
+        init(NULL, stropen("r", 0, "data Bool:\n    False = ()\n    True = ()"));
         Datas dts;
         parser_datas(&dts);
         assert(dts.size == 2);
+        assert(dts.vec[0].idx == 0);
         assert(dts.vec[1].idx == 1);
-        assert(!strcmp(dts.vec[0].tk.val.s,"Data"));
+        assert(!strcmp(dts.vec[0].tk.val.s,"False"));
+        assert(!strcmp(dts.vec[1].tk.val.s,"True"));
+        assert(dts.vec[0].type.sub == TYPE_UNIT);
         assert(dts.vec[1].type.sub == TYPE_UNIT);
-        assert(!strcmp(dts.vec[1].type.tk.val.s,"True"));
         fclose(ALL.inp);
     }
+#if 0
+    // TODO: both at same time
     {
         init(NULL, stropen("r", 0, "data Ast = Int:\n    Expr = Int\n    Decl = ()"));
         Datas dts;
@@ -123,6 +127,7 @@ void t_parser_datas (void) {
         assert(!strcmp(dts.vec[1].type.tk.val.s,"True"));
         fclose(ALL.inp);
     }
+#endif
 }
 
 void t_parser_expr (void) {

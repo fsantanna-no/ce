@@ -27,6 +27,7 @@ typedef struct {
 } Data;
 
 typedef struct {
+    Tk    tk;
     int   size;
     Data* vec;
 } Datas;
