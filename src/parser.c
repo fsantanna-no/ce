@@ -14,10 +14,10 @@ void dump_expr (Expr e, int spc) {
         case EXPR_VAR:
             puts(e.tk.val.s);
             break;
-        case EXPR_EXPRS:
-            printf(": [%d]\n", e.exprs.size);
-            for (int i=0; i<e.exprs.size; i++) {
-                dump_expr(e.exprs.vec[i], spc+4);
+        case EXPR_SEQ:
+            printf(": [%d]\n", e.seq.size);
+            for (int i=0; i<e.seq.size; i++) {
+                dump_expr(e.seq.vec[i], spc+4);
             }
             break;
         default:
@@ -153,11 +153,8 @@ int parser_type (Type* ret) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-// Data  ::= IDDATA `=` Type
-// Datas ::= data IDDATA [`=` Type] [`:` { Data }]
-
-int parser_data (void** data) {
-    static Data d;
+int parser_cons (void** cons) {
+    static Cons d;
 
     if (!pr_accept(TK_IDDATA,1)) {
         return err_expected("data identifier");
@@ -172,11 +169,11 @@ int parser_data (void** data) {
         return 0;
     }
 
-    *data = &d;
+    *cons = &d;
     return 1;
 }
 
-int parser_datas (Datas* ret) {
+int parser_data (Data* ret) {
     if (!pr_accept(TK_DATA,1)) {
         return err_expected("`data`");
     }
@@ -192,13 +189,13 @@ int parser_datas (Datas* ret) {
     }
 
     List lst = { 0, NULL };
-    int lst_ok = parser_list(&lst, &parser_data, sizeof(Data));
+    int lst_ok = parser_list(&lst, &parser_cons, sizeof(Cons));
 
     if (!tp_ok && !lst_ok) {
         return err_expected("`=` or `:`");
     }
 
-    *ret = (Datas) { id, lst.size, lst.vec };
+    *ret = (Data) { id, lst.size, lst.vec };
     for (int i=0; i<ret->size; i++) {
         ret->vec[i].idx = i;
     }
@@ -209,9 +206,9 @@ int parser_datas (Datas* ret) {
             assert(0 && "TODO");
         } else {
             ret->size = 1;
-            ret->vec  = malloc(sizeof(Data));
+            ret->vec  = malloc(sizeof(Cons));
 
-            Data dt = (Data) { 0, {}, tp };
+            Cons dt = (Cons) { 0, {}, tp };
             ret->vec[0] = dt;
         }
     }
@@ -220,9 +217,6 @@ int parser_datas (Datas* ret) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-
-// Decl  ::= IDVAR `::` Type
-// Decls ::= { Decl }
 
 int parser_decl (Decl* decl) {
     if (!pr_accept(TK_IDVAR,1)) {
@@ -322,13 +316,13 @@ int parser_expr_one (Expr* ret) {
         *ret = (Expr) { EXPR_FUNC, .Func={tp,pe} };
         return 1;
 
-    // EXPR_EXPRS
+    // EXPR_SEQ
     } else if (pr_check(':',1)) {
         List lst;
         if (!parser_list(&lst, &parser_expr_, sizeof(Expr))) {
             return 0;
         }
-        *ret = (Expr) { EXPR_EXPRS, .exprs={lst.size,lst.vec} };
+        *ret = (Expr) { EXPR_SEQ, .seq={lst.size,lst.vec} };
         return 1;
 
     // EXPR_VAR,EXPR_DATA
@@ -344,56 +338,57 @@ int parser_expr_one (Expr* ret) {
 }
 
 int parser_expr (Expr* ret) {
-    Expr e1;
-    if (!parser_expr_one(&e1)) {
+    Expr e;
+    if (!parser_expr_one(&e)) {
         return 0;
     }
 
-    if (!pr_check('(',1)) {
-        *ret = e1;
+    // CALL
+    if (pr_check('(',1)) {
+        Expr arg;
+        if (!parser_expr(&arg)) {
+            return 0;
+        }
+
+        Expr* pe1 = malloc(sizeof(*pe1));
+        Expr* pe2 = malloc(sizeof(*pe2));
+        assert(pe1!=NULL && pe2!=NULL);
+        *pe1 = e;
+        *pe2 = arg;
+        *ret = (Expr) { EXPR_CALL, .Call={pe1,pe2} };
         return 1;
     }
 
-    Expr e2;
-    if (!parser_expr(&e2)) {
-        return 0;
+    // BLOCK
+    if (pr_check(':',1)) {
+        Decls ds;
+        if (!parser_decls(&ds)) {
+            return 0;
+        }
+
+        Expr*  pe = malloc(sizeof(*pe));
+        Decls* pd = malloc(sizeof(*pd));
+        assert(pe!=NULL && pd!=NULL);
+        *pe = e;
+        *pd = ds;
+        *ret = (Expr) { EXPR_BLOCK, .Block={pe,pd} };
+        return 1;
     }
 
-    Expr* pe1 = malloc(sizeof(*pe1));
-    Expr* pe2 = malloc(sizeof(*pe2));
-    assert(pe1!=NULL && pe2!=NULL);
-    *pe1 = e1;
-    *pe2 = e2;
-    *ret = (Expr) { EXPR_CALL, .Call={pe1,pe2} };
+    // SINGLE
+    *ret = e;
     return 1;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
-int parser_block (Block* ret) {
-    Expr e;
-    if (!parser_expr(&e)) {
-        return 0;
-    }
-
-    Decls ds;
-    if (!parser_decls(&ds)) {
-        return 0;
-    }
-
-    *ret = (Block) { ds, e };
-    return 1;
-}
-
-///////////////////////////////////////////////////////////////////////////////
-
-// Glob ::= Datas | Decl | Expr
+// Glob ::= Data | Decl | Expr
 // Prog ::= { Glob }
 
 int parser_glob (void** glob) {
     static Glob g;
 
-    if (parser_datas(&g.datas)) {
+    if (parser_data(&g.datas)) {
         g.sub = GLOB_DATAS;
         *glob = &g;
         return 1;

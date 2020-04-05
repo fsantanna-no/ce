@@ -108,15 +108,15 @@ void t_parser_type (void) {
 void t_parser_datas (void) {
     {
         init(NULL, stropen("r", 0, "data Err"));
-        Datas dts;
-        assert(!parser_datas(&dts));
+        Data dts;
+        assert(!parser_data(&dts));
         assert(!strcmp(ALL.err, "(ln 1, col 9): expected `=` or `:` : have end of file"));
         fclose(ALL.inp);
     }
     {
         init(NULL, stropen("r", 0, "data Km = ()"));
-        Datas dts;
-        parser_datas(&dts);
+        Data dts;
+        parser_data(&dts);
         assert(dts.size == 1);
         assert(!strcmp(dts.tk.val.s,"Km"));
         assert(dts.vec[0].idx == 0);
@@ -125,8 +125,8 @@ void t_parser_datas (void) {
     }
     {
         init(NULL, stropen("r", 0, "data Bool:\n    False = ()\n    True = ()"));
-        Datas dts;
-        parser_datas(&dts);
+        Data dts;
+        parser_data(&dts);
         assert(dts.size == 2);
         assert(dts.vec[0].idx == 0);
         assert(dts.vec[1].idx == 1);
@@ -140,8 +140,8 @@ void t_parser_datas (void) {
     // TODO: both at same time
     {
         init(NULL, stropen("r", 0, "data Ast = Int:\n    Expr = Int\n    Decl = ()"));
-        Datas dts;
-        parser_datas(&dts);
+        Data dts;
+        parser_data(&dts);
         assert(dts.size == 2);
         assert(dts.vec[1].idx == 1);
         assert(!strcmp(dts.vec[0].tk.val.s,"Data"));
@@ -191,7 +191,7 @@ void t_parser_expr (void) {
     }
     // EXPR_VAR
     {
-        init(NULL, stropen("r", 0, "x:"));
+        init(NULL, stropen("r", 0, "x)"));
         Expr e;
         assert(parser_expr(&e));
         assert(e.sub == EXPR_VAR);
@@ -225,7 +225,7 @@ void t_parser_expr (void) {
         assert(parser_expr(&e));
         assert(e.sub == EXPR_SET);
         assert(!strcmp(e.Set.var.val.s, "a"));
-        assert(!strcmp(e.Set.expr->tk.val.s, "x"));
+        assert(!strcmp(e.Set.val->tk.val.s, "x"));
         fclose(ALL.inp);
     }
     // EXPR_FUNC
@@ -244,10 +244,10 @@ void t_parser_expr (void) {
         assert(e.sub == EXPR_CALL);
         assert(e.Call.func->sub == EXPR_VAR);
         assert(!strcmp(e.Call.func->tk.val.s, "xxx"));
-        assert(e.Call.expr->sub == EXPR_UNIT);
+        assert(e.Call.arg->sub == EXPR_UNIT);
         fclose(ALL.inp);
     }
-    // EXPR_EXPRS
+    // EXPR_SEQ
     {
         init(NULL, stropen("r", 0, ": x"));
         Expr e;
@@ -266,8 +266,8 @@ void t_parser_expr (void) {
         init(NULL, stropen("r", 0, ":\n    x"));
         Expr e;
         assert(parser_expr(&e));
-        assert(e.sub == EXPR_EXPRS);
-        assert(e.exprs.size == 1);
+        assert(e.sub == EXPR_SEQ);
+        assert(e.seq.size == 1);
         fclose(ALL.inp);
     }
     {
@@ -301,9 +301,9 @@ void t_parser_expr (void) {
         Expr e;
         assert(parser_expr(&e));
         //dump_expr(e,0);
-        assert(e.sub == EXPR_EXPRS);
-        assert(e.exprs.size == 2);
-        assert(!strcmp(e.exprs.vec[1].exprs.vec[0].tk.val.s, "y"));
+        assert(e.sub == EXPR_SEQ);
+        assert(e.seq.size == 2);
+        assert(!strcmp(e.seq.vec[1].seq.vec[0].tk.val.s, "y"));
         fclose(ALL.inp);
     }
 }
@@ -344,8 +344,8 @@ void t_parser_decls (void) {
 void t_parser_block (void) {
     {
         init(NULL, stropen("r", 0, "a:\n    a :: ()"));
-        Block blk;
-        assert(parser_block(&blk));
+        Expr blk;
+        assert(parser_expr(&blk));
         fclose(ALL.inp);
     }
     {
@@ -357,13 +357,36 @@ void t_parser_block (void) {
             "    a :: ()\n"
             "    b :: ()\n"
         ));
-        Block blk;
-        assert(parser_block(&blk));
-        assert(blk.expr.sub == EXPR_EXPRS);
-        assert(blk.expr.exprs.size == 2);
-        assert(blk.decls.size == 2);
+        Expr e;
+        assert(parser_expr(&e));
+        assert(e.Block.ret->sub == EXPR_SEQ);
+        assert(e.Block.ret->seq.size == 2);
+        assert(e.Block.decls->size == 2);
         fclose(ALL.inp);
     }
+    {
+        init(NULL, stropen("r", 0,
+            ":\n"
+            "    a :: ()\n"
+            "    :\n"
+            "        x :: ()\n"
+            "    b :: ()\n"
+        ));
+        Expr e;
+        assert(parser_expr(&e));
+        assert(e.Block.ret->sub == EXPR_SEQ);
+        assert(e.Block.ret->seq.size == 2);
+        assert(e.Block.decls->size == 2);
+        fclose(ALL.inp);
+    }
+    assert(all(
+        "True\n",
+        ":\n"
+        "    data Bool:\n"
+        "        False = ()\n"
+        "        True = ()\n"
+        "    set ret = True\n"
+    ));
 }
 
 void t_parser (void) {
@@ -398,8 +421,8 @@ void t_code (void) {
             strcpy(d.var.val.s, "xxx");
             d.type.sub = TYPE_UNIT;
         Decls ds = { 1, &d };
-        Block blk = { ds, e };
-        code_block(0, blk, "ret");
+        Expr blk = { EXPR_BLOCK, .Block={&e,&ds} };
+        code_expr(0, blk, "ret");
         fclose(ALL.out);
         //puts(out);
         assert(!strcmp(out,"int /* () */ xxx;\nret = xxx;\n"));

@@ -39,8 +39,12 @@ void code_expr (int spc, Expr e, const char* ret) {
         case EXPR_SET:
             fputs(e.Set.var.val.s, ALL.out);
             fputs(" = ", ALL.out);
-            code_expr(spc, *e.Set.expr, ret);
+            code_expr(spc, *e.Set.val, ret);
             break;
+        case EXPR_BLOCK:
+            code_decls(spc, *e.Block.decls);
+            code_spc(spc);
+            code_expr (spc, *e.Block.ret, ret);
         default:
             assert(0 && "TODO");
     }
@@ -58,13 +62,6 @@ void code_decls (int spc, Decls ds) {
         code_decl(spc, ds.vec[i]);
         fputs(";\n", ALL.out);
     }
-}
-
-void code_block (int spc, Block blk, const char* ret) {
-    code_decls(spc, blk.decls);
-    code_spc(spc);
-    code_expr (spc, blk.expr, ret);
-    fputs(";\n", ALL.out);
 }
 
 void code_prog (int spc, Prog prog) {

@@ -33,6 +33,9 @@ const char* lexer_tk2str (Tk* tk) {
         case TK_LINE:
             sprintf(str, "new line");
             break;
+        case TK_DECL:
+            sprintf(str, "`::`");
+            break;
         case TK_IDVAR:
         case TK_IDDATA:
             sprintf(str, "`%s`", tk->val.s);
