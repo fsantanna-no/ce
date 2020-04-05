@@ -11,6 +11,24 @@ FILE* stropen (const char* mode, size_t size, char* str) {
     return fmemopen(str, size, mode);
 }
 
+int all (char* src, const char* xp) {
+    static char out[65000];
+    init (
+        stropen("w", sizeof(out), out),
+        stropen("r", 0, src)
+    );
+    Block b;
+    parser_block(&b);
+    code(b);
+    fclose(ALL.out);
+    compile(out);
+    FILE* f = popen("./a.out", "r");
+    assert(f != NULL);
+    fgets(out, sizeof(out), f);
+    fclose(f);
+    return !strcmp(out,xp);
+}
+
 void t_lexer (void) {
     {
         ALL.inp = stropen("r", 0, "-- foobar");
@@ -403,27 +421,20 @@ void t_code (void) {
         assert(!strcmp(out,ret));
     }
     {
-        char out[256];
-        init (
-            stropen("w", sizeof(out), out),
-            stropen("r", 0, "a:\n    a :: ()")
-        );
-        Block b;
-        parser_block(&b);
-        code(b);
-        fclose(ALL.out);
-        compile(out);
-        FILE* f = popen("./a.out", "r");
-        assert(f != NULL);
-        fgets(out, sizeof(out), f);
-        fclose(f);
-        assert(!strcmp(out,"0\n"));
+        assert(all(
+            "a:\n    a :: ()",
+            "0\n"
+        ));
     }
+}
+
+void t_all (void) {
 }
 
 int main (void) {
     t_lexer();
     t_parser();
     t_code();
+    t_all();
     puts("OK");
 }
