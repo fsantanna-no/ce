@@ -17,13 +17,14 @@ int all (const char* xp, char* src) {
         stropen("w", sizeof(out), out),
         stropen("r", 0, src)
     );
-    Block b;
-    if (!parser_block(&b)) {
+    Prog prog;
+    if (!parser_prog(&prog)) {
         puts(ALL.err);
         return !strcmp(ALL.err, xp);
     }
-    code(b);
+    code(prog);
     fclose(ALL.out);
+puts(out);
     compile(out);
     FILE* f = popen("./a.out", "r");
     assert(f != NULL);
@@ -407,11 +408,11 @@ void t_code (void) {
         char out[256];
         init (
             stropen("w", sizeof(out), out),
-            stropen("r", 0, "a:\n    a :: ()")
+            stropen("r", 0, ":\n    a :: ()\n    set ret = a")
         );
-        Block b;
-        parser_block(&b);
-        code(b);
+        Prog p;
+        parser_prog(&p);
+        code(p);
         fclose(ALL.out);
         char* ret =
             "#include <stdio.h>\n"
@@ -428,16 +429,15 @@ void t_code (void) {
 void t_all (void) {
     assert(all(
         "0\n",
-        "a:\n    a :: ()"
+        ":\n    a :: ()\n    set a = ()\n    set ret = a"
     ));
-puts(">>>");
     assert(all(
         "True\n",
-        "main:\n"
+        ":\n"
         "    data Bool:\n"
         "        False = ()\n"
         "        True = ()\n"
-        "    set main = True\n"
+        "    set ret = True\n"
     ));
 }
 

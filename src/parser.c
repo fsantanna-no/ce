@@ -221,29 +221,36 @@ int parser_datas (Datas* ret) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-int parser_decl (void** decl) {
-    static Decl d;
+// Decl  ::= IDVAR `::` Type
+// Decls ::= { Decl }
 
+int parser_decl (Decl* decl) {
     if (!pr_accept(TK_IDVAR,1)) {
         return err_expected("declaration");
     }
-    d.var = PRV.tk;
+    decl->var = PRV.tk;
 
     if (!pr_accept(TK_DECL,1)) {
         return err_expected("`::`");
     }
 
-    if (!parser_type(&d.type)) {
+    if (!parser_type(&decl->type)) {
         return 0;
     }
 
-    *decl = &d;
     return 1;
+}
+
+int parser_decl_ (void** decl) {
+    static Decl d;
+    int ret = parser_decl(&d);
+    *decl = &d;
+    return ret;
 }
 
 int parser_decls (Decls* ret) {
     List lst;
-    if (!parser_list(&lst, &parser_decl, sizeof(Decl))) {
+    if (!parser_list(&lst, &parser_decl_, sizeof(Decl))) {
         return 0;
     }
     *ret = (Decls) { lst.size, lst.vec };
@@ -375,5 +382,47 @@ int parser_block (Block* ret) {
     }
 
     *ret = (Block) { ds, e };
+    return 1;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+// Glob ::= Datas | Decl | Expr
+// Prog ::= { Glob }
+
+int parser_glob (void** glob) {
+    static Glob g;
+
+    if (parser_datas(&g.datas)) {
+        g.sub = GLOB_DATAS;
+        *glob = &g;
+        return 1;
+    }
+
+    if (parser_decl(&g.decl)) {
+        g.sub = GLOB_DECL;
+        *glob = &g;
+        return 1;
+    }
+
+    if (parser_expr(&g.expr)) {
+        g.sub = GLOB_EXPR;
+        *glob = &g;
+        return 1;
+    }
+
+    return err_expected("global statement");
+}
+
+int parser_prog (Prog* ret) {
+    List lst;
+    if (!parser_list(&lst, &parser_glob, sizeof(Glob))) {
+        return 0;
+    }
+    *ret = (Prog) { lst.size, lst.vec };
+
+    if (!pr_accept(TK_EOF,1)) {
+        return err_expected("end of file");
+    }
     return 1;
 }

@@ -13,6 +13,12 @@ typedef enum {
     EXPR_EXPRS
 } EXPR;
 
+typedef enum {
+    GLOB_DATAS,
+    GLOB_DECL,
+    GLOB_EXPR
+} GLOB;
+
 ///////////////////////////////////////////////////////////////////////////////
 
 typedef struct {
@@ -73,6 +79,20 @@ typedef struct {
     Expr  expr;
 } Block;
 
+typedef struct {
+    int sub;
+    union {
+        Datas datas;
+        Decl  decl;
+        Expr  expr;
+    };
+} Glob;
+
+typedef struct {
+    int   size;
+    Glob* vec;
+} Prog;
+
 ///////////////////////////////////////////////////////////////////////////////
 
 void dump_expr (Expr e, int spc);
@@ -83,3 +103,4 @@ int parser_datas (Datas* ret);
 int parser_decls (Decls* ret);
 int parser_expr  (Expr*  ret);
 int parser_block (Block* ret);
+int parser_prog  (Prog* prog);
