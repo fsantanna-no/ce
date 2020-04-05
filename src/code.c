@@ -54,6 +54,11 @@ void code_decl (int spc, Decl d) {
     code_type(d.type);
     fputs(" ", ALL.out);
     fputs(d.var.val.s, ALL.out);
+    if (d.set != NULL) {
+        fputs(" = ", ALL.out);
+        code_expr(spc, *d.set, NULL);
+    }
+    fputs(";\n", ALL.out);
 }
 
 void code_decls (int spc, Decls ds) {

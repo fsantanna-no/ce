@@ -27,7 +27,7 @@ typedef enum {
  * Cons  ::= IDDATA `=` Type
  * Data  ::= data IDDATA [`=` Type] [`:` { Cons }]
  *
- * Decl  ::= IDVAR `::` Type
+ * Decl  ::= IDVAR `::` Type [`=` Expr]
  * Decls ::= { Decl }
  *
  * Expr  ::= `(` `)` | IDVAR | IDDATA
@@ -38,6 +38,8 @@ typedef enum {
  *        |  Expr `:` { Decl }      // block
  *        | `(` Expr `)`
  */
+
+struct Expr;
 
 typedef struct {
     TYPE sub;
@@ -59,6 +61,7 @@ typedef struct {
 typedef struct {
     Tk   var;
     Type type;
+    struct Expr* set;
 } Decl;
 
 typedef struct {
@@ -66,7 +69,6 @@ typedef struct {
     Decl* vec;
 } Decls;
 
-struct Expr;
 typedef struct {
     int size;
     struct Expr* vec;

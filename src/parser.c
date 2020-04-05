@@ -232,6 +232,18 @@ int parser_decl (Decl* decl) {
         return 0;
     }
 
+    if (pr_accept('=',1)) {
+        Expr set;
+        if (!parser_expr(&set)) {
+            return 0;
+        }
+        decl->set = malloc(sizeof(*decl->set));
+        assert(decl->set != NULL);
+        *decl->set = set;
+    } else {
+        decl->set = NULL;
+    }
+
     return 1;
 }
 
