@@ -21,6 +21,17 @@ typedef struct {
 } Type;
 
 typedef struct {
+    int  idx;
+    Tk   tk;
+    Type type;
+} Data;
+
+typedef struct {
+    int   size;
+    Data* vec;
+} Datas;
+
+typedef struct {
     Tk   var;
     Type type;
 } Decl;
@@ -67,6 +78,7 @@ void dump_expr (Expr e, int spc);
 void init (FILE* out, FILE* inp);
 
 int parser_type  (Type*  ret);
+int parser_datas (Datas* ret);
 int parser_decls (Decls* ret);
 int parser_expr  (Expr*  ret);
 int parser_block (Block* ret);

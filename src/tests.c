@@ -49,10 +49,10 @@ void t_lexer (void) {
     {
         ALL.inp = stropen("r", 0, "c1 C1 C'a a'? C!!");
         Tk tk1 = lexer(); assert(tk1.sym == TK_IDVAR);  assert(!strcmp(tk1.val.s, "c1"));
-        Tk tk2 = lexer(); assert(tk2.sym == TK_DATA); assert(!strcmp(tk2.val.s, "C1"));
-        Tk tk3 = lexer(); assert(tk3.sym == TK_DATA); assert(!strcmp(tk3.val.s, "C'a"));
+        Tk tk2 = lexer(); assert(tk2.sym == TK_IDDATA); assert(!strcmp(tk2.val.s, "C1"));
+        Tk tk3 = lexer(); assert(tk3.sym == TK_IDDATA); assert(!strcmp(tk3.val.s, "C'a"));
         Tk tk4 = lexer(); assert(tk4.sym == TK_IDVAR);  assert(!strcmp(tk4.val.s, "a'?"));
-        Tk tk5 = lexer(); assert(tk5.sym == TK_DATA); assert(!strcmp(tk5.val.s, "C!!"));
+        Tk tk5 = lexer(); assert(tk5.sym == TK_IDDATA); assert(!strcmp(tk5.val.s, "C!!"));
         assert(lexer().sym == TK_EOF);
         fclose(ALL.inp);
     }
@@ -79,6 +79,48 @@ void t_parser_type (void) {
         Type tp;
         parser_type(&tp);
         assert(tp.sub == TYPE_UNIT);
+        fclose(ALL.inp);
+    }
+}
+
+void t_parser_datas (void) {
+    {
+        init(NULL, stropen("r", 0, "data Err"));
+        Datas dts;
+        assert(!parser_datas(&dts));
+        assert(!strcmp(ALL.err, "(ln 1, col 9): expected `=` or `:` : have end of file"));
+        fclose(ALL.inp);
+    }
+    {
+        init(NULL, stropen("r", 0, "data Km = ()"));
+        Datas dts;
+        parser_datas(&dts);
+        assert(dts.size == 1);
+        assert(dts.vec[0].idx == 0);
+        assert(!strcmp(dts.vec[0].tk.val.s,"Km"));
+        assert(dts.vec[0].type.sub == TYPE_UNIT);
+        fclose(ALL.inp);
+    }
+    {
+        init(NULL, stropen("r", 0, "data Bool:\n    True = ()\n    False = ()"));
+        Datas dts;
+        parser_datas(&dts);
+        assert(dts.size == 2);
+        assert(dts.vec[1].idx == 1);
+        assert(!strcmp(dts.vec[0].tk.val.s,"Data"));
+        assert(dts.vec[1].type.sub == TYPE_UNIT);
+        assert(!strcmp(dts.vec[1].type.tk.val.s,"True"));
+        fclose(ALL.inp);
+    }
+    {
+        init(NULL, stropen("r", 0, "data Ast = Int:\n    Expr = Int\n    Decl = ()"));
+        Datas dts;
+        parser_datas(&dts);
+        assert(dts.size == 2);
+        assert(dts.vec[1].idx == 1);
+        assert(!strcmp(dts.vec[0].tk.val.s,"Data"));
+        assert(dts.vec[1].type.sub == TYPE_UNIT);
+        assert(!strcmp(dts.vec[1].type.tk.val.s,"True"));
         fclose(ALL.inp);
     }
 }
@@ -212,7 +254,6 @@ void t_parser_expr (void) {
         init(NULL, stropen("r", 0, ":\n    x\n    y ("));
         Expr e;
         assert(!parser_expr(&e));
-//puts(ALL.err);
         assert(!strcmp(ALL.err, "(ln 3, col 8): expected expression : have end of file"));
         fclose(ALL.inp);
     }
@@ -300,6 +341,7 @@ void t_parser_block (void) {
 
 void t_parser (void) {
     t_parser_type();
+    t_parser_datas();
     t_parser_expr();
     t_parser_decls();
     t_parser_block();

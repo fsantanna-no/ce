@@ -88,20 +88,6 @@ void init (FILE* out, FILE* inp) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-int parser_type (Type* ret) {
-    if (pr_accept('(',1)) {
-        if (pr_accept(')',1)) {
-            *ret = (Type) { TYPE_UNIT, {} };
-            return 1;
-        } else {
-            return err_unexpected(lexer_tk2str(&NXT.tk));
-        }
-    }
-    return err_expected("type");
-}
-
-///////////////////////////////////////////////////////////////////////////////
-
 typedef struct {
     int size;
     void* vec;
@@ -150,14 +136,104 @@ int parser_list (List* ret, List_F f, size_t unit) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
+int parser_type (Type* ret) {
+    if (pr_accept('(',1)) {
+        if (pr_accept(')',1)) {
+            *ret = (Type) { TYPE_UNIT, {} };
+            return 1;
+        } else {
+            return err_unexpected(lexer_tk2str(&NXT.tk));
+        }
+    }
+    return err_expected("type");
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 
-int parser_expr_ (void** item) {
+// Data  ::= IDDATA `=` Type
+// Datas ::= data IDDATA [`=` Type] [`:` { Data }]
+
+int parser_data (void** data) {
+    static Data d;
+
+    if (!pr_accept(TK_IDDATA,1)) {
+        return err_expected("data identifier");
+    }
+    d.tk = PRV.tk;
+
+    if (!pr_accept('=',1)) {
+        return err_expected("`=`");
+    }
+
+    if (!parser_type(&d.type)) {
+        return 0;
+    }
+
+    *data = &d;
+    return 1;
+}
+
+int parser_datas (Datas* ret) {
+    if (!pr_accept(TK_DATA,1)) {
+        return err_expected("`data`");
+    }
+    if (!pr_accept(TK_IDDATA,1)) {
+        return err_expected("data identifier");
+    }
+
+    Type tp;
+    int tp_ok = parser_type(&tp);
+
+    List lst;
+    int lst_ok = parser_list(&lst, &parser_data, sizeof(Data));
+
+    if (!tp_ok && !lst_ok) {
+        return err_expected("`=` or `:`");
+    }
+
+    *ret = (Datas) { lst.size, lst.vec };
+    return 1;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+int parser_decl (void** decl) {
+    static Decl d;
+
+    if (!pr_accept(TK_IDVAR,1)) {
+        return err_expected("declaration");
+    }
+    d.var = PRV.tk;
+
+    if (!pr_accept(TK_DECL,1)) {
+        return err_expected("`::`");
+    }
+
+    if (!parser_type(&d.type)) {
+        return 0;
+    }
+
+    *decl = &d;
+    return 1;
+}
+
+int parser_decls (Decls* ret) {
+    List lst;
+    if (!parser_list(&lst, &parser_decl, sizeof(Decl))) {
+        return 0;
+    }
+    *ret = (Decls) { lst.size, lst.vec };
+    return 1;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+int parser_expr_ (void** expr) {
     static Expr e;
     if (!parser_expr(&e)) {
         return 0;
     }
-    *item = &e;
+    *expr = &e;
     return 1;
 }
 
@@ -258,37 +334,6 @@ int parser_expr (Expr* ret) {
     *pe1 = e1;
     *pe2 = e2;
     *ret = (Expr) { EXPR_CALL, .Call={pe1,pe2} };
-    return 1;
-}
-
-///////////////////////////////////////////////////////////////////////////////
-
-int parser_decl (void** item) {
-    static Decl d;
-
-    if (!pr_accept(TK_IDVAR,1)) {
-        return err_expected("declaration");
-    }
-    d.var = PRV.tk;
-
-    if (!pr_accept(TK_DECL,1)) {
-        return err_expected("`::`");
-    }
-
-    if (!parser_type(&d.type)) {
-        return 0;
-    }
-
-    *item = &d;
-    return 1;
-}
-
-int parser_decls (Decls* ret) {
-    List lst;
-    if (!parser_list(&lst, &parser_decl, sizeof(Decl))) {
-        return 0;
-    }
-    *ret = (Decls) { lst.size, lst.vec };
     return 1;
 }
 

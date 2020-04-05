@@ -121,7 +121,7 @@ TK lexer_ (TK_val* val) {
                     return key;
                 }
 
-                return (islower(val->s[0]) ? TK_IDVAR : TK_DATA);
+                return (islower(val->s[0]) ? TK_IDVAR : TK_IDDATA);
         }
     }
 }
