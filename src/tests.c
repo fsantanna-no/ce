@@ -24,7 +24,7 @@ int all (const char* xp, char* src) {
     }
     code(prog);
     fclose(ALL.out);
-//puts(out);
+puts(out);
     compile(out);
     FILE* f = popen("./a.out", "r");
     assert(f != NULL);
@@ -350,9 +350,9 @@ void t_parser_block (void) {
     {
         init(NULL, stropen("r", 0,
             ":\n"
-            "    a:\n"
+            "    a where:\n"
             "        a :: ()\n"
-            "    b:\n"
+            "    b where:\n"
             "        b :: ()\n"
         ));
         Expr e;
@@ -367,8 +367,8 @@ void t_parser_block (void) {
     }
     {
         init(NULL, stropen("r", 0,
-            "x:\n"
-            "    x :: () = y:\n"
+            "x where:\n"
+            "    x :: () = y where:\n"
             "        y :: ()\n"
             "    a :: ()\n"
         ));
@@ -479,6 +479,18 @@ void t_all (void) {
         "    data Bool:\n"
         "        False = ()\n"
         "        True  = ()\n"
+        "    set ret = toint(Bool_True)"
+    ));
+    assert(all(
+        "1\n",
+        ":\n"
+        "    data Bool:\n"
+        "        False = ()\n"
+        "        True  = ()\n"
+        "    v :: Bool\n"
+        "    set v = case ():\n"
+        "        Bool_False -> Bool_False\n"
+        "        else       -> case Bool_True\n"
         "    set ret = toint(Bool_True)"
     ));
 }

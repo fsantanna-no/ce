@@ -292,7 +292,9 @@ int parser_expr_ (void** expr) {
 
 int parser_case (void** casi) {
     static Case c;
-    if (!parser_patt(&c.patt)) {
+    if (pr_accept(TK_ELSE,1)) {
+        c.patt = (Patt) { PATT_ANY, {} };
+    } else if (!parser_patt(&c.patt)) {
         return 0;
     }
     Expr e;
@@ -426,7 +428,7 @@ int parser_expr (Expr* ret) {
     }
 
     // BLOCK
-    if (pr_check(':',1)) {
+    if (pr_accept(TK_WHERE,1)) {
         Decls ds;
         if (!parser_decls(&ds)) {
             return 0;
