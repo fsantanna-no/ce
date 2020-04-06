@@ -439,6 +439,33 @@ void t_code (void) {
             "}\n";
         assert(!strcmp(out,ret));
     }
+    {
+        char out[1024];
+        init (
+            stropen("w", sizeof(out), out),
+            stropen("r", 0,
+                "data Bool:\n"
+                "    False = ()\n"
+                "    True = ()"
+            )
+        );
+        Data d;
+        parser_data(&d);
+        code_data(d);
+        fclose(ALL.out);
+        char* ret =
+            "typedef enum {\n"
+            "    BOOL_FALSE,\n"
+            "    BOOL_TRUE\n"
+            "} BOOL;\n"
+            "\n"
+            "typedef struct Bool {\n"
+            "    BOOL sub;\n"
+            "    union {\n"
+            "    };\n"
+            "} Bool;\n";
+        assert(!strcmp(out,ret));
+    }
 }
 
 void t_all (void) {
@@ -451,8 +478,8 @@ void t_all (void) {
         ":\n"
         "    data Bool:\n"
         "        False = ()\n"
-        "        True = ()\n"
-        "    set ret = True"
+        "        True  = ()\n"
+        "    set ret = Bool_True"
     ));
 }
 

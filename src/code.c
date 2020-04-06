@@ -1,4 +1,7 @@
 #include <assert.h>
+#include <string.h>
+#include <ctype.h>
+
 #include "lexer.h"
 #include "parser.h"
 #include "code.h"
@@ -15,6 +18,8 @@ void code_ret (const char* ret) {
     }
 }
 
+///////////////////////////////////////////////////////////////////////////////
+
 void code_type (Type tp) {
     switch (tp.sub) {
         case TYPE_UNIT:
@@ -26,6 +31,69 @@ void code_type (Type tp) {
     }
 }
 
+///////////////////////////////////////////////////////////////////////////////
+
+char* strupper (const char* src) {
+    static char dst[256];
+    assert(strlen(src) < sizeof(dst));
+    for (int i=0; i<strlen(src); i++) {
+        dst[i] = toupper(src[i]);
+    }
+    dst[strlen(src)] = '\0';
+    return dst;
+}
+
+void code_data (Data data) {
+    char* id = data.tk.val.s;
+    char ID[256];
+    assert(strlen(id) < sizeof(ID));
+    strcpy(ID, strupper(id));
+
+    // TODO: asserts || strncat
+    char subs[1024] = "";
+    for (int i=0; i<data.size; i++) {
+        char* v = data.vec[i].tk.val.s;
+        strcat(subs, "    ");
+        strcat(subs, ID);
+        strcat(subs, "_");
+        strcat(subs, strupper(v));  // TODO: assert strupper
+        if (i < data.size-1) {
+            strcat(subs, ",");
+        }
+        strcat(subs, "\n");
+    }
+
+
+    char conss[1024] = "";
+    for (int i=0; i<data.size; i++) {
+        Cons v = data.vec[i];
+        if (v.type.sub != TYPE_UNIT) {
+            assert(0 && "TODO");
+        }
+    }
+
+    fprintf (ALL.out,
+        "typedef enum {\n"
+        "%s"
+        "} %s;\n"
+        "\n"
+        "typedef struct %s {\n"
+        "    %s sub;\n"
+        "    union {\n"
+        "%s"
+        "    };\n"
+        "} %s;\n",
+        subs,
+        ID,
+        id,
+        ID,
+        conss,
+        id
+    );
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 void code_expr (int spc, Expr e, const char* ret) {
     switch (e.sub) {
         case EXPR_UNIT:
@@ -36,6 +104,13 @@ void code_expr (int spc, Expr e, const char* ret) {
             code_ret(ret);
             fputs(e.tk.val.s, ALL.out);
             break;
+        case EXPR_CONS: {
+            char tmp[256];
+            strcpy(tmp, e.tk.val.s);
+            code_ret(ret);
+            fprintf(ALL.out, "(%s) { %s }", strtok(tmp,"_"), strupper(e.tk.val.s));
+            break;
+        }
         case EXPR_SET:
             fputs(e.Set.var.val.s, ALL.out);
             fputs(" = ", ALL.out);
@@ -51,6 +126,8 @@ void code_expr (int spc, Expr e, const char* ret) {
             assert(0 && "TODO");
     }
 }
+
+///////////////////////////////////////////////////////////////////////////////
 
 void code_decl (int spc, Decl d) {
     code_type(d.type);
@@ -69,6 +146,8 @@ void code_decls (int spc, Decls ds) {
         code_decl(spc, ds.vec[i]);
     }
 }
+
+///////////////////////////////////////////////////////////////////////////////
 
 void code_prog (int spc, Prog prog) {
     for (int i=0; i<prog.size; i++) {
