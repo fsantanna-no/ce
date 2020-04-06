@@ -143,7 +143,9 @@ void code_case (int spc, Case e, tce_ret* ret) {
     code_spc(spc+4);
     code_expr(spc+4, *e.expr, ret);
     out(";");
-    out("\n} else ");
+    out("\n");
+    code_spc(spc);
+    out("} else ");
 }
 
 void code_expr (int spc, Expr e, tce_ret* ret) {
@@ -197,7 +199,8 @@ void code_expr (int spc, Expr e, tce_ret* ret) {
             break;
         case EXPR_SEQ:
             for (int i=0; i<e.Seq.size; i++) {
-                code_expr(spc+4, e.Seq.vec[i], (i==e.Seq.size-1) ? ret : NULL);
+                code_spc(spc);
+                code_expr(spc, e.Seq.vec[i], (i==e.Seq.size-1) ? ret : NULL);
             }
             break;
         case EXPR_BLOCK:
@@ -221,7 +224,7 @@ void code_expr (int spc, Expr e, tce_ret* ret) {
             code_spc(spc+4);
             out("assert(0 && \"case not matched\");\n");
             code_spc(spc);
-            out("}");
+            out("}\n");
             break;
         default:
 //printf("%d\n", e.sub);
