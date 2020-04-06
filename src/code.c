@@ -60,6 +60,16 @@ void code_data (Data data) {
 
     for (int i=0; i<data.size; i++) {
         char* v = data.vec[i].tk.val.s;
+        // #define SUP_False Bool_False
+        out("#define SUP_");
+        out(v);
+        out(" ");
+        out(id);
+        out("_");
+        out(v);
+        out("\n");
+
+        // #define False() ((Bool) { Bool_False })
         out("#define ");
         out(v);
         out("() ((");
@@ -118,7 +128,7 @@ void code_tst (Patt p) {
             out("ce_tst == 0");
             break;
         case PATT_CONS:
-            out("toint(ce_tst) == ");
+            out("toint(ce_tst) == SUP_");
             out(p.Cons.val.s);
             break;
         default:
@@ -127,7 +137,7 @@ void code_tst (Patt p) {
 }
 
 void code_case (int spc, Case e, tce_ret* ret) {
-    out("if (ce_tst == ");
+    out("if (");
     code_tst(e.patt);
     out(") {\n");
     code_spc(spc+4);
@@ -179,7 +189,7 @@ void code_expr (int spc, Expr e, tce_ret* ret) {
                 code_spc(spc+4);
                 code_type(*e.Func.type.Func.out);
                 out(" ce_ret;\n");
-                tce_ret r = { "ce_ret", ret };
+                tce_ret r = { "ce_ret", NULL };
                 code_expr(spc+4, *e.Func.body, &r);
                 code_spc(spc+4);
                 out("return ce_ret;\n");
