@@ -154,6 +154,21 @@ int parser_type (Type* ret) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
+int parser_patt (Patt* ret) {
+    if (pr_accept('(',1)) {
+        if (pr_accept(')',1)) {
+            *ret = (Patt) { PATT_UNIT, {} };
+            return 1;
+        }
+    } else if (pr_accept(TK_IDDATA,1)) {
+        *ret = (Patt) { PATT_CONS, .cons=PRV.tk };
+        return 1;
+    }
+    return 0;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 int parser_cons (void** cons) {
     static Cons d;
 
@@ -275,6 +290,25 @@ int parser_expr_ (void** expr) {
     return 1;
 }
 
+int parser_case (void** casi) {
+    static Case c;
+    if (!parser_patt(&c.patt)) {
+        return 0;
+    }
+    Expr e;
+    if (!parser_expr(&e)) {
+        return 0;
+    }
+
+    Expr* pe = malloc(sizeof(*pe));
+    assert(pe != NULL);
+    *pe = e;
+    c.expr = &e;
+
+    *casi = &c;
+    return 1;
+}
+
 int parser_expr_one (Expr* ret) {
     // PARENS
     if (pr_accept('(',1)) {
@@ -336,6 +370,25 @@ int parser_expr_one (Expr* ret) {
             return 0;
         }
         *ret = (Expr) { EXPR_SEQ, .seq={lst.size,lst.vec} };
+        return 1;
+
+    // EXPR_CASES
+    } else if (pr_accept(TK_CASE,1)) {
+        Expr e;
+        if (!parser_expr(&e)) {
+            return 0;
+        }
+
+        List lst;
+        if (!parser_list(&lst, &parser_case, sizeof(Case))) {
+            return 0;
+        }
+
+        Expr* pe = malloc(sizeof(*pe));
+        assert(pe != NULL);
+        *pe = e;
+
+        *ret = (Expr) { EXPR_CASES, .Cases={pe,lst.size,lst.vec} };
         return 1;
 
     // EXPR_VAR,EXPR_DATA

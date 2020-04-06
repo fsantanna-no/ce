@@ -21,7 +21,8 @@ typedef enum {
     EXPR_FUNC,
     EXPR_SEQ,
     EXPR_CALL,
-    EXPR_BLOCK
+    EXPR_BLOCK,
+    EXPR_CASES
 } EXPR;
 
 typedef enum {
@@ -91,6 +92,18 @@ typedef struct {
     struct Expr* vec;
 } Seq;
 
+typedef struct {
+    PATT sub;
+    union {
+        Tk cons;    // PATT_CONS
+    };
+} Patt;
+
+typedef struct {
+    Patt patt;
+    struct Expr* expr;
+} Case;
+
 typedef struct Expr {
     EXPR sub;
     union {
@@ -108,6 +121,11 @@ typedef struct Expr {
             struct Expr* ret;
             Decls* decls;
         } Block;
+        struct {        // EXPR_CASES
+            struct Expr* tst;
+            int   size;
+            Case* vec;
+        } Cases;
         struct {        // EXPR_FUNC
             Type type;
             struct Expr* body;
