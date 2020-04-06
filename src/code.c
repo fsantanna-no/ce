@@ -65,7 +65,7 @@ void code_data (Data data) {
         out("() ((");
         out(id);
         out(") { ");
-        out(ID);
+        out(id);
         out("_");
         out(v);
         out(" })\n");
@@ -76,7 +76,7 @@ void code_data (Data data) {
         for (int i=0; i<data.size; i++) {
             char* v = data.vec[i].tk.val.s;
             out("    ");
-            out(ID);
+            out(id);
             out("_");
             out(v);
             if (i < data.size-1) {
@@ -109,17 +109,17 @@ void code_data (Data data) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void code_patt (Patt p) {
+void code_tst (Patt p) {
     switch (p.sub) {
         case PATT_ANY:
-            out("ce_tst");
+            out("1");
             break;
         case PATT_UNIT:
-            out("0");
+            out("ce_tst == 0");
             break;
         case PATT_CONS:
+            out("toint(ce_tst) == ");
             out(p.Cons.val.s);
-            out("()");
             break;
         default:
             assert(0 && "TODO");
@@ -128,7 +128,7 @@ void code_patt (Patt p) {
 
 void code_case (int spc, Case e, tce_ret* ret) {
     out("if (ce_tst == ");
-    code_patt(e.patt);
+    code_tst(e.patt);
     out(") {\n");
     code_spc(spc+4);
     code_expr(spc+4, *e.expr, ret);

@@ -455,12 +455,12 @@ void t_code (void) {
         code_data(d);
         fclose(ALL.out);
         char* ret =
-            "#define False() ((Bool) { BOOL_False })\n"
-            "#define True() ((Bool) { BOOL_True })\n"
+            "#define False() ((Bool) { Bool_False })\n"
+            "#define True() ((Bool) { Bool_True })\n"
             "\n"
             "typedef enum {\n"
-            "    BOOL_False,\n"
-            "    BOOL_True\n"
+            "    Bool_False,\n"
+            "    Bool_True\n"
             "} BOOL;\n"
             "\n"
             "typedef struct Bool {\n"
