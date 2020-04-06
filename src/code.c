@@ -103,13 +103,13 @@ void code_expr (int spc, Expr e, const char* ret) {
             break;
         case EXPR_VAR:
             code_ret(ret);
-            fputs(e.tk.val.s, ALL.out);
+            fputs(e.Var.val.s, ALL.out);
             break;
         case EXPR_CONS: {
             char tmp[256];
-            strcpy(tmp, e.tk.val.s);
+            strcpy(tmp, e.Cons.val.s);
             code_ret(ret);
-            fprintf(ALL.out, "(%s) { %s }", strtok(tmp,"_"), strupper(e.tk.val.s));
+            fprintf(ALL.out, "(%s) { %s }", strtok(tmp,"_"), strupper(e.Cons.val.s));
             break;
         }
         case EXPR_SET:

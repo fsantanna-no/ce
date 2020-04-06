@@ -225,7 +225,7 @@ void t_parser_expr (void) {
         assert(parser_expr(&e));
         assert(e.sub == EXPR_SET);
         assert(!strcmp(e.Set.var.val.s, "a"));
-        assert(!strcmp(e.Set.val->tk.val.s, "x"));
+        assert(!strcmp(e.Set.val->Var.val.s, "x"));
         fclose(ALL.inp);
     }
     // EXPR_FUNC
@@ -243,7 +243,7 @@ void t_parser_expr (void) {
         assert(parser_expr(&e));
         assert(e.sub == EXPR_CALL);
         assert(e.Call.func->sub == EXPR_VAR);
-        assert(!strcmp(e.Call.func->tk.val.s, "xxx"));
+        assert(!strcmp(e.Call.func->Var.val.s, "xxx"));
         assert(e.Call.arg->sub == EXPR_UNIT);
         fclose(ALL.inp);
     }
@@ -267,7 +267,7 @@ void t_parser_expr (void) {
         Expr e;
         assert(parser_expr(&e));
         assert(e.sub == EXPR_SEQ);
-        assert(e.seq.size == 1);
+        assert(e.Seq.size == 1);
         fclose(ALL.inp);
     }
     {
@@ -301,8 +301,8 @@ void t_parser_expr (void) {
         Expr e;
         assert(parser_expr(&e));
         assert(e.sub == EXPR_SEQ);
-        assert(e.seq.size == 2);
-        assert(!strcmp(e.seq.vec[1].seq.vec[0].tk.val.s, "y"));
+        assert(e.Seq.size == 2);
+        assert(!strcmp(e.Seq.vec[1].Seq.vec[0].Var.val.s, "y"));
         fclose(ALL.inp);
     }
 }
@@ -358,11 +358,11 @@ void t_parser_block (void) {
         Expr e;
         assert(parser_expr(&e));
         assert(e.sub == EXPR_SEQ);
-        assert(e.seq.size == 2);
-        assert(e.seq.vec[0].sub == EXPR_BLOCK);
-        assert(e.seq.vec[1].sub == EXPR_BLOCK);
-        assert(e.seq.vec[0].Block.decls->size == 1);
-        assert(e.seq.vec[1].Block.decls->size == 1);
+        assert(e.Seq.size == 2);
+        assert(e.Seq.vec[0].sub == EXPR_BLOCK);
+        assert(e.Seq.vec[1].sub == EXPR_BLOCK);
+        assert(e.Seq.vec[0].Block.decls->size == 1);
+        assert(e.Seq.vec[1].Block.decls->size == 1);
         fclose(ALL.inp);
     }
     {
@@ -394,8 +394,8 @@ void t_code (void) {
         init(stropen("w",sizeof(out),out), NULL);
         Expr e;
         e.sub = EXPR_VAR;
-        e.tk.sym = TK_IDVAR;
-        strcpy(e.tk.val.s, "xxx");
+        e.Var.sym = TK_IDVAR;
+        strcpy(e.Var.val.s, "xxx");
         code_expr(0, e, NULL);
         fclose(ALL.out);
         assert(!strcmp(out,"xxx"));
@@ -405,8 +405,8 @@ void t_code (void) {
         init(stropen("w",sizeof(out),out), NULL);
         Expr e;
             e.sub = EXPR_VAR;
-            e.tk.sym = TK_IDVAR;
-            strcpy(e.tk.val.s, "xxx");
+            e.Var.sym = TK_IDVAR;
+            strcpy(e.Var.val.s, "xxx");
         Decl d;
             d.set = NULL;
             d.var.sym = TK_IDVAR;

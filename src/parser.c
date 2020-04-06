@@ -12,12 +12,12 @@ void dump_expr (Expr e, int spc) {
     for (int i=0; i<spc; i++) printf(" ");
     switch (e.sub) {
         case EXPR_VAR:
-            puts(e.tk.val.s);
+            puts(e.Var.val.s);
             break;
         case EXPR_SEQ:
-            printf(": [%d]\n", e.seq.size);
-            for (int i=0; i<e.seq.size; i++) {
-                dump_expr(e.seq.vec[i], spc+4);
+            printf(": [%d]\n", e.Seq.size);
+            for (int i=0; i<e.Seq.size; i++) {
+                dump_expr(e.Seq.vec[i], spc+4);
             }
             break;
         default:
@@ -369,7 +369,7 @@ int parser_expr_one (Expr* ret) {
         if (!parser_list(&lst, &parser_expr_, sizeof(Expr))) {
             return 0;
         }
-        *ret = (Expr) { EXPR_SEQ, .seq={lst.size,lst.vec} };
+        *ret = (Expr) { EXPR_SEQ, .Seq={lst.size,lst.vec} };
         return 1;
 
     // EXPR_CASES
@@ -391,12 +391,12 @@ int parser_expr_one (Expr* ret) {
         *ret = (Expr) { EXPR_CASES, .Cases={pe,lst.size,lst.vec} };
         return 1;
 
-    // EXPR_VAR,EXPR_DATA
+    // EXPR_VAR,EXPR_CONS
     } else if (pr_accept(TK_IDVAR,1)) {
-        *ret = (Expr) { EXPR_VAR, .tk=PRV.tk };
+        *ret = (Expr) { EXPR_VAR, .Var=PRV.tk };
         return 1;
     } else if (pr_accept(TK_IDDATA,1)) {
-        *ret = (Expr) { EXPR_CONS, .tk=PRV.tk };
+        *ret = (Expr) { EXPR_CONS, .Cons=PRV.tk };
         return 1;
     }
 

@@ -88,11 +88,6 @@ typedef struct {
 } Decls;
 
 typedef struct {
-    int size;
-    struct Expr* vec;
-} Seq;
-
-typedef struct {
     PATT sub;
     union {
         Tk cons;    // PATT_CONS
@@ -107,8 +102,13 @@ typedef struct {
 typedef struct Expr {
     EXPR sub;
     union {
-        Tk tk;          // EXPR_UNIT, EXPR_VAR, EXPR_CONS
-        Seq seq;        // EXPR_SEQ
+        Tk Unit;
+        Tk Var;
+        Tk Cons;
+        struct {        // EXPR_SEQ
+            int size;
+            struct Expr* vec;
+        } Seq;
         struct {        // EXPR_SET
             Tk var;
             struct Expr* val;
