@@ -12,6 +12,7 @@ typedef enum {
 
     TK_DECL,
     TK_ARROW,
+    TK_ARG,
 
     TK_IDVAR,
     TK_IDDATA,

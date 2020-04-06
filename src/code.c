@@ -30,6 +30,9 @@ void code_type (Type tp) {
         case TYPE_DATA:
             fputs(tp.Data.val.s, ALL.out);
             break;
+        default:
+//printf("%d\n", tp.sub);
+            assert(0 && "TODO");
     }
 }
 
@@ -51,47 +54,53 @@ void code_data (Data data) {
     assert(strlen(id) < sizeof(ID));
     strcpy(ID, strupper(id));
 
-    // TODO: asserts || strncat
-    char subs[1024] = "";
     for (int i=0; i<data.size; i++) {
         char* v = data.vec[i].tk.val.s;
-        strcat(subs, "    ");
-        strcat(subs, ID);
-        strcat(subs, "_");
-        strcat(subs, strupper(v));  // TODO: assert strupper
-        if (i < data.size-1) {
-            strcat(subs, ",");
-        }
-        strcat(subs, "\n");
+        fputs("#define ", ALL.out);
+        fputs(v, ALL.out);
+        fputs("() ((", ALL.out);
+        fputs(id, ALL.out);
+        fputs(") { ", ALL.out);
+        fputs(ID, ALL.out);
+        fputs("_", ALL.out);
+        fputs(v, ALL.out);
+        fputs(" })\n", ALL.out);
     }
+    fputs("\n", ALL.out);
 
-
-    char conss[1024] = "";
-    for (int i=0; i<data.size; i++) {
-        Cons v = data.vec[i];
-        if (v.type.sub != TYPE_UNIT) {
-            assert(0 && "TODO");
+    fputs("typedef enum {\n", ALL.out);
+        for (int i=0; i<data.size; i++) {
+            char* v = data.vec[i].tk.val.s;
+            fputs("    ", ALL.out);
+            fputs(ID, ALL.out);
+            fputs("_", ALL.out);
+            fputs(v, ALL.out);
+            if (i < data.size-1) {
+                fputs(",", ALL.out);
+            }
+            fputs("\n", ALL.out);
         }
-    }
-
-    fprintf (ALL.out,
-        "typedef enum {\n"
-        "%s"
-        "} %s;\n"
-        "\n"
-        "typedef struct %s {\n"
-        "    %s sub;\n"
-        "    union {\n"
-        "%s"
-        "    };\n"
-        "} %s;\n\n",
-        subs,
-        ID,
-        id,
-        ID,
-        conss,
-        id
-    );
+    fputs("} ", ALL.out);
+    fputs(ID, ALL.out);
+    fputs(";\n", ALL.out);
+    fputs("\n", ALL.out);
+    fputs("typedef struct ", ALL.out);
+    fputs(id, ALL.out);
+    fputs(" {\n", ALL.out);
+    fputs("    ", ALL.out);
+    fputs(ID, ALL.out);
+    fputs(" sub;\n", ALL.out);
+    fputs("    union {\n", ALL.out);
+        for (int i=0; i<data.size; i++) {
+            Cons v = data.vec[i];
+            if (v.type.sub != TYPE_UNIT) {
+                assert(0 && "TODO");
+            }
+        }
+    fputs("    };\n", ALL.out);
+    fputs("} ", ALL.out);
+    fputs(id, ALL.out);
+    fputs(";\n\n", ALL.out);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -103,6 +112,10 @@ void code_patt (Patt p) {
             break;
         case PATT_UNIT:
             fputs("0", ALL.out);
+            break;
+        case PATT_CONS:
+            fputs(p.Cons.val.s, ALL.out);
+            fputs("()", ALL.out);
             break;
         default:
             assert(0 && "TODO");
@@ -121,6 +134,10 @@ void code_case (int spc, Case e, tce_ret* ret) {
 
 void code_expr (int spc, Expr e, tce_ret* ret) {
     switch (e.sub) {
+        case EXPR_ARG:
+            code_ret(ret);
+            fputs("ce_arg", ALL.out);
+            break;
         case EXPR_UNIT:
             code_ret(ret);
             fputs("0", ALL.out);
@@ -130,10 +147,9 @@ void code_expr (int spc, Expr e, tce_ret* ret) {
             fputs(e.Var.val.s, ALL.out);
             break;
         case EXPR_CONS: {
-            char tmp[256];
-            strcpy(tmp, e.Cons.val.s);
             code_ret(ret);
-            fprintf(ALL.out, "(%s) { %s }", strtok(tmp,"_"), strupper(e.Cons.val.s));
+            fputs(e.Cons.val.s, ALL.out);
+            fputs("()", ALL.out);
             break;
         }
         case EXPR_SET: {
@@ -146,6 +162,29 @@ void code_expr (int spc, Expr e, tce_ret* ret) {
             fputs("(", ALL.out);
             code_expr(spc, *e.Call.arg, ret);
             fputs(")", ALL.out);
+            break;
+        case EXPR_FUNC:
+            assert(ret!=NULL && ret->nxt==NULL);    // set f = func (only supported)
+            fputs("\n", ALL.out);
+            code_type(*e.Func.type.Func.out);
+                fputs(" ", ALL.out);
+                fputs(ret->val, ALL.out);
+                fputs(" (", ALL.out);
+                code_type(*e.Func.type.Func.inp);
+            fputs(" ce_arg) {\n", ALL.out);
+                code_spc(spc+4);
+                code_type(*e.Func.type.Func.out);
+                fputs(" ce_ret;\n", ALL.out);
+                tce_ret r = { "ce_ret", ret };
+                code_expr(spc+4, *e.Func.body, &r);
+                code_spc(spc+4);
+                fputs("return ce_ret;\n", ALL.out);
+            fputs("}\n\n", ALL.out);
+            break;
+        case EXPR_SEQ:
+            for (int i=0; i<e.Seq.size; i++) {
+                code_expr(spc+4, e.Seq.vec[i], (i==e.Seq.size-1) ? ret : NULL);
+            }
             break;
         case EXPR_BLOCK:
             code_decls(spc, *e.Block.decls);
@@ -171,7 +210,7 @@ void code_expr (int spc, Expr e, tce_ret* ret) {
             fputs("}", ALL.out);
             break;
         default:
-            printf("%d\n", e.sub);
+//printf("%d\n", e.sub);
             assert(0 && "TODO");
     }
 }

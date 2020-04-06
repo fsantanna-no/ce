@@ -455,9 +455,12 @@ void t_code (void) {
         code_data(d);
         fclose(ALL.out);
         char* ret =
+            "#define False() ((Bool) { BOOL_False })\n"
+            "#define True() ((Bool) { BOOL_True })\n"
+            "\n"
             "typedef enum {\n"
-            "    BOOL_FALSE,\n"
-            "    BOOL_TRUE\n"
+            "    BOOL_False,\n"
+            "    BOOL_True\n"
             "} BOOL;\n"
             "\n"
             "typedef struct Bool {\n"
@@ -480,7 +483,7 @@ void t_all (void) {
         "    data Bool:\n"
         "        False = ()\n"
         "        True  = ()\n"
-        "    show(toint(Bool_True))"
+        "    show(toint(True))"
     ));
     assert(all(
         "1\n",
@@ -490,9 +493,21 @@ void t_all (void) {
         "        True  = ()\n"
         "    var v :: Bool\n"
         "    set v = case ():\n"
-        "        ()   -> Bool_True\n"
-        "        else -> Bool_True\n"
+        "        ()   -> True\n"
+        "        else -> True\n"
         "    show(toint(v))"
+    ));
+    assert(all(
+        "1\n",
+        ":\n"
+        "    data Bool:\n"
+        "        False = ()\n"
+        "        True  = ()\n"
+        "    set inv = func :: Bool -> Bool :\n"
+        "        case ...:\n"
+        "            False -> True\n"
+        "            True  -> False\n"
+        "    show(toint(inv(False)))"
     ));
 }
 

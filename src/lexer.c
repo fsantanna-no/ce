@@ -36,6 +36,12 @@ const char* lexer_tk2str (Tk* tk) {
         case TK_DECL:
             sprintf(str, "`::`");
             break;
+        case TK_ARROW:
+            sprintf(str, "`->`");
+            break;
+        case TK_ARG:
+            sprintf(str, "`...`");
+            break;
         case TK_IDVAR:
         case TK_IDDATA:
             sprintf(str, "`%s`", tk->val.s);
@@ -46,6 +52,7 @@ const char* lexer_tk2str (Tk* tk) {
             } else if (tk->sym > TK_RESERVED) {
                 sprintf(str, "`%s`", reserved[tk->sym-TK_RESERVED-1]);
             } else {
+//printf("%d\n", tk->sym);
                 assert(0 && "TODO");
             }
             break;
@@ -92,6 +99,15 @@ TK lexer_ (TK_val* val) {
                     return ':';
                 }
 
+            case '.': {
+                int c2 = fgetc(ALL.inp);
+                int c3 = fgetc(ALL.inp);
+                if (c2=='.' && c3=='.') {
+                    return TK_ARG;
+                }
+                return TK_ERR;
+            }
+
             case '-':
                 c = fgetc(ALL.inp);
                 if (c == '-') {
@@ -109,7 +125,6 @@ TK lexer_ (TK_val* val) {
                 } else if (c == '>') {
                     return TK_ARROW;
                 }
-                return TK_ERR;
 
             case '=':
                 return c;

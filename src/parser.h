@@ -15,6 +15,7 @@ typedef enum {
 } PATT;
 
 typedef enum {
+    EXPR_ARG,
     EXPR_UNIT,
     EXPR_VAR,
     EXPR_CONS,
@@ -99,7 +100,7 @@ typedef struct {
 typedef struct {
     PATT sub;
     union {
-        Tk cons;    // PATT_CONS
+        Tk Cons;    // PATT_CONS
     };
 } Patt;
 

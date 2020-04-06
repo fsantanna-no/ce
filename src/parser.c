@@ -186,7 +186,7 @@ int parser_patt (Patt* ret) {
             return 1;
         }
     } else if (pr_accept(TK_IDDATA,1)) {
-        *ret = (Patt) { PATT_CONS, .cons=PRV.tk };
+        *ret = (Patt) { PATT_CONS, .Cons=PRV.tk };
         return 1;
     }
     return 0;
@@ -347,12 +347,13 @@ int parser_case (void** casi) {
 }
 
 int parser_expr_one (Expr* ret) {
-    // PARENS
+    // EXPR_UNIT
     if (pr_accept('(',1)) {
         if (pr_accept(')',1)) {
             *ret = (Expr) { EXPR_UNIT, {} };
             return 1;
         } else {
+    // EXPR_PARENS
             if (!parser_expr(ret)) {
                 return 0;
             }
@@ -361,6 +362,21 @@ int parser_expr_one (Expr* ret) {
             }
             return 1;
         }
+
+    // EXPR_ARG
+    } else if (pr_accept(TK_ARG,1)) {
+        *ret = (Expr) { EXPR_ARG, {} };
+        return 1;
+
+    // EXPR_VAR
+    } else if (pr_accept(TK_IDVAR,1)) {
+        *ret = (Expr) { EXPR_VAR, .Var=PRV.tk };
+        return 1;
+
+    // EXPR_CONS
+    } else if (pr_accept(TK_IDDATA,1)) {
+        *ret = (Expr) { EXPR_CONS, .Cons=PRV.tk };
+        return 1;
 
     // EXPR_SET
     } else if (pr_accept(TK_SET,1)) {
@@ -427,14 +443,6 @@ int parser_expr_one (Expr* ret) {
 
         *ret = (Expr) { EXPR_CASES, .Cases={pe,lst.size,lst.vec} };
         return 1;
-
-    // EXPR_VAR,EXPR_CONS
-    } else if (pr_accept(TK_IDVAR,1)) {
-        *ret = (Expr) { EXPR_VAR, .Var=PRV.tk };
-        return 1;
-    } else if (pr_accept(TK_IDDATA,1)) {
-        *ret = (Expr) { EXPR_CONS, .Cons=PRV.tk };
-        return 1;
     }
 
     return err_expected("expression");
@@ -491,25 +499,30 @@ int parser_expr (Expr* ret) {
 int parser_glob (void** glob) {
     static Glob g;
 
-    if (parser_data(&g.data)) {
+    if (pr_check(TK_DATA,1)) {
+        if (!parser_data(&g.data)) {
+            return 0;
+        }
         g.sub = GLOB_DATA;
         *glob = &g;
         return 1;
     }
 
-    if (parser_decl(&g.decl)) {
+    if (pr_check(TK_VAR,1)) {
+        if (!parser_decl(&g.decl)) {
+            return 0;
+        }
         g.sub = GLOB_DECL;
         *glob = &g;
         return 1;
     }
 
-    if (parser_expr(&g.expr)) {
-        g.sub = GLOB_EXPR;
-        *glob = &g;
-        return 1;
+    if (!parser_expr(&g.expr)) {
+        return 0;
     }
-
-    return err_expected("global statement");
+    g.sub = GLOB_EXPR;
+    *glob = &g;
+    return 1;
 }
 
 int parser_prog (Prog* ret) {
