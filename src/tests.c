@@ -456,9 +456,9 @@ void t_code (void) {
         fclose(ALL.out);
         char* ret =
             "#define SUP_False Bool_False\n"
-            "#define False() ((Bool) { Bool_False })\n"
+            "#define False ((Bool) { Bool_False })\n"
             "#define SUP_True Bool_True\n"
-            "#define True() ((Bool) { Bool_True })\n"
+            "#define True ((Bool) { Bool_True })\n"
             "\n"
             "typedef enum {\n"
             "    Bool_False,\n"
@@ -510,6 +510,15 @@ void t_all (void) {
         "            False -> True\n"
         "            True  -> False\n"
         "    show(toint(inv(False)))"
+    ));
+    assert(all(
+        "1\n",
+        ":\n"
+        "    data Bool:\n"
+        "        False = ()\n"
+        "        True  = ()\n"
+        "    data Vv = Bool\n"
+        "    show(toint(Vv(False)))"
     ));
 }
 

@@ -72,7 +72,7 @@ void code_data (Data data) {
         // #define False() ((Bool) { Bool_False })
         out("#define ");
         out(v);
-        out("() ((");
+        out(" ((");
         out(id);
         out(") { ");
         out(id);
@@ -108,7 +108,15 @@ void code_data (Data data) {
         for (int i=0; i<data.size; i++) {
             Cons v = data.vec[i];
             if (v.type.sub != TYPE_UNIT) {
-                assert(0 && "TODO");
+                if (data.size == 1) {
+                    out("        ");
+                    code_type(v.type);
+                    out(" ");
+                    out(id);
+                    out(";\n");
+                } else {
+                    assert(0 && "TODO");
+                }
             }
         }
     out("    };\n");
@@ -165,7 +173,6 @@ void code_expr (int spc, Expr e, tce_ret* ret) {
         case EXPR_CONS: {
             code_ret(ret);
             out(e.Cons.val.s);
-            out("()");
             break;
         }
         case EXPR_SET: {
