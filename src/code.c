@@ -177,7 +177,6 @@ void code_prog (int spc, Prog prog) {
 
 void code (Prog prog) {
     fputs (
-        "#include <stdio.h>\n"
         "#include \"ce.c\"\n"
         "int main (void) {\n"
         "    int ret;\n",

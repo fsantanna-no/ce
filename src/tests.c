@@ -430,7 +430,6 @@ void t_code (void) {
         code(p);
         fclose(ALL.out);
         char* ret =
-            "#include <stdio.h>\n"
             "#include \"ce.c\"\n"
             "int main (void) {\n"
             "    int ret;\n"

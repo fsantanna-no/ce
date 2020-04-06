@@ -4,6 +4,16 @@ typedef enum {
 } TYPE;
 
 typedef enum {
+    PATT_UNIT,
+    PATT_ARG,
+    PATT_ANY,
+    PATT_CONS,
+    PATT_SET,
+    PATT_EXP,
+    PATT_TUP
+} PATT;
+
+typedef enum {
     EXPR_UNIT,
     EXPR_VAR,
     EXPR_CONS,
@@ -30,9 +40,16 @@ typedef enum {
  * Decl  ::= <id> `::` Type [`=` Expr]
  * Decls ::= { Decl }
  *
+ * Patt  ::=  `(` `)` | `...` | `_`
+ *        |   <Id> [ `(` Patt `)`
+ *        |   `=` <id>
+ *        |   `~` Expr
+ *        |   `(` Patt { `,` Patt } `)`
+ *
  * Expr  ::= `(` `)` | <id> | <Id>
  *        |  set <id> `=` Expr
  *        |  func `::` Type Expr
+ *        |  case Expr `:` { Patt [`->`] Expr }
  *        |  `:` { Expr }           // sequence
  *        |  Expr `(` Expr `)`      // call
  *        |  Expr `:` { Decl }      // block
