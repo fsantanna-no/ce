@@ -24,7 +24,7 @@ int all (const char* xp, char* src) {
     }
     code(prog);
     fclose(ALL.out);
-puts(out);
+//puts(out);
     compile(out);
     FILE* f = popen("./a.out", "r");
     assert(f != NULL);
@@ -431,6 +431,7 @@ void t_code (void) {
         fclose(ALL.out);
         char* ret =
             "#include <stdio.h>\n"
+            "#include \"ce.c\"\n"
             "int main (void) {\n"
             "    int ret;\n"
             "    int /* () */ a;\n"
@@ -474,12 +475,12 @@ void t_all (void) {
         ":\n    a :: ()\n    set a = ()\n    set ret = a"
     ));
     assert(all(
-        "True\n",
+        "1\n",
         ":\n"
         "    data Bool:\n"
         "        False = ()\n"
         "        True  = ()\n"
-        "    set ret = Bool_True"
+        "    set ret = toint(Bool_True)"
     ));
 }
 

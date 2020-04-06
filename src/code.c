@@ -117,6 +117,12 @@ void code_expr (int spc, Expr e, const char* ret) {
             fputs(" = ", ALL.out);
             code_expr(spc, *e.Set.val, ret);
             break;
+        case EXPR_CALL:
+            code_expr(spc, *e.Call.func, ret);
+            fputs("(", ALL.out);
+            code_expr(spc, *e.Call.arg, ret);
+            fputs(")", ALL.out);
+            break;
         case EXPR_BLOCK:
             code_decls(spc, *e.Block.decls);
             code_spc(spc);
@@ -172,6 +178,7 @@ void code_prog (int spc, Prog prog) {
 void code (Prog prog) {
     fputs (
         "#include <stdio.h>\n"
+        "#include \"ce.c\"\n"
         "int main (void) {\n"
         "    int ret;\n",
         ALL.out
