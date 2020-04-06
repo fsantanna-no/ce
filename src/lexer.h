@@ -11,6 +11,7 @@ typedef enum {
     TK_LINE,
 
     TK_DECL,
+    TK_THEN,
 
     TK_IDVAR,
     TK_IDDATA,

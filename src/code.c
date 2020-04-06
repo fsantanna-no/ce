@@ -12,10 +12,11 @@ void code_spc (int spc) {
     }
 }
 
-void code_ret (const char* ret) {
-    if (ret != NULL) {
-        fputs(ret, ALL.out);
+void code_ret (tce_ret* ret) {
+    while (ret != NULL) {
+        fputs(ret->val, ALL.out);
         fputs(" = ", ALL.out);
+        ret = ret->nxt;
     }
 }
 
@@ -83,7 +84,7 @@ void code_data (Data data) {
         "    union {\n"
         "%s"
         "    };\n"
-        "} %s;\n",
+        "} %s;\n\n",
         subs,
         ID,
         id,
@@ -95,7 +96,30 @@ void code_data (Data data) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void code_expr (int spc, Expr e, const char* ret) {
+void code_patt (Patt p) {
+    switch (p.sub) {
+        case PATT_ANY:
+            fputs("ce_tst", ALL.out);
+            break;
+        case PATT_UNIT:
+            fputs("0", ALL.out);
+            break;
+        default:
+            assert(0 && "TODO");
+    }
+}
+
+void code_case (int spc, Case e, tce_ret* ret) {
+    fputs("if (ce_tst == ", ALL.out);
+    code_patt(e.patt);
+    fputs(") {\n", ALL.out);
+    code_spc(spc+4);
+    code_expr(spc+4, *e.expr, ret);
+    fputs(";", ALL.out);
+    fputs("\n} else ", ALL.out);
+}
+
+void code_expr (int spc, Expr e, tce_ret* ret) {
     switch (e.sub) {
         case EXPR_UNIT:
             code_ret(ret);
@@ -112,11 +136,11 @@ void code_expr (int spc, Expr e, const char* ret) {
             fprintf(ALL.out, "(%s) { %s }", strtok(tmp,"_"), strupper(e.Cons.val.s));
             break;
         }
-        case EXPR_SET:
-            fputs(e.Set.var.val.s, ALL.out);
-            fputs(" = ", ALL.out);
-            code_expr(spc, *e.Set.val, ret);
+        case EXPR_SET: {
+            tce_ret r = { e.Set.var.val.s, ret };
+            code_expr(spc, *e.Set.val, &r);
             break;
+        }
         case EXPR_CALL:
             code_expr(spc, *e.Call.func, ret);
             fputs("(", ALL.out);
@@ -128,8 +152,24 @@ void code_expr (int spc, Expr e, const char* ret) {
             code_spc(spc);
             code_expr (spc, *e.Block.ret, ret);
             break;
+        case EXPR_CASES:
+            // typeof(tst) ce_tst = tst;
+            fputs("typeof(", ALL.out);
+            code_expr(spc, *e.Cases.tst, NULL);
+            fputs(") ce_tst = ", ALL.out);
+            code_expr(spc, *e.Cases.tst, NULL);
+            fputs(";\n", ALL.out);
+
+            code_spc(spc);
+            for (int i=0; i<e.Cases.size; i++) {
+                code_case(spc, e.Cases.vec[i], ret);
+            }
+            fputs("{\n", ALL.out);
+            code_spc(spc);
+            fputs("}", ALL.out);
+            break;
         default:
-            //printf("%d\n", e.sub);
+            printf("%d\n", e.sub);
             assert(0 && "TODO");
     }
 }
@@ -159,7 +199,6 @@ void code_decls (int spc, Decls ds) {
 void code_prog (int spc, Prog prog) {
     for (int i=0; i<prog.size; i++) {
         Glob g = prog.vec[i];
-        code_spc(spc);
         switch (g.sub) {
             case GLOB_DATA:
                 code_data(g.data);
@@ -179,11 +218,11 @@ void code (Prog prog) {
     fputs (
         "#include \"ce.c\"\n"
         "int main (void) {\n"
-        "    int ret;\n",
+        "    int ce_ret;\n\n",
         ALL.out
     );
-    code_prog(4, prog);
-    fprintf(ALL.out, "    printf(\"%%d\\n\", ret);\n");
+    code_prog(0, prog);
+    fprintf(ALL.out, "\n    printf(\"%%d\\n\", ce_ret);\n");
     fputs("}\n", ALL.out);
 }
 

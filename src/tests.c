@@ -415,7 +415,8 @@ void t_code (void) {
         Decls ds = { 1, &d };
         Expr blk = { EXPR_BLOCK, .Block={&e,&ds} };
         // xxx: xxx::()
-        code_expr(0, blk, "ret");
+        tce_ret ret = { "ret", NULL };
+        code_expr(0, blk, &ret);
         fclose(ALL.out);
         assert(!strcmp(out,"int /* () */ xxx;\nret = xxx"));
     }
@@ -423,7 +424,7 @@ void t_code (void) {
         char out[256];
         init (
             stropen("w", sizeof(out), out),
-            stropen("r", 0, ":\n    a :: ()\n    set ret = a")
+            stropen("r", 0, ":\n    a :: ()\n    set ce_ret = a")
         );
         Prog p;
         parser_prog(&p);
@@ -432,10 +433,12 @@ void t_code (void) {
         char* ret =
             "#include \"ce.c\"\n"
             "int main (void) {\n"
-            "    int ret;\n"
-            "    int /* () */ a;\n"
-            "    ret = a;\n"
-            "    printf(\"%d\\n\", ret);\n"
+            "    int ce_ret;\n"
+            "\n"
+            "int /* () */ a;\n"
+            "ce_ret = a;\n"
+            "\n"
+            "    printf(\"%d\\n\", ce_ret);\n"
             "}\n";
         assert(!strcmp(out,ret));
     }
@@ -463,7 +466,7 @@ void t_code (void) {
             "    BOOL sub;\n"
             "    union {\n"
             "    };\n"
-            "} Bool;\n";
+            "} Bool;\n\n";
         assert(!strcmp(out,ret));
     }
 }
@@ -471,7 +474,7 @@ void t_code (void) {
 void t_all (void) {
     assert(all(
         "0\n",
-        ":\n    a :: ()\n    set a = ()\n    set ret = a"
+        ":\n    a :: ()\n    set a = ()\n    set ce_ret = a"
     ));
     assert(all(
         "1\n",
@@ -479,7 +482,7 @@ void t_all (void) {
         "    data Bool:\n"
         "        False = ()\n"
         "        True  = ()\n"
-        "    set ret = toint(Bool_True)"
+        "    set ce_ret = toint(Bool_True)"
     ));
     assert(all(
         "1\n",
@@ -489,9 +492,9 @@ void t_all (void) {
         "        True  = ()\n"
         "    v :: Bool\n"
         "    set v = case ():\n"
-        "        Bool_False -> Bool_False\n"
-        "        else       -> case Bool_True\n"
-        "    set ret = toint(Bool_True)"
+        "        ()   -> Bool_True\n"
+        "        else -> Bool_True\n"
+        "    set ce_ret = toint(v)"
     ));
 }
 

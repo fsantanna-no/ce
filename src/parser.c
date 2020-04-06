@@ -146,7 +146,7 @@ int parser_type (Type* ret) {
             return err_unexpected(lexer_tk2str(&NXT.tk));
         }
     } else if (pr_accept(TK_IDDATA,1)) {
-        *ret = (Type) { TYPE_UNIT, PRV.tk };
+        *ret = (Type) { TYPE_DATA, PRV.tk };
         return 1;
     }
     return err_expected("type");
@@ -292,20 +292,26 @@ int parser_expr_ (void** expr) {
 
 int parser_case (void** casi) {
     static Case c;
+
+    // patt
     if (pr_accept(TK_ELSE,1)) {
         c.patt = (Patt) { PATT_ANY, {} };
     } else if (!parser_patt(&c.patt)) {
         return 0;
     }
+
+    // ->
+    pr_accept(TK_THEN,1);       // optional
+
+    // expr
     Expr e;
     if (!parser_expr(&e)) {
         return 0;
     }
-
     Expr* pe = malloc(sizeof(*pe));
     assert(pe != NULL);
     *pe = e;
-    c.expr = &e;
+    c.expr = pe;
 
     *casi = &c;
     return 1;
