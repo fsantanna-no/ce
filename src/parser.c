@@ -401,8 +401,8 @@ int parser_expr (Expr* ret) {
 int parser_glob (void** glob) {
     static Glob g;
 
-    if (parser_data(&g.datas)) {
-        g.sub = GLOB_DATAS;
+    if (parser_data(&g.data)) {
+        g.sub = GLOB_DATA;
         *glob = &g;
         return 1;
     }

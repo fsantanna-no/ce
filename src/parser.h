@@ -15,7 +15,7 @@ typedef enum {
 } EXPR;
 
 typedef enum {
-    GLOB_DATAS,
+    GLOB_DATA,
     GLOB_DECL,
     GLOB_EXPR
 } GLOB;
@@ -101,7 +101,7 @@ typedef struct Expr {
 typedef struct {
     int sub;
     union {
-        Data datas;
+        Data data;
         Decl decl;
         Expr expr;
     };

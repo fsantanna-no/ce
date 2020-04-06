@@ -14,7 +14,8 @@ void code_spc (int spc) {
 
 void code_ret (const char* ret) {
     if (ret != NULL) {
-        fputs("ret = ", ALL.out);
+        fputs(ret, ALL.out);
+        fputs(" = ", ALL.out);
     }
 }
 
@@ -154,8 +155,8 @@ void code_prog (int spc, Prog prog) {
         Glob g = prog.vec[i];
         code_spc(spc);
         switch (g.sub) {
-            case GLOB_DATAS:
-                // TODO
+            case GLOB_DATA:
+                code_data(g.data);
                 break;
             case GLOB_DECL:
                 code_decl(spc, g.decl);
