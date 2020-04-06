@@ -53,31 +53,41 @@ char* strupper (const char* src) {
 }
 
 void code_data (Data data) {
-    char* id = data.tk.val.s;
-    char ID[256];
-    assert(strlen(id) < sizeof(ID));
-    strcpy(ID, strupper(id));
+    char* sup = data.tk.val.s;
+    char SUP[256];
+    assert(strlen(sup) < sizeof(SUP));
+    strcpy(SUP, strupper(sup));
 
     for (int i=0; i<data.size; i++) {
-        char* v = data.vec[i].tk.val.s;
+        Cons cons = data.vec[i];
+        char* sub = cons.tk.val.s;
         // #define SUP_False Bool_False
         out("#define SUP_");
-        out(v);
+        out(sub);
         out(" ");
-        out(id);
+        out(sup);
         out("_");
-        out(v);
+        out(sub);
         out("\n");
 
-        // #define False() ((Bool) { Bool_False })
+        // #define False ((Bool) { Bool_False })
+        // #define Sub(v) ((Sup) { Sup_Sub, ._Sub=v })
         out("#define ");
-        out(v);
+        out(sub);
+        if (cons.type.sub != TYPE_UNIT) {
+            out("(v)");
+        }
         out(" ((");
-        out(id);
+        out(sup);
         out(") { ");
-        out(id);
+        out(sup);
         out("_");
-        out(v);
+        out(sub);
+        if (cons.type.sub != TYPE_UNIT) {
+            out(", ._");
+            out(sub);
+            out("=v");
+        }
         out(" })\n");
     }
     out("\n");
@@ -86,7 +96,7 @@ void code_data (Data data) {
         for (int i=0; i<data.size; i++) {
             char* v = data.vec[i].tk.val.s;
             out("    ");
-            out(id);
+            out(sup);
             out("_");
             out(v);
             if (i < data.size-1) {
@@ -95,33 +105,30 @@ void code_data (Data data) {
             out("\n");
         }
     out("} ");
-    out(ID);
+    out(SUP);
     out(";\n");
     out("\n");
     out("typedef struct ");
-    out(id);
+    out(sup);
     out(" {\n");
     out("    ");
-    out(ID);
+    out(SUP);
     out(" sub;\n");
     out("    union {\n");
         for (int i=0; i<data.size; i++) {
-            Cons v = data.vec[i];
-            if (v.type.sub != TYPE_UNIT) {
-                if (data.size == 1) {
-                    out("        ");
-                    code_type(v.type);
-                    out(" ");
-                    out(id);
-                    out(";\n");
-                } else {
-                    assert(0 && "TODO");
-                }
+            Cons cons = data.vec[i];
+            if (cons.type.sub != TYPE_UNIT) {
+                assert(data.size==1 && "TODO");
+                out("        ");
+                code_type(cons.type);
+                out(" _");
+                out(cons.tk.val.s);
+                out(";\n");
             }
         }
     out("    };\n");
     out("} ");
-    out(id);
+    out(sup);
     out(";\n\n");
 }
 
