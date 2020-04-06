@@ -28,7 +28,7 @@ void code_type (Type tp) {
             fputs("int /* () */", ALL.out);
             break;
         case TYPE_DATA:
-            fputs(tp.tk.val.s, ALL.out);
+            fputs(tp.Data.val.s, ALL.out);
             break;
     }
 }

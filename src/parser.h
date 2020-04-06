@@ -1,6 +1,7 @@
 typedef enum {
     TYPE_UNIT,
-    TYPE_DATA
+    TYPE_DATA,
+    TYPE_FUNC
 } TYPE;
 
 typedef enum {
@@ -38,6 +39,8 @@ typedef enum {
  * Cons  ::= <Id> `=` Type
  * Data  ::= data <Id> [`=` Type] [`:` { Cons }]
  *
+ * Type  ::= `(` `)` | <Id> | Type `->` Type | `(` Type `)`
+ *
  * Decl  ::= <id> `::` Type [`=` Expr]
  * Decls ::= { Decl }
  *
@@ -59,9 +62,15 @@ typedef enum {
 
 struct Expr;
 
-typedef struct {
+typedef struct Type {
     TYPE sub;
-    Tk   tk;
+    union {
+        Tk Data;
+        struct {
+            struct Type* inp;
+            struct Type* out;
+        } Func;
+    };
 } Type;
 
 typedef struct {

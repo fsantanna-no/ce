@@ -107,7 +107,7 @@ TK lexer_ (TK_val* val) {
                     }
                     return TK_COMMENT;
                 } else if (c == '>') {
-                    return TK_THEN;
+                    return TK_ARROW;
                 }
                 return TK_ERR;
 

@@ -138,18 +138,43 @@ int parser_list (List* ret, List_F f, size_t unit) {
 ///////////////////////////////////////////////////////////////////////////////
 
 int parser_type (Type* ret) {
+    // TYPE_UNIT
     if (pr_accept('(',1)) {
         if (pr_accept(')',1)) {
             *ret = (Type) { TYPE_UNIT, {} };
-            return 1;
         } else {
-            return err_unexpected(lexer_tk2str(&NXT.tk));
+    // TYPE_PARENS
+            if (!parser_type(ret)) {
+                return 0;
+            }
+            if (!pr_accept(')',1)) {
+                return err_expected("`)`");
+            }
+            return 1;
         }
+    // TYPE_DATA
     } else if (pr_accept(TK_IDDATA,1)) {
-        *ret = (Type) { TYPE_DATA, PRV.tk };
-        return 1;
+        *ret = (Type) { TYPE_DATA, .Data=PRV.tk };
+    } else {
+        return err_expected("type");
     }
-    return err_expected("type");
+
+    // TYPE_FUNC
+    if (pr_accept(TK_ARROW,1)) {
+        Type tp;
+        if (parser_type(&tp)) {
+            Type* inp = malloc(sizeof(*inp));
+            Type* out = malloc(sizeof(*out));
+            assert(inp != NULL);
+            assert(out != NULL);
+            *inp = *ret;
+            *out = tp;
+            *ret = (Type) { TYPE_FUNC, .Func={inp,out} };
+            return 1;
+        }
+    }
+
+    return 1;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -305,7 +330,7 @@ int parser_case (void** casi) {
     }
 
     // ->
-    pr_accept(TK_THEN,1);       // optional
+    pr_accept(TK_ARROW,1);       // optional
 
     // expr
     Expr e;

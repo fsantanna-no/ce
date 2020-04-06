@@ -335,7 +335,7 @@ void t_parser_decls (void) {
         init(NULL, stropen("r", 0, ":\n    var a :: (x)"));
         Decls ds;
         assert(!parser_decls(&ds));
-        assert(!strcmp(ALL.err, "(ln 2, col 15): unexpected `x`"));
+        assert(!strcmp(ALL.err, "(ln 2, col 15): expected type : have `x`"));
         fclose(ALL.inp);
     }
 }
