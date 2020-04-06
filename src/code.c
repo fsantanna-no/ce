@@ -6,16 +6,20 @@
 #include "parser.h"
 #include "code.h"
 
+void out (const char* v) {
+    fputs(v, ALL.out);
+}
+
 void code_spc (int spc) {
     for (int i=0; i<spc; i++) {
-        fputs(" ", ALL.out);
+        out(" ");
     }
 }
 
 void code_ret (tce_ret* ret) {
     while (ret != NULL) {
-        fputs(ret->val, ALL.out);
-        fputs(" = ", ALL.out);
+        out(ret->val);
+        out(" = ");
         ret = ret->nxt;
     }
 }
@@ -25,10 +29,10 @@ void code_ret (tce_ret* ret) {
 void code_type (Type tp) {
     switch (tp.sub) {
         case TYPE_UNIT:
-            fputs("int /* () */", ALL.out);
+            out("int /* () */");
             break;
         case TYPE_DATA:
-            fputs(tp.Data.val.s, ALL.out);
+            out(tp.Data.val.s);
             break;
         default:
 //printf("%d\n", tp.sub);
@@ -56,51 +60,51 @@ void code_data (Data data) {
 
     for (int i=0; i<data.size; i++) {
         char* v = data.vec[i].tk.val.s;
-        fputs("#define ", ALL.out);
-        fputs(v, ALL.out);
-        fputs("() ((", ALL.out);
-        fputs(id, ALL.out);
-        fputs(") { ", ALL.out);
-        fputs(ID, ALL.out);
-        fputs("_", ALL.out);
-        fputs(v, ALL.out);
-        fputs(" })\n", ALL.out);
+        out("#define ");
+        out(v);
+        out("() ((");
+        out(id);
+        out(") { ");
+        out(ID);
+        out("_");
+        out(v);
+        out(" })\n");
     }
-    fputs("\n", ALL.out);
+    out("\n");
 
-    fputs("typedef enum {\n", ALL.out);
+    out("typedef enum {\n");
         for (int i=0; i<data.size; i++) {
             char* v = data.vec[i].tk.val.s;
-            fputs("    ", ALL.out);
-            fputs(ID, ALL.out);
-            fputs("_", ALL.out);
-            fputs(v, ALL.out);
+            out("    ");
+            out(ID);
+            out("_");
+            out(v);
             if (i < data.size-1) {
-                fputs(",", ALL.out);
+                out(",");
             }
-            fputs("\n", ALL.out);
+            out("\n");
         }
-    fputs("} ", ALL.out);
-    fputs(ID, ALL.out);
-    fputs(";\n", ALL.out);
-    fputs("\n", ALL.out);
-    fputs("typedef struct ", ALL.out);
-    fputs(id, ALL.out);
-    fputs(" {\n", ALL.out);
-    fputs("    ", ALL.out);
-    fputs(ID, ALL.out);
-    fputs(" sub;\n", ALL.out);
-    fputs("    union {\n", ALL.out);
+    out("} ");
+    out(ID);
+    out(";\n");
+    out("\n");
+    out("typedef struct ");
+    out(id);
+    out(" {\n");
+    out("    ");
+    out(ID);
+    out(" sub;\n");
+    out("    union {\n");
         for (int i=0; i<data.size; i++) {
             Cons v = data.vec[i];
             if (v.type.sub != TYPE_UNIT) {
                 assert(0 && "TODO");
             }
         }
-    fputs("    };\n", ALL.out);
-    fputs("} ", ALL.out);
-    fputs(id, ALL.out);
-    fputs(";\n\n", ALL.out);
+    out("    };\n");
+    out("} ");
+    out(id);
+    out(";\n\n");
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -108,14 +112,14 @@ void code_data (Data data) {
 void code_patt (Patt p) {
     switch (p.sub) {
         case PATT_ANY:
-            fputs("ce_tst", ALL.out);
+            out("ce_tst");
             break;
         case PATT_UNIT:
-            fputs("0", ALL.out);
+            out("0");
             break;
         case PATT_CONS:
-            fputs(p.Cons.val.s, ALL.out);
-            fputs("()", ALL.out);
+            out(p.Cons.val.s);
+            out("()");
             break;
         default:
             assert(0 && "TODO");
@@ -123,33 +127,33 @@ void code_patt (Patt p) {
 }
 
 void code_case (int spc, Case e, tce_ret* ret) {
-    fputs("if (ce_tst == ", ALL.out);
+    out("if (ce_tst == ");
     code_patt(e.patt);
-    fputs(") {\n", ALL.out);
+    out(") {\n");
     code_spc(spc+4);
     code_expr(spc+4, *e.expr, ret);
-    fputs(";", ALL.out);
-    fputs("\n} else ", ALL.out);
+    out(";");
+    out("\n} else ");
 }
 
 void code_expr (int spc, Expr e, tce_ret* ret) {
     switch (e.sub) {
         case EXPR_ARG:
             code_ret(ret);
-            fputs("ce_arg", ALL.out);
+            out("ce_arg");
             break;
         case EXPR_UNIT:
             code_ret(ret);
-            fputs("0", ALL.out);
+            out("0");
             break;
         case EXPR_VAR:
             code_ret(ret);
-            fputs(e.Var.val.s, ALL.out);
+            out(e.Var.val.s);
             break;
         case EXPR_CONS: {
             code_ret(ret);
-            fputs(e.Cons.val.s, ALL.out);
-            fputs("()", ALL.out);
+            out(e.Cons.val.s);
+            out("()");
             break;
         }
         case EXPR_SET: {
@@ -159,27 +163,27 @@ void code_expr (int spc, Expr e, tce_ret* ret) {
         }
         case EXPR_CALL:
             code_expr(spc, *e.Call.func, ret);
-            fputs("(", ALL.out);
+            out("(");
             code_expr(spc, *e.Call.arg, ret);
-            fputs(")", ALL.out);
+            out(")");
             break;
         case EXPR_FUNC:
             assert(ret!=NULL && ret->nxt==NULL);    // set f = func (only supported)
-            fputs("\n", ALL.out);
+            out("\n");
             code_type(*e.Func.type.Func.out);
-                fputs(" ", ALL.out);
-                fputs(ret->val, ALL.out);
-                fputs(" (", ALL.out);
+                out(" ");
+                out(ret->val);
+                out(" (");
                 code_type(*e.Func.type.Func.inp);
-            fputs(" ce_arg) {\n", ALL.out);
+            out(" ce_arg) {\n");
                 code_spc(spc+4);
                 code_type(*e.Func.type.Func.out);
-                fputs(" ce_ret;\n", ALL.out);
+                out(" ce_ret;\n");
                 tce_ret r = { "ce_ret", ret };
                 code_expr(spc+4, *e.Func.body, &r);
                 code_spc(spc+4);
-                fputs("return ce_ret;\n", ALL.out);
-            fputs("}\n\n", ALL.out);
+                out("return ce_ret;\n");
+            out("}\n\n");
             break;
         case EXPR_SEQ:
             for (int i=0; i<e.Seq.size; i++) {
@@ -193,21 +197,21 @@ void code_expr (int spc, Expr e, tce_ret* ret) {
             break;
         case EXPR_CASES:
             // typeof(tst) ce_tst = tst;
-            fputs("typeof(", ALL.out);
+            out("typeof(");
             code_expr(spc, *e.Cases.tst, NULL);
-            fputs(") ce_tst = ", ALL.out);
+            out(") ce_tst = ");
             code_expr(spc, *e.Cases.tst, NULL);
-            fputs(";\n", ALL.out);
+            out(";\n");
 
             code_spc(spc);
             for (int i=0; i<e.Cases.size; i++) {
                 code_case(spc, e.Cases.vec[i], ret);
             }
-            fputs("{\n", ALL.out);
+            out("{\n");
             code_spc(spc+4);
-            fputs("assert(0 && \"case not matched\");\n", ALL.out);
+            out("assert(0 && \"case not matched\");\n");
             code_spc(spc);
-            fputs("}", ALL.out);
+            out("}");
             break;
         default:
 //printf("%d\n", e.sub);
@@ -219,13 +223,13 @@ void code_expr (int spc, Expr e, tce_ret* ret) {
 
 void code_decl (int spc, Decl d) {
     code_type(d.type);
-    fputs(" ", ALL.out);
-    fputs(d.var.val.s, ALL.out);
+    out(" ");
+    out(d.var.val.s);
     if (d.set != NULL) {
-        fputs(" = ", ALL.out);
+        out(" = ");
         code_expr(spc, *d.set, NULL);
     }
-    fputs(";\n", ALL.out);
+    out(";\n");
 }
 
 void code_decls (int spc, Decls ds) {
@@ -249,22 +253,21 @@ void code_prog (int spc, Prog prog) {
                 break;
             case GLOB_EXPR:
                 code_expr(spc, g.expr, NULL);
-                fputs(";\n", ALL.out);
+                out(";\n");
                 break;
         }
     }
 }
 
 void code (Prog prog) {
-    fputs (
+    out (
         "#include \"ce.c\"\n"
         "int main (void) {\n"
-        "\n",
-        ALL.out
+        "\n"
     );
     code_prog(0, prog);
     fprintf(ALL.out, "\n");
-    fputs("}\n", ALL.out);
+    out("}\n");
 }
 
 void compile (const char* inp) {
