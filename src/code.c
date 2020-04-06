@@ -165,6 +165,8 @@ void code_expr (int spc, Expr e, tce_ret* ret) {
                 code_case(spc, e.Cases.vec[i], ret);
             }
             fputs("{\n", ALL.out);
+            code_spc(spc+4);
+            fputs("assert(0 && \"case not matched\");\n", ALL.out);
             code_spc(spc);
             fputs("}", ALL.out);
             break;
@@ -218,11 +220,11 @@ void code (Prog prog) {
     fputs (
         "#include \"ce.c\"\n"
         "int main (void) {\n"
-        "    int ce_ret;\n\n",
+        "\n",
         ALL.out
     );
     code_prog(0, prog);
-    fprintf(ALL.out, "\n    printf(\"%%d\\n\", ce_ret);\n");
+    fprintf(ALL.out, "\n");
     fputs("}\n", ALL.out);
 }
 

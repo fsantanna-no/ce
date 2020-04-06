@@ -235,8 +235,12 @@ int parser_data (Data* ret) {
 ///////////////////////////////////////////////////////////////////////////////
 
 int parser_decl (Decl* decl) {
+    if (!pr_accept(TK_VAR,1)) {
+        return err_expected("`var`");
+    }
+
     if (!pr_accept(TK_IDVAR,1)) {
-        return err_expected("declaration");
+        return err_expected("variable identifier");
     }
     decl->var = PRV.tk;
 

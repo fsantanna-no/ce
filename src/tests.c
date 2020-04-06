@@ -316,14 +316,14 @@ void t_parser_decls (void) {
         fclose(ALL.inp);
     }
     {
-        init(NULL, stropen("r", 0, ":\n    a"));
+        init(NULL, stropen("r", 0, ":\n    var a"));
         Decls ds;
         assert(!parser_decls(&ds));
-        assert(!strcmp(ALL.err, "(ln 2, col 6): expected `::` : have end of file"));
+        assert(!strcmp(ALL.err, "(ln 2, col 10): expected `::` : have end of file"));
         fclose(ALL.inp);
     }
     {
-        init(NULL, stropen("r", 0, ":\n    a :: ()"));
+        init(NULL, stropen("r", 0, ":\n    var a :: ()"));
         Decls ds;
         assert(parser_decls(&ds));
         assert(ds.size == 1);
@@ -332,17 +332,17 @@ void t_parser_decls (void) {
         fclose(ALL.inp);
     }
     {
-        init(NULL, stropen("r", 0, ":\n    a :: (x)"));
+        init(NULL, stropen("r", 0, ":\n    var a :: (x)"));
         Decls ds;
         assert(!parser_decls(&ds));
-        assert(!strcmp(ALL.err, "(ln 2, col 11): unexpected `x`"));
+        assert(!strcmp(ALL.err, "(ln 2, col 15): unexpected `x`"));
         fclose(ALL.inp);
     }
 }
 
 void t_parser_block (void) {
     {
-        init(NULL, stropen("r", 0, "a:\n    a :: ()"));
+        init(NULL, stropen("r", 0, "a:\n    var a :: ()"));
         Expr blk;
         assert(parser_expr(&blk));
         fclose(ALL.inp);
@@ -351,9 +351,9 @@ void t_parser_block (void) {
         init(NULL, stropen("r", 0,
             ":\n"
             "    a where:\n"
-            "        a :: ()\n"
+            "        var a :: ()\n"
             "    b where:\n"
-            "        b :: ()\n"
+            "        var b :: ()\n"
         ));
         Expr e;
         assert(parser_expr(&e));
@@ -368,9 +368,9 @@ void t_parser_block (void) {
     {
         init(NULL, stropen("r", 0,
             "x where:\n"
-            "    x :: () = y where:\n"
-            "        y :: ()\n"
-            "    a :: ()\n"
+            "    var x :: () = y where:\n"
+            "        var y :: ()\n"
+            "    var a :: ()\n"
         ));
         Expr e;
         assert(parser_expr(&e));
@@ -424,7 +424,7 @@ void t_code (void) {
         char out[256];
         init (
             stropen("w", sizeof(out), out),
-            stropen("r", 0, ":\n    a :: ()\n    set ce_ret = a")
+            stropen("r", 0, ":\n    var a :: ()\n    show(a)")
         );
         Prog p;
         parser_prog(&p);
@@ -433,12 +433,10 @@ void t_code (void) {
         char* ret =
             "#include \"ce.c\"\n"
             "int main (void) {\n"
-            "    int ce_ret;\n"
             "\n"
             "int /* () */ a;\n"
-            "ce_ret = a;\n"
+            "show(a);\n"
             "\n"
-            "    printf(\"%d\\n\", ce_ret);\n"
             "}\n";
         assert(!strcmp(out,ret));
     }
@@ -474,7 +472,7 @@ void t_code (void) {
 void t_all (void) {
     assert(all(
         "0\n",
-        ":\n    a :: ()\n    set a = ()\n    set ce_ret = a"
+        ":\n    var a :: ()\n    set a = ()\n    show(a)"
     ));
     assert(all(
         "1\n",
@@ -482,7 +480,7 @@ void t_all (void) {
         "    data Bool:\n"
         "        False = ()\n"
         "        True  = ()\n"
-        "    set ce_ret = toint(Bool_True)"
+        "    show(toint(Bool_True))"
     ));
     assert(all(
         "1\n",
@@ -490,11 +488,11 @@ void t_all (void) {
         "    data Bool:\n"
         "        False = ()\n"
         "        True  = ()\n"
-        "    v :: Bool\n"
+        "    var v :: Bool\n"
         "    set v = case ():\n"
         "        ()   -> Bool_True\n"
         "        else -> Bool_True\n"
-        "    set ce_ret = toint(v)"
+        "    show(toint(v))"
     ));
 }
 
