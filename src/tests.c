@@ -24,7 +24,8 @@ int all (const char* xp, char* src) {
     }
     code(prog);
     fclose(ALL.out);
-puts(out);
+//puts(out);
+    remove("a.out");
     compile(out);
     FILE* f = popen("./a.out", "r");
     assert(f != NULL);
@@ -417,7 +418,7 @@ void t_code (void) {
         tce_ret ret = { "ret", NULL };
         code_expr(0, e, &ret);
         fclose(ALL.out);
-        assert(!strcmp(out,"{\n    int /* () */ xxx;\nret = xxx}\n"));
+        assert(!strcmp(out,"{\n    int xxx;\nret = *(typeof(ret)*) &xxx}\n"));
     }
     {
         char out[256];
@@ -433,7 +434,7 @@ void t_code (void) {
             "#include \"ce.c\"\n"
             "int main (void) {\n"
             "\n"
-            "int /* () */ a;\n"
+            "int a;\n"
             "show(a);\n"
             "\n"
             "}\n";
@@ -475,7 +476,7 @@ void t_code (void) {
 
 void t_all (void) {
     assert(all(
-        "0\n",
+        "1\n",
         ":\n    var a :: ()\n    set a = ()\n    show(a)"
     ));
     assert(all(
@@ -540,6 +541,7 @@ void t_all (void) {
         "        (_,(=x,_)) -> show(x) where:\n"
         "            var x :: ()"
     ));
+///
     assert(all(
         "1\n",
         ":\n"
@@ -552,6 +554,7 @@ void t_all (void) {
         "                ((),=y) -> y\n"
         "    show(v)"
     ));
+///
 }
 
 int main (void) {

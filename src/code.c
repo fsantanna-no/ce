@@ -29,7 +29,7 @@ void code_ret (tce_ret* ret) {
 void code_type (Type tp) {
     switch (tp.sub) {
         case TYPE_UNIT:
-            out("int /* () */");
+            out("int");
             break;
         case TYPE_DATA:
             out(tp.Data.val.s);
@@ -169,7 +169,7 @@ void code_tst (const char* tst, Patt p) {
             break;
         case PATT_UNIT:
             out(tst);
-            out(" == 0");
+            out(" == 1");
             break;
         case PATT_CONS:
             out("toint(");
@@ -212,10 +212,15 @@ void code_tst_pos (int spc, const char* tst, Patt p) {
             }
             break;
         case PATT_TUPLE:
-            break;
+//puts(">>>");
             for (int i=0; i<p.Tuple.size; i++) {
+//printf("%d\n", i);
+//out("//>>>\n");
                 code_tst_pos(spc, toidx(tst,i), p.Tuple.vec[i]);
+//out("//<<<\n");
             }
+//puts("<<<");
+            break;
         default:
             assert(0 && "TODO");
     }
@@ -258,10 +263,15 @@ void code_expr (int spc, Expr e, tce_ret* ret) {
             break;
         case EXPR_UNIT:
             code_ret(ret);
-            out("0");
+            out("1");
             break;
         case EXPR_VAR:
             code_ret(ret);
+            if (ret != NULL) {
+                out("*(typeof(");
+                out(ret->val);
+                out(")*) &");
+            }
             out(e.Var.val.s);
             break;
         case EXPR_CONS: {
@@ -324,6 +334,7 @@ void code_expr (int spc, Expr e, tce_ret* ret) {
             break;
         case EXPR_CASES:
             // typeof(tst) ce_tst = tst;
+            code_spc(spc);
             out("typeof(");
             code_expr(spc, *e.Cases.tst, NULL);
             out(") ce_tst = ");

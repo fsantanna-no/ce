@@ -95,13 +95,14 @@ typedef struct {
 
 typedef int (*List_F) (void**);
 
-int parser_list_comma (List* ret, List_F f, size_t unit) {
+int parser_list_comma (List* ret, void* fst, List_F f, size_t unit) {
     if (!pr_accept(',',1)) {
         return err_expected("`,`");
     }
 
-    void* vec = NULL;
-    int i = 0;
+    void* vec = malloc(unit);
+    memcpy(vec, fst, unit);
+    int i = 1;
     while (1) {
         void* item;
         if (!f(&item)) {
@@ -185,7 +186,7 @@ int parser_type (Type* ret) {
     // TYPE_TUPLE
             if (pr_check(',',1)) {
                 List lst = { 0, NULL };
-                if (!parser_list_comma(&lst, parser_type_, sizeof(Type))) {
+                if (!parser_list_comma(&lst, ret, parser_type_, sizeof(Type))) {
                     return 0;
                 }
                 *ret = (Type) { TYPE_TUPLE, .Tuple={lst.size,lst.vec} };
@@ -243,7 +244,7 @@ int parser_patt (Patt* ret) {
     // PATT_TUPLE
             if (pr_check(',',1)) {
                 List lst = { 0, NULL };
-                if (!parser_list_comma(&lst, parser_patt_, sizeof(Patt))) {
+                if (!parser_list_comma(&lst, ret, parser_patt_, sizeof(Patt))) {
                     return 0;
                 }
                 *ret = (Patt) { PATT_TUPLE, .Tuple={lst.size,lst.vec} };
@@ -285,22 +286,24 @@ int parser_patt (Patt* ret) {
 ///////////////////////////////////////////////////////////////////////////////
 
 int parser_cons (void** cons) {
-    static Cons d;
+    static Cons c_;
+    Cons c;
 
     if (!pr_accept(TK_IDDATA,1)) {
         return err_expected("data identifier");
     }
-    d.tk = PRV.tk;
+    c.tk = PRV.tk;
 
     if (!pr_accept('=',1)) {
         return err_expected("`=`");
     }
 
-    if (!parser_type(&d.type)) {
+    if (!parser_type(&c.type)) {
         return 0;
     }
 
-    *cons = &d;
+    c_ = c;
+    *cons = &c_;
     return 1;
 }
 
@@ -392,9 +395,11 @@ int parser_decl (Decl* decl) {
 }
 
 int parser_decl_ (void** decl) {
-    static Decl d;
+    static Decl d_;
+    Decl d;
     int ret = parser_decl(&d);
-    *decl = &d;
+    d_ = d;
+    *decl = &d_;
     return ret;
 }
 
@@ -430,12 +435,13 @@ int parser_where (Decls** ds) {
         *ds = NULL;
         return 1;
     }
-    *ds = malloc(sizeof(*ds));
+    *ds = malloc(sizeof(*(*ds)));
     return parser_decls(*ds);
 }
 
 int parser_case (void** casi) {
-    static Case c;
+    static Case c_;
+    Case c;
 
     // patt
     if (pr_accept(TK_ELSE,1)) {
@@ -461,7 +467,8 @@ int parser_case (void** casi) {
     *pe = e;
     c.expr = pe;
 
-    *casi = &c;
+    c_ = c;
+    *casi = &c_;
     return 1;
 }
 
@@ -477,7 +484,7 @@ int parser_expr_one (Expr* ret) {
     // EXPR_TUPLE
             if (pr_check(',',1)) {
                 List lst = { 0, NULL };
-                if (!parser_list_comma(&lst, parser_expr_, sizeof(Expr))) {
+                if (!parser_list_comma(&lst, ret, parser_expr_, sizeof(Expr))) {
                     return 0;
                 }
                 *ret = (Expr) { EXPR_TUPLE, NULL, .Tuple={lst.size,lst.vec} };
@@ -603,6 +610,7 @@ int parser_expr (Expr* ret) {
 
 int parser_glob (void** glob) {
     static Glob g;
+    Glob g_;
 
     if (pr_check(TK_DATA,1)) {
         if (!parser_data(&g.data)) {
@@ -626,7 +634,8 @@ int parser_glob (void** glob) {
         return 0;
     }
     g.sub = GLOB_EXPR;
-    *glob = &g;
+    g_ = g;
+    *glob = &g_;
     return 1;
 }
 
