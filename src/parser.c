@@ -95,7 +95,32 @@ typedef struct {
 
 typedef int (*List_F) (void**);
 
-int parser_list (List* ret, List_F f, size_t unit) {
+int parser_list_comma (List* ret, List_F f, size_t unit) {
+    if (!pr_accept(',',1)) {
+        return err_expected("`,`");
+    }
+
+    void* vec = NULL;
+    int i = 0;
+    while (1) {
+        void* item;
+        if (!f(&item)) {
+            return 0;
+        }
+        vec = realloc(vec, (i+1)*unit);
+        memcpy(vec+i*unit, item, unit);
+        i++;
+        if (!pr_accept(',',1)) {
+            break;
+        }
+    }
+
+    ret->size = i;
+    ret->vec  = vec;
+    return 1;
+}
+
+int parser_list_line (List* ret, List_F f, size_t unit) {
     if (!pr_accept(':',1)) {
         return err_expected("`:`");
     }
@@ -137,16 +162,35 @@ int parser_list (List* ret, List_F f, size_t unit) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
+int parser_type_ (void** type) {
+    static Type tp_;
+    Type tp;
+    if (!parser_type(&tp)) {
+        return 0;
+    }
+    tp_ = tp;
+    *type = &tp_;
+    return 1;
+}
+
 int parser_type (Type* ret) {
     // TYPE_UNIT
     if (pr_accept('(',1)) {
         if (pr_accept(')',1)) {
             *ret = (Type) { TYPE_UNIT, {} };
         } else {
-    // TYPE_PARENS
             if (!parser_type(ret)) {
                 return 0;
             }
+    // TYPE_TUPLE
+            if (pr_check(',',1)) {
+                List lst = { 0, NULL };
+                if (!parser_list_comma(&lst, parser_type_, sizeof(Type))) {
+                    return 0;
+                }
+                *ret = (Type) { TYPE_TUPLE, .Tuple={lst.size,lst.vec} };
+            }
+    // TYPE_PARENS
             if (!pr_accept(')',1)) {
                 return err_expected("`)`");
             }
@@ -262,7 +306,7 @@ int parser_data (Data* ret) {
     List lst = { 0, NULL };
     int lst_ok = pr_check(':', 1);
     if (lst_ok) {
-        if (!parser_list(&lst, &parser_cons, sizeof(Cons))) {
+        if (!parser_list_line(&lst, &parser_cons, sizeof(Cons))) {
             return 0;
         }
     }
@@ -337,7 +381,7 @@ int parser_decl_ (void** decl) {
 
 int parser_decls (Decls* ret) {
     List lst;
-    if (!parser_list(&lst, &parser_decl_, sizeof(Decl))) {
+    if (!parser_list_line(&lst, &parser_decl_, sizeof(Decl))) {
         return 0;
     }
     *ret = (Decls) { lst.size, lst.vec };
@@ -347,11 +391,13 @@ int parser_decls (Decls* ret) {
 ///////////////////////////////////////////////////////////////////////////////
 
 int parser_expr_ (void** expr) {
-    static Expr e;
+    static Expr e_;
+    Expr e;
     if (!parser_expr(&e)) {
         return 0;
     }
-    *expr = &e;
+    e_ = e;
+    *expr = &e_;
     return 1;
 }
 
@@ -389,10 +435,18 @@ int parser_expr_one (Expr* ret) {
             *ret = (Expr) { EXPR_UNIT, {} };
             return 1;
         } else {
-    // EXPR_PARENS
             if (!parser_expr(ret)) {
                 return 0;
             }
+    // EXPR_TUPLE
+            if (pr_check(',',1)) {
+                List lst = { 0, NULL };
+                if (!parser_list_comma(&lst, parser_expr_, sizeof(Expr))) {
+                    return 0;
+                }
+                *ret = (Expr) { EXPR_TUPLE, .Tuple={lst.size,lst.vec} };
+            }
+    // EXPR_PARENS
             if (!pr_accept(')',1)) {
                 return err_expected("`)`");
             }
@@ -455,7 +509,7 @@ int parser_expr_one (Expr* ret) {
     // EXPR_SEQ
     } else if (pr_check(':',1)) {
         List lst;
-        if (!parser_list(&lst, &parser_expr_, sizeof(Expr))) {
+        if (!parser_list_line(&lst, &parser_expr_, sizeof(Expr))) {
             return 0;
         }
         *ret = (Expr) { EXPR_SEQ, .Seq={lst.size,lst.vec} };
@@ -469,7 +523,7 @@ int parser_expr_one (Expr* ret) {
         }
 
         List lst;
-        if (!parser_list(&lst, &parser_case, sizeof(Case))) {
+        if (!parser_list_line(&lst, &parser_case, sizeof(Case))) {
             return 0;
         }
 
@@ -563,7 +617,7 @@ int parser_glob (void** glob) {
 
 int parser_prog (Prog* ret) {
     List lst;
-    if (!parser_list(&lst, &parser_glob, sizeof(Glob))) {
+    if (!parser_list_line(&lst, &parser_glob, sizeof(Glob))) {
         return 0;
     }
     *ret = (Prog) { lst.size, lst.vec };

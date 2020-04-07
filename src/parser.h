@@ -1,7 +1,8 @@
 typedef enum {
     TYPE_UNIT,
     TYPE_DATA,
-    TYPE_FUNC
+    TYPE_FUNC,
+    TYPE_TUPLE
 } TYPE;
 
 typedef enum {
@@ -21,6 +22,7 @@ typedef enum {
     EXPR_CONS,
     EXPR_SET,
     EXPR_FUNC,
+    EXPR_TUPLE,
     EXPR_SEQ,
     EXPR_CALL,
     EXPR_BLOCK,
@@ -40,7 +42,10 @@ typedef enum {
  * Cons  ::= <Id> `=` Type
  * Data  ::= data <Id> [`=` Type] [`:` { Cons }]
  *
- * Type  ::= `(` `)` | <Id> | Type `->` Type | `(` Type `)`
+ * Type  ::= `(` `)` | <Id>
+ *        |  Type `->` Type
+ *        | `(` Type { `,` Type } `)`
+ *        | `(` Type `)`
  *
  * Decl  ::= <id> `::` Type [`=` Expr]
  * Decls ::= { Decl }
@@ -51,13 +56,15 @@ typedef enum {
  *        |   `~` Expr
  *        |   `(` Patt { `,` Patt } `)`
  *
- * Expr  ::= `(` `)` | <id> | <Id>
+ * Expr  ::= `(` `)` | <id>
+ *        |  <Id> [`(` Expr `)`]
  *        |  set <id> `=` Expr
  *        |  func `::` Type Expr
  *        |  case Expr `:` { Patt [`->`] Expr }
  *        |  `:` { Expr }           // sequence
  *        |  Expr `(` Expr `)`      // call
  *        |  Expr `:` { Decl }      // block
+ *        | `(` Expr { `,` Expr } `)`
  *        | `(` Expr `)`
  */
 
@@ -67,10 +74,14 @@ typedef struct Type {
     TYPE sub;
     union {
         Tk Data;
-        struct {
+        struct {        // TYPE_FUNC
             struct Type* inp;
             struct Type* out;
         } Func;
+        struct {        // TYPE_TUPLE
+            int size;
+            struct Expr* vec;
+        } Tuple;
     };
 } Type;
 
@@ -119,6 +130,10 @@ typedef struct Expr {
         Tk Unit;
         Tk Var;
         Tk Cons;
+        struct {        // EXPR_TUPLE
+            int size;
+            struct Type* vec;
+        } Tuple;
         struct {        // EXPR_SEQ
             int size;
             struct Expr* vec;

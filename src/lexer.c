@@ -68,6 +68,7 @@ TK lexer_ (TK_val* val) {
         {
             case '(':
             case ')':
+            case ',':
                 return c;
 
             case EOF:
