@@ -11,8 +11,8 @@ typedef enum {
     PATT_ANY,
     PATT_CONS,
     PATT_SET,
-    PATT_EXP,
-    PATT_TUP
+    PATT_EXPR,
+    PATT_TUPLE
 } PATT;
 
 typedef enum {
@@ -112,6 +112,10 @@ typedef struct Patt {
     PATT sub;
     union {
         Tk Set;         // PATT_SET
+        struct {        // PATT_TUPLE
+            int size;
+            struct Patt* vec;
+        } Tuple;
         struct {        // PATT_CONS
             Tk data;
             struct Patt* arg;
@@ -184,5 +188,6 @@ void init (FILE* out, FILE* inp);
 int parser_type  (Type*  ret);
 int parser_data  (Data*  ret);
 int parser_decls (Decls* ret);
+int parser_patt  (Patt*  ret);
 int parser_expr  (Expr*  ret);
 int parser_prog  (Prog* prog);

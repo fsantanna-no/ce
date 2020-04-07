@@ -172,21 +172,21 @@ void t_parser_expr (void) {
         init(NULL, stropen("r", 0, "("));
         Expr e;
         assert(!parser_expr(&e));
-        assert(!strcmp(ALL.err, "(ln 1, col 2): expected expression : have end of file"));
+        assert(!strcmp(ALL.err, "(ln 1, col 2): expected `)` : have end of file"));
         fclose(ALL.inp);
     }
     {
         init(NULL, stropen("r", 0, "(("));
         Expr e;
         assert(!parser_expr(&e));
-        assert(!strcmp(ALL.err, "(ln 1, col 3): expected expression : have end of file"));
+        assert(!strcmp(ALL.err, "(ln 1, col 3): expected `)` : have end of file"));
         fclose(ALL.inp);
     }
     {
         init(NULL, stropen("r", 0, "(\n( \n"));
         Expr e;
         assert(!parser_expr(&e));
-        assert(!strcmp(ALL.err, "(ln 1, col 2): expected expression : have new line"));
+        assert(!strcmp(ALL.err, "(ln 1, col 2): expected `)` : have new line"));
         fclose(ALL.inp);
     }
     // EXPR_VAR
@@ -201,7 +201,7 @@ void t_parser_expr (void) {
         init(NULL, stropen("r", 0, "x("));
         Expr e;
         assert(!parser_expr(&e));
-        assert(!strcmp(ALL.err, "(ln 1, col 3): expected expression : have end of file"));
+        assert(!strcmp(ALL.err, "(ln 1, col 3): expected `)` : have end of file"));
         fclose(ALL.inp);
     }
     // EXPR_SET
@@ -281,7 +281,7 @@ void t_parser_expr (void) {
         init(NULL, stropen("r", 0, ":\n    x\n    y ("));
         Expr e;
         assert(!parser_expr(&e));
-        assert(!strcmp(ALL.err, "(ln 3, col 8): expected expression : have end of file"));
+        assert(!strcmp(ALL.err, "(ln 3, col 8): expected `)` : have end of file"));
         fclose(ALL.inp);
     }
     {
@@ -531,7 +531,7 @@ void t_all (void) {
         "    var v :: ((),()) = ((),())\n"
         "    var b :: Bool = case v:\n"
         "        ((),=x) -> x where:\n"
-        "            x :: ()\n"
+        "            var x :: ()\n"
         "    show(toint(b))"
     ));
 }
