@@ -254,6 +254,10 @@ int parser_patt (Patt* ret) {
             }
         }
 
+    // PATT_ANY
+    } else if (pr_accept('_',1)) {
+        *ret = (Patt) { PATT_ANY };
+
     // PATT_CONS
     } else if (pr_accept(TK_IDDATA,1)) {
         *ret = (Patt) { PATT_CONS, .Cons={PRV.tk,NULL} };

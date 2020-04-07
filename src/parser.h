@@ -80,7 +80,7 @@ typedef struct Type {
         } Func;
         struct {        // TYPE_TUPLE
             int size;
-            struct Expr* vec;
+            struct Type* vec;
         } Tuple;
     };
 } Type;
@@ -136,7 +136,7 @@ typedef struct Expr {
         Tk Cons;
         struct {        // EXPR_TUPLE
             int size;
-            struct Type* vec;
+            struct Expr* vec;
         } Tuple;
         struct {        // EXPR_SEQ
             int size;

@@ -34,6 +34,17 @@ void code_type (Type tp) {
         case TYPE_DATA:
             out(tp.Data.val.s);
             break;
+        case TYPE_TUPLE:
+            //out("\nstruct Tuple_XXX {\n");
+            //out("}\n\n");
+            //out("Tuple_XXX");
+            out("struct { ");
+            for (int i=0; i<tp.Tuple.size; i++) {
+                code_type(tp.Tuple.vec[i]);
+                fprintf(ALL.out, " _%d; ", i);
+            }
+            out(" }");
+            break;
         default:
 //printf("%d\n", tp.sub);
             assert(0 && "TODO");
@@ -144,6 +155,12 @@ char* tosub (const char* sup, const char* sub) {
     return str;
 }
 
+char* toidx (const char* tup, int idx) {
+    static char str[256];
+    sprintf(str, "%s._%d", tup, idx); // TODO: assert len
+    return str;
+}
+
 void code_tst (const char* tst, Patt p) {
     switch (p.sub) {
         case PATT_ANY:
@@ -162,6 +179,14 @@ void code_tst (const char* tst, Patt p) {
             if (p.Cons.arg != NULL) {
                 out(" && ");
                 code_tst(tosub(tst,p.Cons.data.val.s), *p.Cons.arg);
+            }
+            break;
+        case PATT_TUPLE:
+            for (int i=0; i<p.Tuple.size; i++) {
+                if (i > 0) {
+                    out(" && ");
+                }
+                code_tst(toidx(tst,i), p.Tuple.vec[i]);
             }
             break;
         default:
@@ -186,6 +211,11 @@ void code_tst_pos (int spc, const char* tst, Patt p) {
                 code_tst_pos(spc, tosub(tst,p.Cons.data.val.s), *p.Cons.arg);
             }
             break;
+        case PATT_TUPLE:
+            break;
+            for (int i=0; i<p.Tuple.size; i++) {
+                code_tst_pos(spc, toidx(tst,i), p.Tuple.vec[i]);
+            }
         default:
             assert(0 && "TODO");
     }
@@ -241,6 +271,23 @@ void code_expr (int spc, Expr e, tce_ret* ret) {
             out("(");
             code_expr(spc, *e.Call.arg, NULL);
             out(")");
+            break;
+        case EXPR_TUPLE:
+            code_ret(ret);
+            if (ret != NULL) {
+                out("(typeof(");
+                out(ret->val);
+                out(")) ");
+            }
+            out("{ ");
+            for (int i=0; i<e.Tuple.size; i++) {
+                //fprintf (ALL.out, "%c _%d=", ((i==0) ? ' ' : ','), i);
+                if (i != 0) {
+                    out(",");
+                }
+                code_expr(spc+4, e.Tuple.vec[i], NULL);
+            }
+            out(" }");
             break;
         case EXPR_FUNC:
             assert(ret!=NULL && ret->nxt==NULL);    // set f = func (only supported)

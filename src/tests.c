@@ -528,11 +528,30 @@ void t_all (void) {
     assert(all(
         "1\n",
         ":\n"
-        "    var v :: ((),()) = ((),())\n"
-        "    var b :: Bool = case v:\n"
-        "        ((),=x) -> x where:\n"
-        "            var x :: ()\n"
-        "    show(toint(b))"
+        "    var i :: ((),()) = ((),())\n"
+        "    case i:\n"
+        "        (=x,_) -> show(x) where:\n"
+        "            var x :: ()"
+    ));
+    assert(all(
+        "1\n",
+        ":\n"
+        "    var i :: ((),((),())) = ((),((),()))\n"
+        "    case i:\n"
+        "        (_,(=x,_)) -> show(x) where:\n"
+        "            var x :: ()"
+    ));
+    assert(all(
+        "1\n",
+        ":\n"
+        "    var i :: ((),((),())) = ((),((),()))\n"
+        "    var j :: ((),((),())) = i\n"
+        "    var v :: () = case j:\n"
+        "        ((),=x) -> y where:\n"
+        "            var x :: ((),())\n"
+        "            var y :: () = case x:\n"
+        "                ((),=y) -> y\n"
+        "    show(v)"
     ));
 }
 
