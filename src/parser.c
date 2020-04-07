@@ -93,7 +93,7 @@ typedef struct {
     void* vec;
 } List;
 
-typedef int (*List_F) (void**);
+typedef void* (*List_F) (void);
 
 int parser_list_comma (List* ret, void* fst, List_F f, size_t unit) {
     if (!pr_accept(',',1)) {
@@ -104,8 +104,8 @@ int parser_list_comma (List* ret, void* fst, List_F f, size_t unit) {
     memcpy(vec, fst, unit);
     int i = 1;
     while (1) {
-        void* item;
-        if (!f(&item)) {
+        void* item = f();
+        if (item == NULL) {
             return 0;
         }
         vec = realloc(vec, (i+1)*unit);
@@ -135,8 +135,8 @@ int parser_list_line (List* ret, List_F f, size_t unit) {
     void* vec = NULL;
     int i = 0;
     while (1) {
-        void* item;
-        if (!f(&item)) {
+        void* item = f();;
+        if (item == NULL) {
             return 0;
         }
         vec = realloc(vec, (i+1)*unit);
@@ -163,15 +163,14 @@ int parser_list_line (List* ret, List_F f, size_t unit) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-int parser_type_ (void** type) {
+void* parser_type_ (void) {
     static Type tp_;
     Type tp;
     if (!parser_type(&tp)) {
-        return 0;
+        return NULL;
     }
     tp_ = tp;
-    *type = &tp_;
-    return 1;
+    return &tp_;
 }
 
 int parser_type (Type* ret) {
@@ -221,15 +220,14 @@ int parser_type (Type* ret) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-int parser_patt_ (void** patt) {
+void* parser_patt_ (void) {
     static Patt pt_;
     Patt pt;
     if (!parser_patt(&pt)) {
-        return 0;
+        return NULL;
     }
     pt_ = pt;
-    *patt = &pt_;
-    return 1;
+    return &pt_;
 }
 
 int parser_patt (Patt* ret) {
@@ -285,26 +283,27 @@ int parser_patt (Patt* ret) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-int parser_cons (void** cons) {
+void* parser_cons_ (void) {
     static Cons c_;
     Cons c;
 
     if (!pr_accept(TK_IDDATA,1)) {
-        return err_expected("data identifier");
+        err_expected("data identifier");
+        return NULL;
     }
     c.tk = PRV.tk;
 
     if (!pr_accept('=',1)) {
-        return err_expected("`=`");
+        err_expected("`=`");
+        return NULL;
     }
 
     if (!parser_type(&c.type)) {
-        return 0;
+        return NULL;
     }
 
     c_ = c;
-    *cons = &c_;
-    return 1;
+    return &c_;
 }
 
 int parser_data (Data* ret) {
@@ -325,7 +324,7 @@ int parser_data (Data* ret) {
     List lst = { 0, NULL };
     int lst_ok = pr_check(':', 1);
     if (lst_ok) {
-        if (!parser_list_line(&lst, &parser_cons, sizeof(Cons))) {
+        if (!parser_list_line(&lst, &parser_cons_, sizeof(Cons))) {
             return 0;
         }
     }
@@ -394,13 +393,14 @@ int parser_decl (Decl* decl) {
     return 1;
 }
 
-int parser_decl_ (void** decl) {
+void* parser_decl_ (void) {
     static Decl d_;
     Decl d;
-    int ret = parser_decl(&d);
+    if (!parser_decl(&d)) {
+        return NULL;
+    }
     d_ = d;
-    *decl = &d_;
-    return ret;
+    return &d_;
 }
 
 int parser_decls (Decls* ret) {
@@ -414,20 +414,28 @@ int parser_decls (Decls* ret) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-int parser_expr_ (void** expr) {
+void* parser_expr_ (void) {
     static Expr e_;
     Expr e;
     if (!parser_expr(&e)) {
+        return NULL;
+    }
+    e_ = e;
+    return &e_;
+}
+
+void* parser_expr__ (void) {
+    static Expr e_;
+    Expr* pe = parser_expr_();
+    if (pe == NULL) {
+        return NULL;
+    }
+    Expr e = *pe;
+    if (!parser_where(&e.decls)) {
         return 0;
     }
     e_ = e;
-    *expr = &e_;
-    return 1;
-}
-
-int parser_expr__ (void** expr) {
-    return parser_expr_(expr) &&
-           parser_where(&((*((Expr**)expr))->decls));
+    return &e_;
 }
 
 int parser_where (Decls** ds) {
@@ -439,7 +447,7 @@ int parser_where (Decls** ds) {
     return parser_decls(*ds);
 }
 
-int parser_case (void** casi) {
+void* parser_case_ (void) {
     static Case c_;
     Case c;
 
@@ -447,7 +455,7 @@ int parser_case (void** casi) {
     if (pr_accept(TK_ELSE,1)) {
         c.patt = (Patt) { PATT_ANY, {} };
     } else if (!parser_patt(&c.patt)) {
-        return 0;
+        return NULL;
     }
 
     // ->
@@ -456,10 +464,10 @@ int parser_case (void** casi) {
     // expr
     Expr e;
     if (!parser_expr(&e)) {
-        return 0;
+        return NULL;
     }
     if (!parser_where(&e.decls)) {
-        return 0;
+        return NULL;
     }
 
     Expr* pe = malloc(sizeof(*pe));
@@ -468,8 +476,7 @@ int parser_case (void** casi) {
     c.expr = pe;
 
     c_ = c;
-    *casi = &c_;
-    return 1;
+    return &c_;
 }
 
 int parser_expr_one (Expr* ret) {
@@ -562,7 +569,7 @@ int parser_expr_one (Expr* ret) {
         }
 
         List lst;
-        if (!parser_list_line(&lst, &parser_case, sizeof(Case))) {
+        if (!parser_list_line(&lst, &parser_case_, sizeof(Case))) {
             return 0;
         }
 
@@ -608,40 +615,39 @@ int parser_expr (Expr* ret) {
 // Glob ::= Data | Decl | Expr
 // Prog ::= { Glob }
 
-int parser_glob (void** glob) {
-    static Glob g;
-    Glob g_;
+void* parser_glob_ (void) {
+    static Glob g_;
+    Glob g;
 
     if (pr_check(TK_DATA,1)) {
         if (!parser_data(&g.data)) {
-            return 0;
+            return NULL;
         }
         g.sub = GLOB_DATA;
-        *glob = &g;
-        return 1;
+        g_ = g;
+        return &g_;
     }
 
     if (pr_check(TK_VAR,1)) {
         if (!parser_decl(&g.decl)) {
-            return 0;
+            return NULL;
         }
         g.sub = GLOB_DECL;
-        *glob = &g;
-        return 1;
+        g_ = g;
+        return &g_;
     }
 
     if (!parser_expr(&g.expr)) {
-        return 0;
+        return NULL;
     }
     g.sub = GLOB_EXPR;
     g_ = g;
-    *glob = &g_;
-    return 1;
+    return &g_;
 }
 
 int parser_prog (Prog* ret) {
     List lst;
-    if (!parser_list_line(&lst, &parser_glob, sizeof(Glob))) {
+    if (!parser_list_line(&lst, &parser_glob_, sizeof(Glob))) {
         return 0;
     }
     *ret = (Prog) { lst.size, lst.vec };
