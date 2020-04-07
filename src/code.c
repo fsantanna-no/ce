@@ -134,29 +134,77 @@ void code_data (Data data) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void code_tst (Patt p) {
+char* tosub (const char* sup, const char* sub) {
+    static char str[256];
+    str[0] = '\0';
+    // TODO: assert len
+    strcat(str, sup);
+    strcat(str, "._");
+    strcat(str, sub);
+    return str;
+}
+
+void code_tst (const char* tst, Patt p) {
     switch (p.sub) {
         case PATT_ANY:
+        case PATT_SET:
             out("1");
             break;
         case PATT_UNIT:
-            out("ce_tst == 0");
+            out(tst);
+            out(" == 0");
             break;
         case PATT_CONS:
-            out("toint(ce_tst) == SUP_");
-            out(p.Cons.val.s);
+            out("toint(");
+            out(tst);
+            out(") == SUP_");
+            out(p.Cons.data.val.s);
+            if (p.Cons.arg != NULL) {
+                out(" && ");
+                code_tst(tosub(tst,p.Cons.data.val.s), *p.Cons.arg);
+            }
             break;
         default:
             assert(0 && "TODO");
     }
 }
 
-void code_case (int spc, Case e, tce_ret* ret) {
+void code_tst_pos (int spc, const char* tst, Patt p) {
+    switch (p.sub) {
+        case PATT_ANY:
+        case PATT_UNIT:
+            break;
+        case PATT_SET:          // x = ce_tst
+            code_spc(spc);
+            out(p.Set.val.s);
+            out(" = ");
+            out(tst);
+            out(";\n");
+            break;
+        case PATT_CONS:
+            if (p.Cons.arg != NULL) {
+                code_tst_pos(spc, tosub(tst,p.Cons.data.val.s), *p.Cons.arg);
+            }
+            break;
+        default:
+            assert(0 && "TODO");
+    }
+}
+
+void code_case (int spc, Case c, tce_ret* ret) {
     out("if (");
-    code_tst(e.patt);
+    code_tst("ce_tst", c.patt);
     out(") {\n");
+    if (c.expr->sub == EXPR_BLOCK) {
+        code_decls(spc+4, *c.expr->Block.decls);     // declare block before tst (tst may contain =set to new var)
+    }
+    code_tst_pos(spc+4, "ce_tst", c.patt);
     code_spc(spc+4);
-    code_expr(spc+4, *e.expr, ret);
+    if (c.expr->sub == EXPR_BLOCK) {
+        code_expr(spc+4, *c.expr->Block.ret, ret);
+    } else {
+        code_expr(spc+4, *c.expr, ret);
+    }
     out(";");
     out("\n");
     code_spc(spc);
@@ -188,9 +236,10 @@ void code_expr (int spc, Expr e, tce_ret* ret) {
             break;
         }
         case EXPR_CALL:
-            code_expr(spc, *e.Call.func, ret);
+            code_ret(ret);
+            code_expr(spc, *e.Call.func, NULL);
             out("(");
-            code_expr(spc, *e.Call.arg, ret);
+            code_expr(spc, *e.Call.arg, NULL);
             out(")");
             break;
         case EXPR_FUNC:
@@ -252,11 +301,13 @@ void code_decl (int spc, Decl d) {
     code_type(d.type);
     out(" ");
     out(d.var.val.s);
-    if (d.set != NULL) {
-        out(" = ");
-        code_expr(spc, *d.set, NULL);
-    }
     out(";\n");
+    if (d.set != NULL) {
+        tce_ret r = { d.var.val.s, NULL };
+        code_expr(spc, *d.set, &r);
+        code_spc(spc);
+        out(";\n");
+    }
 }
 
 void code_decls (int spc, Decls ds) {

@@ -180,16 +180,46 @@ int parser_type (Type* ret) {
 ///////////////////////////////////////////////////////////////////////////////
 
 int parser_patt (Patt* ret) {
+    // PATT_UNIT
     if (pr_accept('(',1)) {
         if (pr_accept(')',1)) {
             *ret = (Patt) { PATT_UNIT, {} };
             return 1;
+    // PATT_PARENS
+        } else {
+            if (!parser_patt(ret)) {
+                return 0;
+            }
+            if (!pr_accept(')',1)) {
+                return err_expected("`)`");
+            }
+            return 1;
         }
+    // PATT_CONS
     } else if (pr_accept(TK_IDDATA,1)) {
-        *ret = (Patt) { PATT_CONS, .Cons=PRV.tk };
+        *ret = (Patt) { PATT_CONS, .Cons={PRV.tk,NULL} };
+        if (!pr_check('(',1)) {
+            return 1;
+        }
+    // PATT_CONS(...)
+        Patt arg;
+        if (!parser_patt(&arg)) {
+            return 0;
+        }
+        Patt* parg = malloc(sizeof(arg));
+        assert(parg != NULL);
+        *parg = arg;
+        *ret = (Patt) { PATT_CONS, .Cons={ret->Cons.data,parg} };
+        return 1;
+    // PATT_SET
+    } else if (pr_accept('=',1)) {
+        if (!pr_accept(TK_IDVAR,1)) {
+            return err_expected("variable identifier");
+        }
+        *ret = (Patt) { PATT_SET, .Set=PRV.tk };
         return 1;
     }
-    return 0;
+    return err_expected("pattern");
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -230,7 +260,12 @@ int parser_data (Data* ret) {
     }
 
     List lst = { 0, NULL };
-    int lst_ok = parser_list(&lst, &parser_cons, sizeof(Cons));
+    int lst_ok = pr_check(':', 1);
+    if (lst_ok) {
+        if (!parser_list(&lst, &parser_cons, sizeof(Cons))) {
+            return 0;
+        }
+    }
 
     if (!tp_ok && !lst_ok) {
         return err_expected("`=` or `:`");

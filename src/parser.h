@@ -97,10 +97,14 @@ typedef struct {
     Decl* vec;
 } Decls;
 
-typedef struct {
+typedef struct Patt {
     PATT sub;
     union {
-        Tk Cons;    // PATT_CONS
+        Tk Set;         // PATT_SET
+        struct {        // PATT_CONS
+            Tk data;
+            struct Patt* arg;
+        } Cons;
     };
 } Patt;
 

@@ -521,7 +521,8 @@ void t_all (void) {
         "    var v :: Vv = Vv_(True)\n"
         "    var b :: Bool = case v:\n"
         "        Vv_(False) -> False\n"
-        "        else       -> True\n"
+        "        Vv_(=x)    -> x where:\n"
+        "            var x :: Bool\n"
         "    show(toint(b))"
     ));
 }
