@@ -518,10 +518,10 @@ void t_all (void) {
         "        False = ()\n"
         "        True  = ()\n"
         "    data Vv = Bool\n"
-        "    var v :: Vv = Vv_(True)\n"
+        "    var v :: Vv = Vv(True)\n"
         "    var b :: Bool = case v:\n"
-        "        Vv_(False) -> False\n"
-        "        Vv_(=x)    -> x where:\n"
+        "        Vv(False) -> False\n"
+        "        Vv(=x)    -> x where:\n"
         "            var x :: Bool\n"
         "    show(toint(b))"
     ));

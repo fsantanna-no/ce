@@ -286,7 +286,6 @@ int parser_data (Data* ret) {
 
             Cons dt = (Cons) { 0, {}, tp };
             strcpy(dt.tk.val.s, id.val.s);
-            strcat(dt.tk.val.s, "_");
             ret->vec[0] = dt;
         }
     }
