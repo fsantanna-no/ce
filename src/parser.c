@@ -378,6 +378,9 @@ int parser_decl (Decl* decl) {
         if (!parser_expr(&set)) {
             return 0;
         }
+        if (!parser_where(&set.decls)) {
+            return 0;
+        }
         decl->set = malloc(sizeof(*decl->set));
         assert(decl->set != NULL);
         *decl->set = set;
@@ -417,6 +420,20 @@ int parser_expr_ (void** expr) {
     return 1;
 }
 
+int parser_expr__ (void** expr) {
+    return parser_expr_(expr) &&
+           parser_where(&((*((Expr**)expr))->decls));
+}
+
+int parser_where (Decls** ds) {
+    if (!pr_accept(TK_WHERE,1)) {
+        *ds = NULL;
+        return 1;
+    }
+    *ds = malloc(sizeof(*ds));
+    return parser_decls(*ds);
+}
+
 int parser_case (void** casi) {
     static Case c;
 
@@ -435,6 +452,10 @@ int parser_case (void** casi) {
     if (!parser_expr(&e)) {
         return 0;
     }
+    if (!parser_where(&e.decls)) {
+        return 0;
+    }
+
     Expr* pe = malloc(sizeof(*pe));
     assert(pe != NULL);
     *pe = e;
@@ -448,7 +469,7 @@ int parser_expr_one (Expr* ret) {
     // EXPR_UNIT
     if (pr_accept('(',1)) {
         if (pr_accept(')',1)) {
-            *ret = (Expr) { EXPR_UNIT, {} };
+            *ret = (Expr) { EXPR_UNIT, NULL, {} };
         } else {
             if (!parser_expr(ret)) {
                 return 0;
@@ -459,7 +480,7 @@ int parser_expr_one (Expr* ret) {
                 if (!parser_list_comma(&lst, parser_expr_, sizeof(Expr))) {
                     return 0;
                 }
-                *ret = (Expr) { EXPR_TUPLE, .Tuple={lst.size,lst.vec} };
+                *ret = (Expr) { EXPR_TUPLE, NULL, .Tuple={lst.size,lst.vec} };
             }
     // EXPR_PARENS
             if (!pr_accept(')',1)) {
@@ -469,15 +490,15 @@ int parser_expr_one (Expr* ret) {
 
     // EXPR_ARG
     } else if (pr_accept(TK_ARG,1)) {
-        *ret = (Expr) { EXPR_ARG, {} };
+        *ret = (Expr) { EXPR_ARG, NULL, {} };
 
     // EXPR_VAR
     } else if (pr_accept(TK_IDVAR,1)) {
-        *ret = (Expr) { EXPR_VAR, .Var=PRV.tk };
+        *ret = (Expr) { EXPR_VAR, NULL, .Var=PRV.tk };
 
     // EXPR_CONS
     } else if (pr_accept(TK_IDDATA,1)) {
-        *ret = (Expr) { EXPR_CONS, .Cons=PRV.tk };
+        *ret = (Expr) { EXPR_CONS, NULL, .Cons=PRV.tk };
 
     // EXPR_SET
     } else if (pr_accept(TK_SET,1)) {
@@ -495,7 +516,7 @@ int parser_expr_one (Expr* ret) {
         Expr* pe = malloc(sizeof(*pe));
         assert(pe != NULL);
         *pe = e;
-        *ret = (Expr) { EXPR_SET, .Set={var,pe} };
+        *ret = (Expr) { EXPR_SET, NULL, .Set={var,pe} };
 
     // EXPR_FUNC
     } else if (pr_accept(TK_FUNC,1)) {
@@ -513,15 +534,18 @@ int parser_expr_one (Expr* ret) {
         Expr* pe = malloc(sizeof(*pe));
         assert(pe != NULL);
         *pe = e;
-        *ret = (Expr) { EXPR_FUNC, .Func={tp,pe} };
+        *ret = (Expr) { EXPR_FUNC, NULL, .Func={tp,pe} };
+        if (!parser_where(&ret->decls)) {
+            return 0;
+        }
 
     // EXPR_SEQ
     } else if (pr_check(':',1)) {
         List lst;
-        if (!parser_list_line(&lst, &parser_expr_, sizeof(Expr))) {
+        if (!parser_list_line(&lst, &parser_expr__, sizeof(Expr))) {
             return 0;
         }
-        *ret = (Expr) { EXPR_SEQ, .Seq={lst.size,lst.vec} };
+        *ret = (Expr) { EXPR_SEQ, NULL, .Seq={lst.size,lst.vec} };
 
     // EXPR_CASES
     } else if (pr_accept(TK_CASE,1)) {
@@ -539,7 +563,7 @@ int parser_expr_one (Expr* ret) {
         assert(pe != NULL);
         *pe = e;
 
-        *ret = (Expr) { EXPR_CASES, .Cases={pe,lst.size,lst.vec} };
+        *ret = (Expr) { EXPR_CASES, NULL, .Cases={pe,lst.size,lst.vec} };
     }
 
     return 1;
@@ -563,23 +587,7 @@ int parser_expr (Expr* ret) {
         assert(pe1!=NULL && pe2!=NULL);
         *pe1 = e;
         *pe2 = arg;
-        *ret = (Expr) { EXPR_CALL, .Call={pe1,pe2} };
-        return 1;
-    }
-
-    // BLOCK
-    if (pr_accept(TK_WHERE,1)) {
-        Decls ds;
-        if (!parser_decls(&ds)) {
-            return 0;
-        }
-
-        Expr*  pe = malloc(sizeof(*pe));
-        Decls* pd = malloc(sizeof(*pd));
-        assert(pe!=NULL && pd!=NULL);
-        *pe = e;
-        *pd = ds;
-        *ret = (Expr) { EXPR_BLOCK, .Block={pe,pd} };
+        *ret = (Expr) { EXPR_CALL, NULL, .Call={pe1,pe2} };
         return 1;
     }
 

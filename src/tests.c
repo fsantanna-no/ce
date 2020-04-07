@@ -359,10 +359,10 @@ void t_parser_block (void) {
         assert(parser_expr(&e));
         assert(e.sub == EXPR_SEQ);
         assert(e.Seq.size == 2);
-        assert(e.Seq.vec[0].sub == EXPR_BLOCK);
-        assert(e.Seq.vec[1].sub == EXPR_BLOCK);
-        assert(e.Seq.vec[0].Block.decls->size == 1);
-        assert(e.Seq.vec[1].Block.decls->size == 1);
+        assert(e.Seq.vec[0].decls != NULL);
+        assert(e.Seq.vec[1].decls != NULL);
+        assert(e.Seq.vec[0].decls->size == 1);
+        assert(e.Seq.vec[1].decls->size == 1);
         fclose(ALL.inp);
     }
     {
@@ -374,8 +374,9 @@ void t_parser_block (void) {
         ));
         Expr e;
         assert(parser_expr(&e));
-        assert(e.Block.ret->sub == EXPR_VAR);
-        assert(e.Block.decls->size == 2);
+        assert(e.sub == EXPR_VAR);
+        assert(parser_where(&e.decls));
+        assert(e.decls->size == 2);
         fclose(ALL.inp);
     }
 }
@@ -392,10 +393,9 @@ void t_code (void) {
     {
         char out[256];
         init(stropen("w",sizeof(out),out), NULL);
-        Expr e;
-        e.sub = EXPR_VAR;
-        e.Var.sym = TK_IDVAR;
-        strcpy(e.Var.val.s, "xxx");
+        Expr e = { EXPR_VAR, NULL, {} };
+            e.Var.sym = TK_IDVAR;
+            strcpy(e.Var.val.s, "xxx");
         code_expr(0, e, NULL);
         fclose(ALL.out);
         assert(!strcmp(out,"xxx"));
@@ -403,8 +403,7 @@ void t_code (void) {
     {
         char out[256];
         init(stropen("w",sizeof(out),out), NULL);
-        Expr e;
-            e.sub = EXPR_VAR;
+        Expr e = { EXPR_VAR, NULL, {} };
             e.Var.sym = TK_IDVAR;
             strcpy(e.Var.val.s, "xxx");
         Decl d;
@@ -413,12 +412,12 @@ void t_code (void) {
             strcpy(d.var.val.s, "xxx");
             d.type.sub = TYPE_UNIT;
         Decls ds = { 1, &d };
-        Expr blk = { EXPR_BLOCK, .Block={&e,&ds} };
+        e.decls = &ds;
         // xxx: xxx::()
         tce_ret ret = { "ret", NULL };
-        code_expr(0, blk, &ret);
+        code_expr(0, e, &ret);
         fclose(ALL.out);
-        assert(!strcmp(out,"int /* () */ xxx;\nret = xxx"));
+        assert(!strcmp(out,"{\n    int /* () */ xxx;\nret = xxx}\n"));
     }
     {
         char out[256];

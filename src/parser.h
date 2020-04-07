@@ -47,8 +47,8 @@ typedef enum {
  *        | `(` Type { `,` Type } `)`
  *        | `(` Type `)`
  *
- * Decl  ::= <id> `::` Type [`=` Expr]
- * Decls ::= { Decl }
+ * Decl  ::= <id> `::` Type [`=` Expr [Where]]
+ * Where ::= where `:` { Decl }
  *
  * Patt  ::=  `(` `)` | `...` | `_`
  *        |   <Id> [ `(` Patt `)`
@@ -59,11 +59,10 @@ typedef enum {
  * Expr  ::= `(` `)` | <id>
  *        |  <Id> [`(` Expr `)`]
  *        |  set <id> `=` Expr
- *        |  func `::` Type Expr
- *        |  case Expr `:` { Patt [`->`] Expr }
- *        |  `:` { Expr }           // sequence
+ *        |  func `::` Type Expr [Where]
+ *        |  case Expr `:` { Patt [`->`] Expr [Where] }
+ *        |  `:` { Expr [Where] }   // sequence
  *        |  Expr `(` Expr `)`      // call
- *        |  Expr `:` { Decl }      // block
  *        | `(` Expr { `,` Expr } `)`
  *        | `(` Expr `)`
  */
@@ -129,7 +128,8 @@ typedef struct {
 } Case;
 
 typedef struct Expr {
-    EXPR sub;
+    EXPR   sub;
+    Decls* decls;
     union {
         Tk Unit;
         Tk Var;
@@ -150,10 +150,6 @@ typedef struct Expr {
             struct Expr* func;
             struct Expr* arg;
         } Call;
-        struct {        // EXPR_BLOCK
-            struct Expr* ret;
-            Decls* decls;
-        } Block;
         struct {        // EXPR_CASES
             struct Expr* tst;
             int   size;
@@ -189,5 +185,6 @@ int parser_type  (Type*  ret);
 int parser_data  (Data*  ret);
 int parser_decls (Decls* ret);
 int parser_patt  (Patt*  ret);
+int parser_where (Decls** ds);
 int parser_expr  (Expr*  ret);
 int parser_prog  (Prog* prog);

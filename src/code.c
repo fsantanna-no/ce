@@ -225,13 +225,16 @@ void code_case (int spc, Case c, tce_ret* ret) {
     out("if (");
     code_tst("ce_tst", c.patt);
     out(") {\n");
-    if (c.expr->sub == EXPR_BLOCK) {
-        code_decls(spc+4, *c.expr->Block.decls);     // declare block before tst (tst may contain =set to new var)
+    if (c.expr->decls != NULL) {
+        code_decls(spc+4, *c.expr->decls); // declare block before tst (tst may contain =set to new var)
     }
     code_tst_pos(spc+4, "ce_tst", c.patt);
     code_spc(spc+4);
-    if (c.expr->sub == EXPR_BLOCK) {
-        code_expr(spc+4, *c.expr->Block.ret, ret);
+    if (c.expr->sub != EXPR_BLOCK) {
+        Decls* ds = c.expr->decls;
+        c.expr->decls = NULL;
+        code_expr(spc+4, *c.expr, ret);
+        c.expr->decls = ds;
     } else {
         code_expr(spc+4, *c.expr, ret);
     }
@@ -242,6 +245,12 @@ void code_case (int spc, Case c, tce_ret* ret) {
 }
 
 void code_expr (int spc, Expr e, tce_ret* ret) {
+    if (e.decls != NULL) {
+        code_spc(spc);
+        out("{\n");
+        spc += 4;
+        code_decls(spc, *e.decls);
+    }
     switch (e.sub) {
         case EXPR_ARG:
             code_ret(ret);
@@ -313,11 +322,6 @@ void code_expr (int spc, Expr e, tce_ret* ret) {
                 code_expr(spc, e.Seq.vec[i], (i==e.Seq.size-1) ? ret : NULL);
             }
             break;
-        case EXPR_BLOCK:
-            code_decls(spc, *e.Block.decls);
-            code_spc(spc);
-            code_expr (spc, *e.Block.ret, ret);
-            break;
         case EXPR_CASES:
             // typeof(tst) ce_tst = tst;
             out("typeof(");
@@ -339,6 +343,11 @@ void code_expr (int spc, Expr e, tce_ret* ret) {
         default:
 //printf("%d\n", e.sub);
             assert(0 && "TODO");
+    }
+    if (e.decls != NULL) {
+        spc -= 4;
+        code_spc(spc);
+        out("}\n");
     }
 }
 
