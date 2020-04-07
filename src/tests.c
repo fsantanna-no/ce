@@ -525,6 +525,15 @@ void t_all (void) {
         "            var x :: Bool\n"
         "    show(toint(b))"
     ));
+    assert(all(
+        "1\n",
+        ":\n"
+        "    var v :: ((),()) = ((),())\n"
+        "    var b :: Bool = case v:\n"
+        "        ((),=x) -> x where:\n"
+        "            x :: ()\n"
+        "    show(toint(b))"
+    ));
 }
 
 int main (void) {
