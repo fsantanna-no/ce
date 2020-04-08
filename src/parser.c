@@ -674,9 +674,11 @@ void* parser_glob_ (void) {
         return &g_;
     }
 
-    if (!parser_expr(&g.expr)) {
+    Expr* e = parser_expr__();  // other parser_expr* variations do not parse where
+    if (e == NULL) {
         return NULL;
     }
+    g.expr = *e;
     g.sub = GLOB_EXPR;
     g_ = g;
     return &g_;

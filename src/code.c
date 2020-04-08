@@ -107,9 +107,10 @@ void code_data (Data data) {
         for (int i=0; i<data.size; i++) {
             char* v = data.vec[i].tk.val.s;
             out("    ");
-            out(sup);
+            out(sup);       // Bool
             out("_");
-            out(v);
+            out(v);         // False
+            out(" = __COUNTER__");
             if (i < data.size-1) {
                 out(",");
             }
@@ -117,8 +118,8 @@ void code_data (Data data) {
         }
     out("} ");
     out(SUP);
-    out(";\n");
-    out("\n");
+    out(";\n\n");
+
     out("typedef struct ");
     out(sup);
     out(" {\n");
@@ -140,6 +141,17 @@ void code_data (Data data) {
     out("} ");
     out(sup);
     out(";\n\n");
+
+    for (int i=0; i<data.size; i++) {
+        char* v = data.vec[i].tk.val.s;
+        fprintf(ALL.out,
+            "void SHOW_%s (%s* v) {\n"
+            "    puts(\"%s\");\n"
+            "}\n",
+            v, sup, v
+        );
+        fprintf(ALL.out, "SHOW[%s_%s] = (tce_show) SHOW_%s;\n\n", sup, v, v);
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -320,10 +332,18 @@ void code_expr (int spc, Expr e, tce_ret* ret) {
         }
         case EXPR_CALL:
             code_ret(ret);
-            code_expr(spc, *e.Call.func, NULL);
-            out("(");
-            code_expr(spc, *e.Call.arg, NULL);
-            out(")");
+            if (!strcmp(e.Call.func->Var.val.s, "show")) {
+                out("SHOW[(");
+                code_expr(spc, *e.Call.arg, NULL);
+                out(").sub](&");
+                code_expr(spc, *e.Call.arg, NULL);
+                out(")");
+            } else {
+                code_expr(spc, *e.Call.func, NULL);
+                out("(");
+                code_expr(spc, *e.Call.arg, NULL);
+                out(")");
+            }
             break;
         case EXPR_TUPLE:
             code_ret(ret);

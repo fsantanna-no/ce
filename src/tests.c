@@ -442,7 +442,7 @@ void t_code (void) {
             "int main (void) {\n"
             "\n"
             "int a;\n"
-            "show(a);\n"
+            "SHOW[(a).sub](&a);\n"
             "\n"
             "}\n";
         assert(!strcmp(out,ret));
@@ -468,15 +468,26 @@ void t_code (void) {
             "#define True ((Bool) { Bool_True })\n"
             "\n"
             "typedef enum {\n"
-            "    Bool_False,\n"
-            "    Bool_True\n"
+            "    Bool_False = __COUNTER__,\n"
+            "    Bool_True = __COUNTER__\n"
             "} BOOL;\n"
             "\n"
             "typedef struct Bool {\n"
             "    BOOL sub;\n"
             "    union {\n"
             "    };\n"
-            "} Bool;\n\n";
+            "} Bool;\n"
+            "\n"
+            "void SHOW_False (Bool* v) {\n"
+            "    puts(\"False\");\n"
+            "}\n"
+            "SHOW[Bool_False] = (tce_show) SHOW_False;\n"
+            "\n"
+            "void SHOW_True (Bool* v) {\n"
+            "    puts(\"True\");\n"
+            "}\n"
+            "SHOW[Bool_True] = (tce_show) SHOW_True;\n"
+            "\n";
         assert(!strcmp(out,ret));
     }
 }
@@ -484,30 +495,31 @@ void t_code (void) {
 void t_all (void) {
     assert(all(
         "1\n",
-        ":\n    mut a :: ()\n    set a = ()\n    call show(a)"
+        ":\n    mut a :: ()\n    set a = ()\n    { printf(\"%d\\n\",a) }"
     ));
     assert(all(
-        "1\n",
+        "True\n",
         ":\n"
         "    data Bool:\n"
         "        False = ()\n"
         "        True  = ()\n"
-        "    call show(toint(True))"
+        "    call show(x) where:\n"
+        "        val x :: Bool = True"
     ));
     assert(all(
-        "1\n",
+        "False\n",
         ":\n"
         "    data Bool:\n"
         "        False = ()\n"
         "        True  = ()\n"
         "    mut v :: Bool\n"
         "    set v = case ():\n"
-        "        ()   -> True\n"
+        "        ()   -> False\n"
         "        else -> True\n"
-        "    call show(toint(v))"
+        "    call show(v)"
     ));
     assert(all(
-        "1\n",
+        "False\n",
         ":\n"
         "    data Bool:\n"
         "        False = ()\n"
@@ -516,10 +528,11 @@ void t_all (void) {
         "        case ...:\n"
         "            False -> True\n"
         "            True  -> False\n"
-        "    call show(toint(inv(False)))"
+        "    call show(i) where:\n"
+        "        val i :: Bool = inv(True)"
     ));
     assert(all(
-        "1\n",
+        "True\n",
         ":\n"
         "    data Bool:\n"
         "        False = ()\n"
@@ -529,21 +542,21 @@ void t_all (void) {
         "    val b :: Bool = case v:\n"
         "        Vv(False)      -> False\n"
         "        Vv(=x) :: Bool -> x\n"
-        "    call show(toint(b))"
+        "    call show(b)"
     ));
     assert(all(
         "1\n",
         ":\n"
         "    val i :: ((),()) = ((),())\n"
         "    case i:\n"
-        "        (=x,_) :: () -> show(x)"
+        "        (=x,_) :: () -> show_unit(x)"
     ));
     assert(all(
         "1\n",
         ":\n"
         "    val i :: ((),((),())) = ((),((),()))\n"
         "    case i:\n"
-        "        (_,(=x,_)) :: () -> show(x)"
+        "        (_,(=x,_)) :: () -> show_unit(x)"
     ));
     assert(all(
         "1\n",
@@ -554,7 +567,7 @@ void t_all (void) {
         "        ((),=x) :: ((),()) -> y where:\n"
         "            val y :: () = case x:\n"
         "                ((),=z) :: () -> z\n"
-        "    call show(v)"
+        "    call show_unit(v)"
     ));
     assert(all(
         "1\n",
@@ -565,7 +578,7 @@ void t_all (void) {
         "        (=x,(_,=z)) :: ((),()) -> y where:\n"
         "            val y :: () = case (x,z):\n"
         "                ((),=a) :: () -> a\n"
-        "    call show(v)"
+        "    call show_unit(v)"
     ));
     assert(all(
         "1\n",
@@ -573,10 +586,10 @@ void t_all (void) {
         "    data Pair = ((),())\n"
         "    val n :: () = case Pair ((),()):\n"
         "        Pair (=x,_) :: () -> x\n"
-        "    call show(n)"
+        "    call show_unit(n)"
     ));
     assert(all(
-        "1\n",
+        "True\n",
         ":\n"
         "    data Bool:\n"
         "        False = ()\n"
@@ -584,7 +597,7 @@ void t_all (void) {
         "    data Pair = (Bool,Bool)\n"
         "    val n :: Bool = case Pair (True,False):\n"
         "        Pair (=x,_) :: Bool -> x\n"
-        "    call show({n.sub})"
+        "    call show(n)"
     ));
     assert(all(
         "1\n",
