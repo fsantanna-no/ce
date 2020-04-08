@@ -520,9 +520,8 @@ void t_all (void) {
         "    data Vv = Bool\n"
         "    var v :: Vv = Vv(True)\n"
         "    var b :: Bool = case v:\n"
-        "        Vv(False) -> False\n"
-        "        Vv(=x)    -> x where:\n"
-        "            var x :: Bool\n"
+        "        Vv(False)      -> False\n"
+        "        Vv(=x) :: Bool -> x\n"
         "    show(toint(b))"
     ));
     assert(all(
@@ -530,31 +529,37 @@ void t_all (void) {
         ":\n"
         "    var i :: ((),()) = ((),())\n"
         "    case i:\n"
-        "        (=x,_) -> show(x) where:\n"
-        "            var x :: ()"
+        "        (=x,_) :: () -> show(x)"
     ));
     assert(all(
         "1\n",
         ":\n"
         "    var i :: ((),((),())) = ((),((),()))\n"
         "    case i:\n"
-        "        (_,(=x,_)) -> show(x) where:\n"
-        "            var x :: ()"
+        "        (_,(=x,_)) :: () -> show(x)"
     ));
-///
     assert(all(
         "1\n",
         ":\n"
         "    var i :: ((),((),())) = ((),((),()))\n"
         "    var j :: ((),((),())) = i\n"
         "    var v :: () = case j:\n"
-        "        ((),=x) -> y where:\n"
-        "            var x :: ((),())\n"
+        "        ((),=x) :: ((),()) -> y where:\n"
         "            var y :: () = case x:\n"
+        "                ((),=z) :: () -> z\n"
+        "    show(v)"
+    ));
+    assert(all(
+        "1\n",
+        ":\n"
+        "    var i :: ((),((),())) = ((),((),()))\n"
+        "    var j :: ((),((),())) = i\n"
+        "    var v :: () = case j:\n"
+        "        (=x,(_,=z)) :: ((),()) -> y where:\n"
+        "            var y :: () = case (x,z):\n"
         "                ((),=y) -> y\n"
         "    show(v)"
     ));
-///
 }
 
 int main (void) {

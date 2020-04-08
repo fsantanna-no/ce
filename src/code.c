@@ -161,7 +161,7 @@ char* toidx (const char* tup, int idx) {
     return str;
 }
 
-void code_tst (const char* tst, Patt p) {
+void code_case_tst (const char* tst, Patt p) {
     switch (p.sub) {
         case PATT_ANY:
         case PATT_SET:
@@ -178,7 +178,7 @@ void code_tst (const char* tst, Patt p) {
             out(p.Cons.data.val.s);
             if (p.Cons.arg != NULL) {
                 out(" && ");
-                code_tst(tosub(tst,p.Cons.data.val.s), *p.Cons.arg);
+                code_case_tst(tosub(tst,p.Cons.data.val.s), *p.Cons.arg);
             }
             break;
         case PATT_TUPLE:
@@ -186,7 +186,7 @@ void code_tst (const char* tst, Patt p) {
                 if (i > 0) {
                     out(" && ");
                 }
-                code_tst(toidx(tst,i), p.Tuple.vec[i]);
+                code_case_tst(toidx(tst,i), p.Tuple.vec[i]);
             }
             break;
         default:
@@ -194,7 +194,7 @@ void code_tst (const char* tst, Patt p) {
     }
 }
 
-void code_tst_pos (int spc, const char* tst, Patt p) {
+void code_case_set (int spc, const char* tst, Patt p) {
     switch (p.sub) {
         case PATT_ANY:
         case PATT_UNIT:
@@ -211,12 +211,36 @@ void code_tst_pos (int spc, const char* tst, Patt p) {
             break;
         case PATT_CONS:
             if (p.Cons.arg != NULL) {
-                code_tst_pos(spc, tosub(tst,p.Cons.data.val.s), *p.Cons.arg);
+                code_case_set(spc, tosub(tst,p.Cons.data.val.s), *p.Cons.arg);
             }
             break;
         case PATT_TUPLE:
             for (int i=0; i<p.Tuple.size; i++) {
-                code_tst_pos(spc, toidx(tst,i), p.Tuple.vec[i]);
+                code_case_set(spc, toidx(tst,i), p.Tuple.vec[i]);
+            }
+            break;
+        default:
+            assert(0 && "TODO");
+    }
+}
+
+void code_case_vars (Tk* vars, int* vars_i, Patt patt) {
+    switch (patt.sub) {
+        case PATT_ANY:
+        case PATT_UNIT:
+            break;
+        case PATT_SET:
+            assert(*vars_i < 16);
+            vars[(*vars_i)++] = patt.Set;
+            break;
+        case PATT_CONS:
+            if (patt.Cons.arg != NULL) {
+                code_case_vars(vars, vars_i, *patt.Cons.arg);
+            }
+            break;
+        case PATT_TUPLE:
+            for (int i=0; i<patt.Tuple.size; i++) {
+                code_case_vars(vars, vars_i, patt.Tuple.vec[i]);
             }
             break;
         default:
@@ -226,26 +250,38 @@ void code_tst_pos (int spc, const char* tst, Patt p) {
 
 void code_case (int spc, Case c, tce_ret* ret) {
     out("if (");
-    code_tst("ce_tst", c.patt);
+    code_case_tst("ce_tst", c.patt);
     out(") {\n");
-    if (c.expr->decls != NULL) {
-        code_decls(spc+4, *c.expr->decls); // declare block before tst (tst may contain =set to new var)
+    {
+        Tk vars[16];
+        int vars_i = 0;
+        code_case_vars(vars, &vars_i, c.patt);
+        if (vars_i == 1) {
+            code_spc(spc+4);
+            code_type(*c.type);
+            out(" ");
+            out(vars[0].val.s);
+            out(";\n");
+        } else {
+            for (int i=0; i<vars_i; i++) {
+                code_spc(spc+4);
+                code_type(c.type->Tuple.vec[i]);
+                out(" ");
+                out(vars[i].val.s);
+                out(";\n");
+            }
+        }
     }
-    code_tst_pos(spc+4, "ce_tst", c.patt);
+    code_case_set(spc+4, "ce_tst", c.patt);
     code_spc(spc+4);
-    if (c.expr->sub != EXPR_BLOCK) {
-        Decls* ds = c.expr->decls;
-        c.expr->decls = NULL;
-        code_expr(spc+4, *c.expr, ret);
-        c.expr->decls = ds;
-    } else {
-        code_expr(spc+4, *c.expr, ret);
-    }
+    code_expr(spc+4, *c.expr, ret);
     out(";");
     out("\n");
     code_spc(spc);
     out("} else ");
 }
+
+///////////////////////////////////////////////////////////////////////////////
 
 void code_expr (int spc, Expr e, tce_ret* ret) {
     if (e.decls != NULL) {

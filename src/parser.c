@@ -458,6 +458,18 @@ void* parser_case_ (void) {
         return NULL;
     }
 
+    // decls
+    if (pr_accept(TK_DECL,1)) {
+        Type tp;
+        if (!parser_type(&tp)) {
+            return 0;
+        }
+        c.type = malloc(sizeof(tp));
+        *c.type = tp;
+    } else {
+        c.type = NULL;
+    }
+
     // ->
     pr_accept(TK_ARROW,1);       // optional
 

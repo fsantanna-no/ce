@@ -60,7 +60,7 @@ typedef enum {
  *        |  <Id> [`(` Expr `)`]
  *        |  set <id> `=` Expr
  *        |  func `::` Type Expr [Where]
- *        |  case Expr `:` { Patt [`->`] Expr [Where] }
+ *        |  case Expr `:` { Patt [`::` Type] [`->`] Expr [Where] }
  *        |  `:` { Expr [Where] }   // sequence
  *        |  Expr `(` Expr `)`      // call
  *        | `(` Expr { `,` Expr } `)`
@@ -123,7 +123,8 @@ typedef struct Patt {
 } Patt;
 
 typedef struct {
-    Patt patt;
+    Patt  patt;
+    Type* type;
     struct Expr* expr;
 } Case;
 
