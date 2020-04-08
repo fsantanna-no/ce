@@ -492,8 +492,12 @@ void* parser_case_ (void) {
 }
 
 int parser_expr_one (Expr* ret) {
+    // EXPR_RAW
+    if (pr_accept(TK_RAW,1)) {
+        *ret = (Expr) { EXPR_RAW, NULL, .Raw=PRV.tk };
+
     // EXPR_UNIT
-    if (pr_accept('(',1)) {
+    } else if (pr_accept('(',1)) {
         if (pr_accept(')',1)) {
             *ret = (Expr) { EXPR_UNIT, NULL, {} };
         } else {

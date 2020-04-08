@@ -287,6 +287,10 @@ void code_expr (int spc, Expr e, tce_ret* ret) {
         code_decls(spc, *e.decls);
     }
     switch (e.sub) {
+        case EXPR_RAW:
+            code_ret(ret);
+            out(e.Raw.val.s);
+            break;
         case EXPR_ARG:
             code_ret(ret);
             out("ce_arg");

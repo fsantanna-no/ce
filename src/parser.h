@@ -16,6 +16,7 @@ typedef enum {
 } PATT;
 
 typedef enum {
+    EXPR_RAW,
     EXPR_ARG,
     EXPR_UNIT,
     EXPR_VAR,
@@ -68,6 +69,7 @@ typedef enum {
  *        |  Expr `(` Expr `)`      // call
  *        | `(` Expr { `,` Expr } `)`
  *        | `(` Expr `)`
+ *        | `{` <...> `}`
  */
 
 struct Expr;
@@ -135,6 +137,7 @@ typedef struct Expr {
     EXPR   sub;
     Decls* decls;
     union {
+        Tk Raw;
         Tk Unit;
         Tk Var;
         Tk Cons;

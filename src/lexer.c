@@ -92,6 +92,28 @@ TK lexer_ (TK_val* val) {
                 return TK_LINE;
             }
 
+            case '{': {
+                int i = 0;
+                int n = 1;
+                while (1) {
+                    c = fgetc(ALL.inp);
+                    switch (c) {
+                        case '{':
+                            n++;
+                            break;
+                        case '}':
+                            if (--n == 0) {
+                                val->s[i] = '\0';
+                                return TK_RAW;
+                            }
+                            break;
+                        case '\n':
+                            return TK_ERR;
+                    }
+                    val->s[i++] = c;
+                }
+            }
+
             case ':':
                 c = fgetc(ALL.inp);
                 if (c == ':') {

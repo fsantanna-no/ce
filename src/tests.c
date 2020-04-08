@@ -584,7 +584,7 @@ void t_all (void) {
         "    data Pair = (Bool,Bool)\n"
         "    val n :: Bool = case Pair (True,False):\n"
         "        Pair (=x,_) :: Bool -> x\n"
-        "    call show(toint(n))"
+        "    call show({n.sub})"
     ));
     assert(all(
         "1\n",
