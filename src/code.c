@@ -86,7 +86,7 @@ void code_data (Data data) {
         out("#define ");
         out(sub);
         if (cons.type.sub != TYPE_UNIT) {
-            out("(v)");
+            out("(...)");
         }
         out(" ((");
         out(sup);
@@ -97,7 +97,7 @@ void code_data (Data data) {
         if (cons.type.sub != TYPE_UNIT) {
             out(", ._");
             out(sub);
-            out("=v");
+            out("=__VA_ARGS__");
         }
         out(" })\n");
     }
@@ -129,7 +129,6 @@ void code_data (Data data) {
         for (int i=0; i<data.size; i++) {
             Cons cons = data.vec[i];
             if (cons.type.sub != TYPE_UNIT) {
-                assert(data.size==1 && "TODO");
                 out("        ");
                 code_type(cons.type);
                 out(" _");

@@ -560,6 +560,40 @@ void t_all (void) {
         "                ((),=a) :: () -> a\n"
         "    show(v)"
     ));
+    assert(all(
+        "1\n",
+        ":\n"
+        "    data Pair = ((),())\n"
+        "    var n :: () = case Pair ((),()):\n"
+        "        Pair (=x,_) :: () -> x\n"
+        "    show(n)"
+    ));
+    assert(all(
+        "1\n",
+        ":\n"
+        "    data Bool:\n"
+        "        False = ()\n"
+        "        True  = ()\n"
+        "    data Pair = (Bool,Bool)\n"
+        "    var n :: Bool = case Pair (True,False):\n"
+        "        Pair (=x,_) :: Bool -> x\n"
+        "    show(n)"
+    ));
+    assert(all(
+        "1\n",
+        ":\n"
+        "    data Nat:\n"
+        "        One = ()\n"
+        "        Two = ()\n"
+        "        Tre = ()\n"
+        "    data List:\n"
+        "        Nil  = ()\n"
+        "        Cons = (Nat, List)\n"
+        "    var l :: List = Cons(Tre,Cons(Two,Cons(One,Nil)))\n"
+        "    var n :: Nat = case l:\n"
+        "        List(=x,_) :: Nat -> x\n"
+        "    show(n)"
+    ));
 }
 
 int main (void) {
