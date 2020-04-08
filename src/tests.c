@@ -577,6 +577,17 @@ void t_all (void) {
         "    data Pair = (Bool,Bool)\n"
         "    var n :: Bool = case Pair (True,False):\n"
         "        Pair (=x,_) :: Bool -> x\n"
+        "    show(toint(n))"
+    ));
+    assert(all(
+        "1\n",
+        ":\n"
+        "    data List:\n"
+        "        Nil  = ()\n"
+        "        Cons = ((), List)\n"
+        "    var l :: List = Cons((),Cons((),Cons((),Nil)))\n"
+        "    var n :: () = case l:\n"
+        "        List(=x,_) :: () -> x\n"
         "    show(n)"
     ));
     assert(all(
@@ -592,7 +603,7 @@ void t_all (void) {
         "    var l :: List = Cons(Tre,Cons(Two,Cons(One,Nil)))\n"
         "    var n :: Nat = case l:\n"
         "        List(=x,_) :: Nat -> x\n"
-        "    show(n)"
+        "    show(toint(n))"
     ));
 }
 
