@@ -596,13 +596,30 @@ int parser_expr_one (Expr* ret) {
 }
 
 int parser_expr (Expr* ret) {
+    int is_line = (PRV.tk.sym==TK_LINE);
+    int is_call = pr_accept(TK_CALL,1);
+
+    if (is_call && !is_line) {
+        return err_unexpected("`call`");
+    }
+
     Expr e;
     if (!parser_expr_one(&e)) {
+        if (is_call) {
+            return err_expected("call expression");
+        }
         return 0;
     }
 
     // CALL
     if (pr_check('(',1)) {
+        if (is_line && !is_call) {
+            sprintf(ALL.err,
+                "(ln %ld, col %ld): expected `call` at the beginning of line",
+                NXT.lin, NXT.col);
+            return 0;
+        }
+
         Expr arg;
         if (!parser_expr(&arg)) {
             return 0;
@@ -615,6 +632,10 @@ int parser_expr (Expr* ret) {
         *pe2 = arg;
         *ret = (Expr) { EXPR_CALL, NULL, .Call={pe1,pe2} };
         return 1;
+    } else {
+        if (is_call) {
+            return err_expected("call argument");
+        }
     }
 
     // SINGLE

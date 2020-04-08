@@ -282,7 +282,14 @@ void t_parser_expr (void) {
         init(NULL, stropen("r", 0, ":\n    x\n    y ("));
         Expr e;
         assert(!parser_expr(&e));
-        assert(!strcmp(ALL.err, "(ln 3, col 8): expected `)` : have end of file"));
+        assert(!strcmp(ALL.err, "(ln 3, col 7): expected `call` at the beginning of line"));
+        fclose(ALL.inp);
+    }
+    {
+        init(NULL, stropen("r", 0, ":\n    x\n    call y ("));
+        Expr e;
+        assert(!parser_expr(&e));
+        assert(!strcmp(ALL.err, "(ln 3, col 13): expected `)` : have end of file"));
         fclose(ALL.inp);
     }
     {
@@ -424,7 +431,7 @@ void t_code (void) {
         char out[256];
         init (
             stropen("w", sizeof(out), out),
-            stropen("r", 0, ":\n    var a :: ()\n    show(a)")
+            stropen("r", 0, ":\n    var a :: ()\n    call show(a)")
         );
         Prog p;
         parser_prog(&p);
@@ -477,7 +484,7 @@ void t_code (void) {
 void t_all (void) {
     assert(all(
         "1\n",
-        ":\n    var a :: ()\n    set a = ()\n    show(a)"
+        ":\n    var a :: ()\n    set a = ()\n    call show(a)"
     ));
     assert(all(
         "1\n",
@@ -485,7 +492,7 @@ void t_all (void) {
         "    data Bool:\n"
         "        False = ()\n"
         "        True  = ()\n"
-        "    show(toint(True))"
+        "    call show(toint(True))"
     ));
     assert(all(
         "1\n",
@@ -497,7 +504,7 @@ void t_all (void) {
         "    set v = case ():\n"
         "        ()   -> True\n"
         "        else -> True\n"
-        "    show(toint(v))"
+        "    call show(toint(v))"
     ));
     assert(all(
         "1\n",
@@ -509,7 +516,7 @@ void t_all (void) {
         "        case ...:\n"
         "            False -> True\n"
         "            True  -> False\n"
-        "    show(toint(inv(False)))"
+        "    call show(toint(inv(False)))"
     ));
     assert(all(
         "1\n",
@@ -522,7 +529,7 @@ void t_all (void) {
         "    var b :: Bool = case v:\n"
         "        Vv(False)      -> False\n"
         "        Vv(=x) :: Bool -> x\n"
-        "    show(toint(b))"
+        "    call show(toint(b))"
     ));
     assert(all(
         "1\n",
@@ -547,7 +554,7 @@ void t_all (void) {
         "        ((),=x) :: ((),()) -> y where:\n"
         "            var y :: () = case x:\n"
         "                ((),=z) :: () -> z\n"
-        "    show(v)"
+        "    call show(v)"
     ));
     assert(all(
         "1\n",
@@ -558,7 +565,7 @@ void t_all (void) {
         "        (=x,(_,=z)) :: ((),()) -> y where:\n"
         "            var y :: () = case (x,z):\n"
         "                ((),=a) :: () -> a\n"
-        "    show(v)"
+        "    call show(v)"
     ));
     assert(all(
         "1\n",
@@ -566,7 +573,7 @@ void t_all (void) {
         "    data Pair = ((),())\n"
         "    var n :: () = case Pair ((),()):\n"
         "        Pair (=x,_) :: () -> x\n"
-        "    show(n)"
+        "    call show(n)"
     ));
     assert(all(
         "1\n",
@@ -577,7 +584,7 @@ void t_all (void) {
         "    data Pair = (Bool,Bool)\n"
         "    var n :: Bool = case Pair (True,False):\n"
         "        Pair (=x,_) :: Bool -> x\n"
-        "    show(toint(n))"
+        "    call show(toint(n))"
     ));
     assert(all(
         "1\n",
@@ -588,7 +595,7 @@ void t_all (void) {
         "    var l :: List = Cons((),Cons((),Cons((),Nil)))\n"
         "    var n :: () = case l:\n"
         "        List(=x,_) :: () -> x\n"
-        "    show(n)"
+        "    call show(n)"
     ));
     assert(all(
         "1\n",
@@ -603,7 +610,7 @@ void t_all (void) {
         "    var l :: List = Cons(Tre,Cons(Two,Cons(One,Nil)))\n"
         "    var n :: Nat = case l:\n"
         "        List(=x,_) :: Nat -> x\n"
-        "    show(toint(n))"
+        "    call show(toint(n))"
     ));
 }
 
