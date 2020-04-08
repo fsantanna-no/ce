@@ -358,8 +358,8 @@ int parser_data (Data* ret) {
 ///////////////////////////////////////////////////////////////////////////////
 
 int parser_decl (Decl* decl) {
-    if (!pr_accept(TK_VAR,1)) {
-        return err_expected("`var`");
+    if (!pr_accept(TK_MUT,1) && !pr_accept(TK_VAL,1)) {
+        return err_expected("`mut` or `val`");
     }
 
     if (!pr_accept(TK_IDVAR,1)) {
@@ -661,7 +661,7 @@ void* parser_glob_ (void) {
         return &g_;
     }
 
-    if (pr_check(TK_VAR,1)) {
+    if (pr_check(TK_MUT,1) || pr_check(TK_VAL,1)) {
         if (!parser_decl(&g.decl)) {
             return NULL;
         }

@@ -324,14 +324,14 @@ void t_parser_decls (void) {
         fclose(ALL.inp);
     }
     {
-        init(NULL, stropen("r", 0, ":\n    var a"));
+        init(NULL, stropen("r", 0, ":\n    val a"));
         Decls ds;
         assert(!parser_decls(&ds));
         assert(!strcmp(ALL.err, "(ln 2, col 10): expected `::` : have end of file"));
         fclose(ALL.inp);
     }
     {
-        init(NULL, stropen("r", 0, ":\n    var a :: ()"));
+        init(NULL, stropen("r", 0, ":\n    val a :: ()"));
         Decls ds;
         assert(parser_decls(&ds));
         assert(ds.size == 1);
@@ -340,7 +340,7 @@ void t_parser_decls (void) {
         fclose(ALL.inp);
     }
     {
-        init(NULL, stropen("r", 0, ":\n    var a :: (x)"));
+        init(NULL, stropen("r", 0, ":\n    val a :: (x)"));
         Decls ds;
         assert(!parser_decls(&ds));
         assert(!strcmp(ALL.err, "(ln 2, col 15): expected type : have `x`"));
@@ -350,7 +350,7 @@ void t_parser_decls (void) {
 
 void t_parser_block (void) {
     {
-        init(NULL, stropen("r", 0, "a:\n    var a :: ()"));
+        init(NULL, stropen("r", 0, "a:\n    val a :: ()"));
         Expr blk;
         assert(parser_expr(&blk));
         fclose(ALL.inp);
@@ -359,9 +359,9 @@ void t_parser_block (void) {
         init(NULL, stropen("r", 0,
             ":\n"
             "    a where:\n"
-            "        var a :: ()\n"
+            "        val a :: ()\n"
             "    b where:\n"
-            "        var b :: ()\n"
+            "        val b :: ()\n"
         ));
         Expr e;
         assert(parser_expr(&e));
@@ -376,9 +376,9 @@ void t_parser_block (void) {
     {
         init(NULL, stropen("r", 0,
             "x where:\n"
-            "    var x :: () = y where:\n"
-            "        var y :: ()\n"
-            "    var a :: ()\n"
+            "    val x :: () = y where:\n"
+            "        val y :: ()\n"
+            "    val a :: ()\n"
         ));
         Expr e;
         assert(parser_expr(&e));
@@ -431,7 +431,7 @@ void t_code (void) {
         char out[256];
         init (
             stropen("w", sizeof(out), out),
-            stropen("r", 0, ":\n    var a :: ()\n    call show(a)")
+            stropen("r", 0, ":\n    val a :: ()\n    call show(a)")
         );
         Prog p;
         parser_prog(&p);
@@ -484,7 +484,7 @@ void t_code (void) {
 void t_all (void) {
     assert(all(
         "1\n",
-        ":\n    var a :: ()\n    set a = ()\n    call show(a)"
+        ":\n    mut a :: ()\n    set a = ()\n    call show(a)"
     ));
     assert(all(
         "1\n",
@@ -500,7 +500,7 @@ void t_all (void) {
         "    data Bool:\n"
         "        False = ()\n"
         "        True  = ()\n"
-        "    var v :: Bool\n"
+        "    mut v :: Bool\n"
         "    set v = case ():\n"
         "        ()   -> True\n"
         "        else -> True\n"
@@ -525,8 +525,8 @@ void t_all (void) {
         "        False = ()\n"
         "        True  = ()\n"
         "    data Vv = Bool\n"
-        "    var v :: Vv = Vv(True)\n"
-        "    var b :: Bool = case v:\n"
+        "    val v :: Vv = Vv(True)\n"
+        "    val b :: Bool = case v:\n"
         "        Vv(False)      -> False\n"
         "        Vv(=x) :: Bool -> x\n"
         "    call show(toint(b))"
@@ -534,36 +534,36 @@ void t_all (void) {
     assert(all(
         "1\n",
         ":\n"
-        "    var i :: ((),()) = ((),())\n"
+        "    val i :: ((),()) = ((),())\n"
         "    case i:\n"
         "        (=x,_) :: () -> show(x)"
     ));
     assert(all(
         "1\n",
         ":\n"
-        "    var i :: ((),((),())) = ((),((),()))\n"
+        "    val i :: ((),((),())) = ((),((),()))\n"
         "    case i:\n"
         "        (_,(=x,_)) :: () -> show(x)"
     ));
     assert(all(
         "1\n",
         ":\n"
-        "    var i :: ((),((),())) = ((),((),()))\n"
-        "    var j :: ((),((),())) = i\n"
-        "    var v :: () = case j:\n"
+        "    val i :: ((),((),())) = ((),((),()))\n"
+        "    val j :: ((),((),())) = i\n"
+        "    val v :: () = case j:\n"
         "        ((),=x) :: ((),()) -> y where:\n"
-        "            var y :: () = case x:\n"
+        "            val y :: () = case x:\n"
         "                ((),=z) :: () -> z\n"
         "    call show(v)"
     ));
     assert(all(
         "1\n",
         ":\n"
-        "    var i :: ((),((),())) = ((),((),()))\n"
-        "    var j :: ((),((),())) = i\n"
-        "    var v :: () = case j:\n"
+        "    val i :: ((),((),())) = ((),((),()))\n"
+        "    val j :: ((),((),())) = i\n"
+        "    val v :: () = case j:\n"
         "        (=x,(_,=z)) :: ((),()) -> y where:\n"
-        "            var y :: () = case (x,z):\n"
+        "            val y :: () = case (x,z):\n"
         "                ((),=a) :: () -> a\n"
         "    call show(v)"
     ));
@@ -571,7 +571,7 @@ void t_all (void) {
         "1\n",
         ":\n"
         "    data Pair = ((),())\n"
-        "    var n :: () = case Pair ((),()):\n"
+        "    val n :: () = case Pair ((),()):\n"
         "        Pair (=x,_) :: () -> x\n"
         "    call show(n)"
     ));
@@ -582,7 +582,7 @@ void t_all (void) {
         "        False = ()\n"
         "        True  = ()\n"
         "    data Pair = (Bool,Bool)\n"
-        "    var n :: Bool = case Pair (True,False):\n"
+        "    val n :: Bool = case Pair (True,False):\n"
         "        Pair (=x,_) :: Bool -> x\n"
         "    call show(toint(n))"
     ));
@@ -592,8 +592,8 @@ void t_all (void) {
         "    data List:\n"
         "        Nil  = ()\n"
         "        Cons = ((), List)\n"
-        "    var l :: List = Cons((),Cons((),Cons((),Nil)))\n"
-        "    var n :: () = case l:\n"
+        "    val l :: List = Cons((),Cons((),Cons((),Nil)))\n"
+        "    val n :: () = case l:\n"
         "        List(=x,_) :: () -> x\n"
         "    call show(n)"
     ));
@@ -607,8 +607,8 @@ void t_all (void) {
         "    data List:\n"
         "        Nil  = ()\n"
         "        Cons = (Nat, List)\n"
-        "    var l :: List = Cons(Tre,Cons(Two,Cons(One,Nil)))\n"
-        "    var n :: Nat = case l:\n"
+        "    val l :: List = Cons(Tre,Cons(Two,Cons(One,Nil)))\n"
+        "    val n :: Nat = case l:\n"
         "        List(=x,_) :: Nat -> x\n"
         "    call show(toint(n))"
     ));
