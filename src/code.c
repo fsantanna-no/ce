@@ -285,9 +285,8 @@ void code_case (int spc, Case c, tce_ret* ret) {
 
 void code_expr (int spc, Expr e, tce_ret* ret) {
     if (e.decls != NULL) {
-        code_spc(spc);
+        code_spc(spc-4);
         out("{\n");
-        spc += 4;
         code_decls(spc, *e.decls);
     }
     switch (e.sub) {
@@ -390,8 +389,8 @@ void code_expr (int spc, Expr e, tce_ret* ret) {
             assert(0 && "TODO");
     }
     if (e.decls != NULL) {
-        spc -= 4;
-        code_spc(spc);
+        out(";\n");
+        code_spc(spc-4);
         out("}\n");
     }
 }

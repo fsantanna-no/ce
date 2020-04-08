@@ -418,7 +418,7 @@ void t_code (void) {
         tce_ret ret = { "ret", NULL };
         code_expr(0, e, &ret);
         fclose(ALL.out);
-        assert(!strcmp(out,"{\n    int xxx;\nret = *(typeof(ret)*) &xxx}\n"));
+        assert(!strcmp(out,"{\nint xxx;\nret = *(typeof(ret)*) &xxx;\n}\n"));
     }
     {
         char out[256];
@@ -557,7 +557,7 @@ void t_all (void) {
         "    var v :: () = case j:\n"
         "        (=x,(_,=z)) :: ((),()) -> y where:\n"
         "            var y :: () = case (x,z):\n"
-        "                ((),=y) -> y\n"
+        "                ((),=a) :: () -> a\n"
         "    show(v)"
     ));
 }
