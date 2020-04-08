@@ -24,7 +24,7 @@ int all (const char* xp, char* src) {
     }
     code(prog);
     fclose(ALL.out);
-//puts(out);
+puts(out);
     remove("a.out");
     compile(out);
     FILE* f = popen("./a.out", "r");

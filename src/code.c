@@ -203,6 +203,9 @@ void code_tst_pos (int spc, const char* tst, Patt p) {
             code_spc(spc);
             out(p.Set.val.s);
             out(" = ");
+            out("*(typeof(");
+            out(p.Set.val.s);
+            out(")*) &");
             out(tst);
             out(";\n");
             break;
@@ -212,14 +215,9 @@ void code_tst_pos (int spc, const char* tst, Patt p) {
             }
             break;
         case PATT_TUPLE:
-//puts(">>>");
             for (int i=0; i<p.Tuple.size; i++) {
-//printf("%d\n", i);
-//out("//>>>\n");
                 code_tst_pos(spc, toidx(tst,i), p.Tuple.vec[i]);
-//out("//<<<\n");
             }
-//puts("<<<");
             break;
         default:
             assert(0 && "TODO");
