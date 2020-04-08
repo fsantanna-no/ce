@@ -145,40 +145,27 @@ void code_data (Data data) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-char* tosub (const char* sup, const char* sub) {
-    static char str[256];
-    str[0] = '\0';
-    // TODO: assert len
-    strcat(str, sup);
-    strcat(str, "._");
-    strcat(str, sub);
-    return str;
-}
-
-char* toidx (const char* tup, int idx) {
-    static char str[256];
-    sprintf(str, "%s._%d", tup, idx); // TODO: assert len
-    return str;
-}
-
-void code_case_tst (const char* tst, Patt p) {
+void code_case_tst (Expr tst, Patt p) {
     switch (p.sub) {
         case PATT_ANY:
         case PATT_SET:
             out("1");
             break;
         case PATT_UNIT:
-            out(tst);
+            code_expr(0, tst, NULL);
             out(" == 1");
             break;
         case PATT_CONS:
             out("toint(");
-            out(tst);
+            code_expr(0, tst, NULL);
             out(") == SUP_");
             out(p.Cons.data.val.s);
             if (p.Cons.arg != NULL) {
                 out(" && ");
-                code_case_tst(tosub(tst,p.Cons.data.val.s), *p.Cons.arg);
+                code_case_tst (
+                    (Expr) { EXPR_CONS_SUB, .Cons_Sub={&tst,p.Cons.data.val.s} },
+                    *p.Cons.arg
+                );
             }
             break;
         case PATT_TUPLE:
@@ -186,7 +173,10 @@ void code_case_tst (const char* tst, Patt p) {
                 if (i > 0) {
                     out(" && ");
                 }
-                code_case_tst(toidx(tst,i), p.Tuple.vec[i]);
+                code_case_tst (
+                    (Expr) { EXPR_TUPLE_IDX, .Tuple_Idx={&tst,i} },
+                    p.Tuple.vec[i]
+                );
             }
             break;
         default:
@@ -194,7 +184,7 @@ void code_case_tst (const char* tst, Patt p) {
     }
 }
 
-void code_case_set (int spc, const char* tst, Patt p) {
+void code_case_set (int spc, Expr tst, Patt p) {
     switch (p.sub) {
         case PATT_ANY:
         case PATT_UNIT:
@@ -206,17 +196,25 @@ void code_case_set (int spc, const char* tst, Patt p) {
             out("*(typeof(");
             out(p.Set.val.s);
             out(")*) &");
-            out(tst);
+            code_expr(0, tst, NULL);
             out(";\n");
             break;
         case PATT_CONS:
             if (p.Cons.arg != NULL) {
-                code_case_set(spc, tosub(tst,p.Cons.data.val.s), *p.Cons.arg);
+                code_case_set (
+                    spc,
+                    (Expr) { EXPR_CONS_SUB, .Cons_Sub={&tst,p.Cons.data.val.s} },
+                    *p.Cons.arg
+                );
             }
             break;
         case PATT_TUPLE:
             for (int i=0; i<p.Tuple.size; i++) {
-                code_case_set(spc, toidx(tst,i), p.Tuple.vec[i]);
+                code_case_set (
+                    spc,
+                    (Expr) { EXPR_TUPLE_IDX, .Tuple_Idx={&tst,i} },
+                    p.Tuple.vec[i]
+                );
             }
             break;
         default:
@@ -248,9 +246,9 @@ void code_case_vars (Tk* vars, int* vars_i, Patt patt) {
     }
 }
 
-void code_case (int spc, Case c, tce_ret* ret) {
+void code_case (int spc, Expr tst, Case c, tce_ret* ret) {
     out("if (");
-    code_case_tst("ce_tst", c.patt);
+    code_case_tst(tst, c.patt);
     out(") {\n");
     {
         Tk vars[16];
@@ -272,7 +270,7 @@ void code_case (int spc, Case c, tce_ret* ret) {
             }
         }
     }
-    code_case_set(spc+4, "ce_tst", c.patt);
+    code_case_set(spc+4, tst, c.patt);
     code_spc(spc+4);
     code_expr(spc+4, *c.expr, ret);
     out(";");
@@ -366,23 +364,24 @@ void code_expr (int spc, Expr e, tce_ret* ret) {
             }
             break;
         case EXPR_CASES:
-            // typeof(tst) ce_tst = tst;
-            code_spc(spc);
-            out("typeof(");
-            code_expr(spc, *e.Cases.tst, NULL);
-            out(") ce_tst = ");
-            code_expr(spc, *e.Cases.tst, NULL);
-            out(";\n");
-
             code_spc(spc);
             for (int i=0; i<e.Cases.size; i++) {
-                code_case(spc, e.Cases.vec[i], ret);
+                code_case(spc, *e.Cases.tst, e.Cases.vec[i], ret);
             }
             out("{\n");
             code_spc(spc+4);
             out("assert(0 && \"case not matched\");\n");
             code_spc(spc);
             out("}\n");
+            break;
+        case EXPR_TUPLE_IDX:
+            code_expr(spc, *e.Tuple_Idx.tuple, ret);
+            fprintf(ALL.out, "._%d", e.Tuple_Idx.idx);
+            break;
+        case EXPR_CONS_SUB:
+            code_expr(spc, *e.Cons_Sub.cons, ret);
+            out("._");
+            out(e.Cons_Sub.sub);
             break;
         default:
 //printf("%d\n", e.sub);

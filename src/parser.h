@@ -26,7 +26,10 @@ typedef enum {
     EXPR_SEQ,
     EXPR_CALL,
     EXPR_BLOCK,
-    EXPR_CASES
+    EXPR_CASES,
+    ////
+    EXPR_TUPLE_IDX,
+    EXPR_CONS_SUB
 } EXPR;
 
 typedef enum {
@@ -160,6 +163,15 @@ typedef struct Expr {
             Type type;
             struct Expr* body;
         } Func;
+        ////
+        struct {
+            struct Expr* tuple;
+            int idx;
+        } Tuple_Idx;
+        struct {
+            struct Expr* cons;
+            const char* sub;
+        } Cons_Sub;
     };
 } Expr;
 
