@@ -375,8 +375,12 @@ void code_expr (int spc, Expr e, tce_ret* ret) {
             out("}\n");
             break;
         case EXPR_TUPLE_IDX:
-            code_expr(spc, *e.Tuple_Idx.tuple, ret);
-            fprintf(ALL.out, "._%d", e.Tuple_Idx.idx);
+            if (e.Tuple_Idx.tuple->sub == EXPR_TUPLE) {
+                code_expr(spc, e.Tuple_Idx.tuple->Tuple.vec[e.Tuple_Idx.idx], ret);
+            } else {
+                code_expr(spc, *e.Tuple_Idx.tuple, ret);
+                fprintf(ALL.out, "._%d", e.Tuple_Idx.idx);
+            }
             break;
         case EXPR_CONS_SUB:
             code_expr(spc, *e.Cons_Sub.cons, ret);
