@@ -1,0 +1,48 @@
+data List:
+    Nil  = ()
+    Cons = ((), ref List)
+
+-- fail memory
+:
+    pool[1] lst1 :: List = new Cons (10, Cons (20, Cons (30, Nil)))
+    call show (lst1.Cons._1, lst1.Cons._2 is Nil?)
+        -- 10, True
+    -- deallocs lst1
+
+-- release memory
+:
+    pool[] lst2 :: List = new Cons (10, cons (20, Cons (30, Nil)))
+    set lst2.Cons._2 = Cons (50, Nil)
+    call show (lst2.Cons._2.Cons._1)
+        -- 50, deallocs 20,30
+
+-- traverse
+:
+    pool[] lst2 :: List = new <...>
+
+    -- recursive function
+    val sum = func :: List -> Int :
+        case ...:
+            Nil        -> 0
+            Cons (n,l) -> n + sum (l)
+    val x = sum (lst3)
+
+    -- recursive traverse
+    val x = traverse e in lst3:
+        Nil        -> 0
+        Cons (n,l) -> n + traverse l
+
+ref[5] l = new Cons((),Cons((),Cons((),Nil)))
+
+set List(l1,_) [:: ref List] = l
+set List(l1,_) = l
+
+set l1 [:: ref List] = case l:
+    List (=x,_) [:: ref List] -> x
+
+ref l1 :: ref List = 
+
+var n = case l:
+    List(=x,_) -> x
+
+call show(n)

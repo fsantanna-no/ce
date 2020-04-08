@@ -1,0 +1,68 @@
+- show data
+
+- match sem case
+    match (=x,...) = 
+- list type
+    data List:
+        Nil  = ()
+        Cons = ((), List)
+- data/funcoes recursivas
+- let no mesmo esquema do where
+- case
+    - no tst // substitutes if
+- loop
+- data
+    data Tree:
+        Leaf = Int
+        Node = (Tree,Tree)
+
+- MATCH
+
+    case ...:
+        (~zero, _)  -> zero
+        (=x,    =y) -> mul (x,y)
+
+    case ... :
+        Nat.Zero -> one
+        =n       -> mul(n, fact(dec(n)))
+
+    not = func :
+        case ... :
+            Bool.False -> Bool.True
+            Bool.True  -> Bool.False
+
+    case v:
+        Left (=x) :: Nat :
+            return f(x)
+        Right (=x) :: Nat -> g(x)
+
+    case (x,y):
+        (Either.Left =xl,  Either.Left =yl)  :: (a,a) :
+            return xl @< yl
+        (Either.Left _,    Either.Right _)            :
+            return Bool.True
+        (Either.Right =xr, Either.Right =yr) :: (b,b) :
+            return xr @< yr
+        (Either.Right _,   Either.Left  _)           :
+            return Bool.False
+
+    case xs:
+        List.Nil -> 0
+        List.Cons (_,=xs) -> 1 + length(xs) :
+            xs :: List of a
+
+    case x:
+        ~y   -> 0
+        else -> 1
+
+= 04-07 14:03
+    4    11    98 ce.c
+  356   783  8831 code.c
+  169   412  4229 lexer.c
+  632  1557 14396 parser.c
+  545  1481 15343 tests.c
+   12    52   336 code.h
+   54   115   860 lexer.h
+  193   504  3715 parser.h
+ 1965  4915 47808 total
+

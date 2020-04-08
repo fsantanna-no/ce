@@ -1,0 +1,82 @@
+data Nat:
+    Zero = ()
+    Succ = Nat
+
+pool[0] zero :: Nat
+
+ref[1] one = new Succ (zero)
+ref[2] two = new Succ (Succ (Zero))
+
+-- In Ce, recursive data types impose some restrictions:
+--  - Elements in different pools cannot be mixed without copying.
+--      - mutations would affect each other (maybe this is ok)
+--      - if one pool deallocs shared node, the backlink in the other pool
+--        would become dangling (this is never ok)
+--  Ceu only: Types may contain arbitrary weak pointers, but weak pointers to
+--  Céu structures must be observed via the watching construct, as they can be
+--  invalidated at any time (to be discussed in Section 2.2).
+-- We impose some restrictions on the data structures that can be represented.
+-- The requirement of tree hierarchies with move semantics demands care when
+-- designing algorithms that manipulate them. In trade, these restrictions
+-- enable static memory management with deterministic deallocation. Still, we
+-- do not feel that the restrictions are prohibitively limiting. For instance,
+-- persistent data structures in functional languages operate under similar
+-- constraints.
+--
+-- NIL
+-- - initial value (?) (really needed b/c of that?)
+-- - what to return on alloc fail
+-- - move semantics, what to assign on pointer in place of what was released
+--
+-- Traverse knows the maximum "stack" size
+
+val v :: Nat = ...
+    -- cannot change nodes
+    -- can mix pools
+    -- can hold pointers
+    -- copy semantics, can share within same pool as well
+    -- must respect scoping rules on *sharing*
+    -- only discards after scope
+
+mut x :: Nat = ...
+    -- can change nodes
+    -- cannot mix pools
+    -- cannot hold pointers
+    -- MOVE semantics, prevents GC, only one ref to a node
+    -- need not to respect scoping rules on *copying*
+    -- discards on NIL
+    -- with Céu semantics allow to hold pointer via watching
+    --  (better, support frame linked list of refs)
+
+-- In this paper, we explore the design space of dynamic recursive data
+-- structures (lists but not arrays)
+-- tabela comparativa: mut/val, rust regions/life/borrow, C pointers, functional
+-- no cycles (only C?)
+-- syntax noise
+
+mut add = func :: (ret::Nat,a::Nat,b::Nat) -> ():
+    case (a,b):
+        (=x, 
+
+
+pool {
+    size
+    buf
+    head
+}
+    
+
+ref[5] l = new Cons((),Cons((),Cons((),Nil)))
+
+set List(l1,_) [:: ref List] = l
+set List(l1,_) = l
+
+set l1 [:: ref List] = case l:
+    List (=x,_) [:: ref List] -> x
+
+ref l1 :: ref List = 
+
+mut n = case l:
+    List(=x,_) -> x
+
+call show(n)
