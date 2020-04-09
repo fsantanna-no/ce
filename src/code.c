@@ -156,6 +156,8 @@ void code_data (Data data) {
         );
     }
     fprintf(ALL.out,
+        "        default:\n"
+        "            assert(0 && \"bug found\");\n"
         "    }\n"
         "}\n\n"
     );

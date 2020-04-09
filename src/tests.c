@@ -486,11 +486,11 @@ void t_code (void) {
             "        case Bool_True:\n"
             "            puts(\"True\");\n"
             "            break;\n"
+            "        default:\n"
+            "            assert(0 && \"bug found\");\n"
             "    }\n"
             "}\n"
             "\n";
-//puts(out);
-//puts(ret);
         assert(!strcmp(out,ret));
     }
 }
