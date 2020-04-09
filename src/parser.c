@@ -43,12 +43,18 @@ void pr_next () {
     long off = ftell(ALL.inp);
     Tk   tk  = lexer();
 
+    int lns = 0;
+    while (PRV.tk.sym==TK_LINE && tk.sym==TK_LINE && tk.val.n==0) {
+        tk = lexer();
+        lns++;  // skip empty line
+    }
+
     if (PRV.off == -1) {
-        NXT.lin = 1;
+        NXT.lin = lns + 1;
         NXT.col = 1;
     } else {
         if (PRV.tk.sym == TK_LINE) {
-            NXT.lin = PRV.lin + 1;
+            NXT.lin = PRV.lin + lns + 1;
             NXT.col = (off - PRV.off);
         } else {
             NXT.col = PRV.col + (off - PRV.off);

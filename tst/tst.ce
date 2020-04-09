@@ -1,1 +1,15 @@
-show_Unit()
+data Nat
+data Nat:
+    Zero = ()
+    Succ = Nat
+
+data List
+data List:
+    Void = ()
+    Pair = ((),List)
+
+val one :: Nat  = new Succ (new Zero)
+val l1  :: List = new Pair ((), new Void)
+
+call show_Nat(one)
+call show_List(l1)
