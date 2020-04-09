@@ -24,12 +24,21 @@ int all (const char* xp, char* src) {
     }
     code(prog);
     fclose(ALL.out);
-    remove("a.out");
 puts(out);
-    compile(out);
-    FILE* f = popen("./a.out", "r");
-    assert(f != NULL);
+    remove("a.out");
+
+    // compile
     {
+        FILE* f = popen("gcc -xc -", "w");
+        assert(f != NULL);
+        fputs(out, f);
+        fclose(f);
+    }
+
+    // execute
+    {
+        FILE* f = popen("./a.out", "r");
+        assert(f != NULL);
         char* cur = out;
         int n = sizeof(out) - 1;
         while (1) {
@@ -455,7 +464,7 @@ void t_code (void) {
         code(p);
         fclose(ALL.out);
         char* ret =
-            "#include \"ce/ce.c\"\n"
+            "#include \"inc/ce.c\"\n"
             "int main (void) {\n"
             "\n"
             "int a;\n"

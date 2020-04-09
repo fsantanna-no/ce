@@ -494,18 +494,11 @@ void code_prog (int spc, Prog prog) {
 
 void code (Prog prog) {
     out (
-        "#include \"ce/ce.c\"\n"
+        "#include \"inc/ce.c\"\n"
         "int main (void) {\n"
         "\n"
     );
     code_prog(0, prog);
     fprintf(ALL.out, "\n");
     out("}\n");
-}
-
-void compile (const char* inp) {
-    FILE* f = popen("gcc -xc -", "w");
-    assert(f != NULL);
-    fputs(inp, f);
-    fclose(f);
 }
