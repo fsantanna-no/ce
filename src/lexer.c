@@ -11,7 +11,8 @@ State_Tok NXT = { -1,0,0,{} };
 State_Tok PRV = { -1,0,0,{} };
 
 static char* reserved[] = {
-    "call", "case", "data", "else", "func", "let", "mut", "set", "val", "where"
+    "call", "case", "data", "else", "func", "let", "mut", "new",
+    "set", "val", "where"
 };
 
 int is_reserved (TK_val* val) {

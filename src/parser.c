@@ -537,6 +537,17 @@ int parser_expr_one (Expr* ret) {
     } else if (pr_accept(TK_IDDATA,1)) {
         *ret = (Expr) { EXPR_CONS, NULL, .Cons=PRV.tk };
 
+    // EXPR_NEW
+    } else if (pr_accept(TK_NEW,1)) {
+        Expr e;
+        if (!parser_expr(&e)) {
+            return 0;
+        }
+        Expr* pe = malloc(sizeof(*pe));
+        assert(pe != NULL);
+        *pe = e;
+        *ret = (Expr) { EXPR_NEW, NULL, .New=pe };
+
     // EXPR_SET
     } else if (pr_accept(TK_SET,1)) {
         if (!pr_accept(TK_IDVAR,1)) {

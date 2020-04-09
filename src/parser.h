@@ -21,6 +21,7 @@ typedef enum {
     EXPR_UNIT,
     EXPR_VAR,
     EXPR_CONS,
+    EXPR_NEW,
     EXPR_SET,
     EXPR_FUNC,
     EXPR_TUPLE,
@@ -141,6 +142,7 @@ typedef struct Expr {
         Tk Unit;
         Tk Var;
         Tk Cons;
+        struct Expr* New;
         struct {        // EXPR_TUPLE
             int size;
             struct Expr* vec;

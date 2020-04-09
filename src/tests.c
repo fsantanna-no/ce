@@ -23,8 +23,8 @@ int all (const char* xp, char* src) {
         return !strcmp(ALL.err, xp);
     }
     code(prog);
-//puts(out);
     fclose(ALL.out);
+puts(out);
     remove("a.out");
     compile(out);
     FILE* f = popen("./a.out", "r");
@@ -601,10 +601,11 @@ void t_all (void) {
     ));
     assert(all(
         "1\n",
+        "data List\n"
         "data List:\n"
         "    Nil  = ()\n"
         "    Cons = ((), List)\n"
-        "val l :: List = Cons((),Cons((),Cons((),Nil)))\n"
+        "val l :: List = new Cons((),new Cons((),new Cons((),new Nil)))\n"
         "val n :: () = case l:\n"
         "    List(=x,_) :: () -> x\n"
         "call show_Bool(n)"
