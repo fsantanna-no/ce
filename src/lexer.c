@@ -83,6 +83,9 @@ TK lexer_ (TK_val* val) {
                 int i = 0;
                 while (1) {
                     c = fgetc(ALL.inp);
+                    if (c == EOF) {         // consider \nEOF as EOF
+                        return TK_EOF;
+                    }
                     if (c != ' ') {
                         ungetc(c, ALL.inp);
                         break;

@@ -26,15 +26,6 @@ void code_ret (tce_ret* ret) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-int is_rec (const char* v) {
-    for (int i=0; i<ALL.data_recs.size; i++) {
-        if (!strcmp(ALL.data_recs.buf[i].val.s, v)) {
-            return 1;
-        }
-    }
-    return 0;
-}
-
 void code_type (Type tp) {
     switch (tp.sub) {
         case TYPE_UNIT:
@@ -200,9 +191,9 @@ void code_case_tst (Expr tst, Patt p) {
             out(" == 1");
             break;
         case PATT_CONS:
-            out("toint(");
+            out("(");
             code_expr(0, tst, NULL);
-            out(") == SUP_");
+            out(").sub == SUP_");
             out(p.Cons.data.val.s);
             if (p.Cons.arg != NULL) {
                 out(" && ");
@@ -291,6 +282,12 @@ void code_case_vars (Tk* vars, int* vars_i, Patt patt) {
 }
 
 void code_case (int spc, Expr tst, Case c, tce_ret* ret) {
+    Expr star = (Expr) { EXPR_VAR, NULL, .Var=(Tk){'*',{.s="*"}} };
+    Expr old  = tst;
+    if (c.patt.sub==PATT_CONS && is_rec(c.patt.Cons.data.val.s)) {
+        tst = (Expr) { EXPR_CALL, NULL, .Call={&star,&old} };
+    }
+
     out("if (");
     code_case_tst(tst, c.patt);
     out(") {\n");
@@ -441,8 +438,9 @@ void code_expr (int spc, Expr e, tce_ret* ret) {
             }
             break;
         case EXPR_CONS_SUB:
+            out("(");
             code_expr(spc, *e.Cons_Sub.cons, ret);
-            out("._");
+            out(")._");
             out(e.Cons_Sub.sub);
             break;
         default:

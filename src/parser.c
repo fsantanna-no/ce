@@ -26,6 +26,15 @@ void dump_expr (Expr e, int spc) {
     }
 }
 
+int is_rec (const char* v) {
+    for (int i=0; i<ALL.data_recs.size; i++) {
+        if (!strcmp(ALL.data_recs.buf[i].val.s, v)) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 
 void pr_next () {
@@ -345,6 +354,13 @@ int parser_data (Data* ret) {
         ret->vec[i].idx = i;
     }
 
+    // mark each Cons as is_rec as well
+    if (is_rec(id.val.s)) {
+        for (int i=0; i<ret->size; i++) {
+            ALL.data_recs.buf[ALL.data_recs.size++] = ret->vec[i].tk;
+        }
+    }
+
     // realloc TP more spaces inside each CONS
     if (tp_ok) {
         if (lst_ok) {
@@ -353,9 +369,9 @@ int parser_data (Data* ret) {
             ret->size = 1;
             ret->vec  = malloc(sizeof(Cons));
 
-            Cons dt = (Cons) { 0, {}, tp };
-            strcpy(dt.tk.val.s, id.val.s);
-            ret->vec[0] = dt;
+            Cons c = (Cons) { 0, {}, tp };
+            strcpy(c.tk.val.s, id.val.s);
+            ret->vec[0] = c;
         }
     }
 
@@ -630,6 +646,8 @@ int parser_expr_one (Expr* ret) {
         *p1 = func;
         *p2 = arg;
         *ret = (Expr) { EXPR_CALL, NULL, .Call={p1,p2} };
+    } else {
+        return err_expected("expression");
     }
 
     return 1;
@@ -717,7 +735,6 @@ int parser_prog (Prog* ret) {
     }
     *ret = (Prog) { lst.size, lst.vec };
 
-    pr_accept(TK_LINE,1);   // optional newline
     if (!pr_accept(TK_EOF,1)) {
         return err_expected("end of file");
     }

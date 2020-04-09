@@ -1,4 +1,5 @@
 - new Cons
+- show fields
 - valgrind --tool=memcheck --leak-check=full --track-origins=yes ./tests
 - f()()
     - test multiple calls

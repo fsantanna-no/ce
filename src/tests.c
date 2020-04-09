@@ -24,13 +24,30 @@ int all (const char* xp, char* src) {
     }
     code(prog);
     fclose(ALL.out);
-puts(out);
     remove("a.out");
+puts(out);
     compile(out);
     FILE* f = popen("./a.out", "r");
     assert(f != NULL);
-    fgets(out, sizeof(out), f);
-    fclose(f);
+    {
+        char* cur = out;
+        int n = sizeof(out) - 1;
+        while (1) {
+            char* ret = fgets(cur,n,f);
+            if (ret == NULL) {
+                break;
+            }
+            n -= strlen(ret);
+            cur += strlen(ret);
+        }
+    }
+/*
+puts(">>>");
+puts(out);
+puts("---");
+puts(xp);
+puts("<<<");
+*/
     return !strcmp(out,xp);
 }
 
@@ -47,14 +64,13 @@ void t_lexer (void) {
         assert(lexer().sym == TK_LINE);
         assert(lexer().sym == TK_COMMENT);
         assert(lexer().sym == TK_LINE);
-        assert(lexer().sym == TK_LINE);
         assert(lexer().sym == TK_EOF);
         fclose(ALL.inp);
     }
     {
         ALL.inp = stropen("r", 0, "\n  \n");
         assert(lexer().sym == TK_ERR);
-        assert(lexer().sym == TK_LINE);
+        assert(lexer().sym == TK_EOF);
         fclose(ALL.inp);
     }
     {
@@ -174,21 +190,21 @@ void t_parser_expr (void) {
         init(NULL, stropen("r", 0, "("));
         Expr e;
         assert(!parser_expr(&e));
-        assert(!strcmp(ALL.err, "(ln 1, col 2): expected `)` : have end of file"));
+        assert(!strcmp(ALL.err, "(ln 1, col 2): expected expression : have end of file"));
         fclose(ALL.inp);
     }
     {
         init(NULL, stropen("r", 0, "(("));
         Expr e;
         assert(!parser_expr(&e));
-        assert(!strcmp(ALL.err, "(ln 1, col 3): expected `)` : have end of file"));
+        assert(!strcmp(ALL.err, "(ln 1, col 3): expected expression : have end of file"));
         fclose(ALL.inp);
     }
     {
         init(NULL, stropen("r", 0, "(\n( \n"));
         Expr e;
         assert(!parser_expr(&e));
-        assert(!strcmp(ALL.err, "(ln 1, col 2): expected `)` : have new line"));
+        assert(!strcmp(ALL.err, "(ln 1, col 2): expected expression : have new line"));
         fclose(ALL.inp);
     }
     // EXPR_VAR
@@ -203,7 +219,7 @@ void t_parser_expr (void) {
         init(NULL, stropen("r", 0, "x("));
         Expr e;
         assert(!parser_expr(&e));
-        assert(!strcmp(ALL.err, "(ln 1, col 3): expected `)` : have end of file"));
+        assert(!strcmp(ALL.err, "(ln 1, col 3): expected expression : have end of file"));
         fclose(ALL.inp);
     }
     // EXPR_SET
@@ -290,7 +306,7 @@ void t_parser_expr (void) {
         init(NULL, stropen("r", 0, ":\n    x\n    call y ("));
         Expr e;
         assert(!parser_expr(&e));
-        assert(!strcmp(ALL.err, "(ln 3, col 13): expected `)` : have end of file"));
+        assert(!strcmp(ALL.err, "(ln 3, col 13): expected expression : have end of file"));
         fclose(ALL.inp);
     }
     {
@@ -609,6 +625,18 @@ void t_all (void) {
         "call show_List(l)"
     ));
     assert(all(
+        "Cons\n()\n",
+        "data List\n"
+        "data List:\n"
+        "    Nil  = ()\n"
+        "    Cons = ((), List)\n"
+        "val l :: List = new Cons((),new Nil)\n"
+        "val n :: () = case l:\n"
+        "    Cons(=x,_) :: () -> x\n"
+        "call show_List(l)\n"
+        "call show_Unit(n)"
+    ));
+    assert(all(
         "1\n",
         "data List\n"
         "data List:\n"
@@ -616,7 +644,7 @@ void t_all (void) {
         "    Cons = ((), List)\n"
         "val l :: List = new Cons((),new Cons((),new Cons((),new Nil)))\n"
         "val n :: () = case l:\n"
-        "    List(=x,_) :: () -> x\n"
+        "    Cons(_,Cons(=x,_)) :: () -> x\n"
         "call show_Bool(n)"
     ));
     assert(all(
@@ -631,7 +659,7 @@ void t_all (void) {
         "val l :: List = Cons(Tre,Cons(Two,Cons(One,Nil)))\n"
         "val n :: Nat = case l:\n"
         "    List(=x,_) :: Nat -> x\n"
-        "call show_Bool(toint(n))"
+        "call show_Nat(n)"
     ));
 }
 

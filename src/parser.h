@@ -196,6 +196,7 @@ typedef struct {
 
 ///////////////////////////////////////////////////////////////////////////////
 
+int is_rec (const char* v);
 void dump_expr (Expr e, int spc);
 void init (FILE* out, FILE* inp);
 
