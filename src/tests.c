@@ -600,6 +600,15 @@ void t_all (void) {
         "call show_Bool(n)"
     ));
     assert(all(
+        "Nil\n",
+        "data List\n"
+        "data List:\n"
+        "    Nil  = ()\n"
+        "    Cons = ((), List)\n"
+        "val l :: List = new Nil\n"
+        "call show_List(l)"
+    ));
+    assert(all(
         "1\n",
         "data List\n"
         "data List:\n"

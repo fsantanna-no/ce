@@ -164,10 +164,11 @@ void code_data (Data data) {
     out(sup);
     out(";\n\n");
 
+    int is = is_rec(sup);
     fprintf(ALL.out,
-        "void show_%s (%s v) {\n"
-        "    switch (v.sub) {\n",
-        sup, sup
+        "void show_%s (%s%s v) {\n"
+        "    switch (v%ssub) {\n",
+        sup, sup, (is ? "*" : ""), (is ? "->" : ".")
     );
     for (int i=0; i<data.size; i++) {
         char* v = data.vec[i].tk.val.s;
@@ -352,11 +353,21 @@ void code_expr (int spc, Expr e, tce_ret* ret) {
             }
             out(e.Var.val.s);
             break;
-        case EXPR_CONS: {
+        case EXPR_CONS:
             code_ret(ret);
             out(e.Cons.val.s);
             break;
-        }
+        case EXPR_NEW:
+            code_ret(ret);
+            out("({");
+            out("typeof(");
+            code_expr(spc, *e.New, NULL);
+            out(")* ptr = malloc(sizeof(");
+            code_expr(spc, *e.New, NULL);
+            out(")) ; *ptr=");
+            code_expr(spc, *e.New, NULL);
+            out("; ptr; })");
+            break;
         case EXPR_SET: {
             tce_ret r = { e.Set.var.val.s, ret };
             code_expr(spc, *e.Set.val, &r);
