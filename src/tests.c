@@ -431,7 +431,7 @@ void t_code (void) {
         char out[256];
         init (
             stropen("w", sizeof(out), out),
-            stropen("r", 0, ":\n    val a :: ()\n    call show_Bool(a)")
+            stropen("r", 0, "val a :: ()\ncall show_Bool(a)")
         );
         Prog p;
         parser_prog(&p);
@@ -445,7 +445,6 @@ void t_code (void) {
             "show_Bool(a);\n"
             "\n"
             "}\n";
-//puts(out);
         assert(!strcmp(out,ret));
     }
     {
@@ -499,133 +498,121 @@ void t_code (void) {
 void t_all (void) {
     assert(all(
         "1\n",
-        ":\n    mut a :: ()\n    set a = ()\n    { printf(\"%d\\n\",a) }"
+        "mut a :: ()\nset a = ()\n{ printf(\"%d\\n\",a) }\n"
     ));
     assert(all(
         "True\n",
-        ":\n"
-        "    data Bool:\n"
-        "        False = ()\n"
-        "        True  = ()\n"
-        "    call show_Bool(True)"
+        "data Bool:\n"
+        "    False = ()\n"
+        "    True  = ()\n"
+        "call show_Bool(True)\n"
     ));
     assert(all(
         "False\n",
-        ":\n"
-        "    data Bool:\n"
-        "        False = ()\n"
-        "        True  = ()\n"
-        "    mut v :: Bool\n"
-        "    set v = case ():\n"
-        "        ()   -> False\n"
-        "        else -> True\n"
-        "    call show_Bool(v)"
+        "data Bool:\n"
+        "    False = ()\n"
+        "    True  = ()\n"
+        "mut v :: Bool\n"
+        "set v = case ():\n"
+        "    ()   -> False\n"
+        "    else -> True\n"
+        "call show_Bool(v)"
     ));
     assert(all(
         "False\n",
-        ":\n"
-        "    data Bool:\n"
-        "        False = ()\n"
-        "        True  = ()\n"
-        "    set inv = func :: Bool -> Bool :\n"
-        "        case ...:\n"
-        "            False -> True\n"
-        "            True  -> False\n"
-        "    call show_Bool(inv(True))"
+        "data Bool:\n"
+        "    False = ()\n"
+        "    True  = ()\n"
+        "set inv = func :: Bool -> Bool :\n"
+        "    case ...:\n"
+        "        False -> True\n"
+        "        True  -> False\n"
+        "call show_Bool(inv(True))"
     ));
     assert(all(
         "True\n",
-        ":\n"
-        "    data Bool:\n"
-        "        False = ()\n"
-        "        True  = ()\n"
-        "    data Vv = Bool\n"
-        "    val v :: Vv = Vv(True)\n"
-        "    val b :: Bool = case v:\n"
-        "        Vv(False)      -> False\n"
-        "        Vv(=x) :: Bool -> x\n"
-        "    call show_Bool(b)"
+        "data Bool:\n"
+        "    False = ()\n"
+        "    True  = ()\n"
+        "data Vv = Bool\n"
+        "val v :: Vv = Vv(True)\n"
+        "val b :: Bool = case v:\n"
+        "    Vv(False)      -> False\n"
+        "    Vv(=x) :: Bool -> x\n"
+        "call show_Bool(b)"
     ));
     assert(all(
         "()\n",
-        ":\n"
-        "    val i :: ((),()) = ((),())\n"
-        "    case i:\n"
-        "        (=x,_) :: () -> show_Unit(x)"
+        "val i :: ((),()) = ((),())\n"
+        "case i:\n"
+        "    (=x,_) :: () -> show_Unit(x)"
     ));
     assert(all(
         "()\n",
-        ":\n"
-        "    val i :: ((),((),())) = ((),((),()))\n"
-        "    case i:\n"
-        "        (_,(=x,_)) :: () -> show_Unit(x)"
+        "val i :: ((),((),())) = ((),((),()))\n"
+        "case i:\n"
+        "    (_,(=x,_)) :: () -> show_Unit(x)"
     ));
     assert(all(
         "()\n",
-        ":\n"
-        "    val i :: ((),((),())) = ((),((),()))\n"
-        "    val j :: ((),((),())) = i\n"
-        "    val v :: () = case j:\n"
-        "        ((),=x) :: ((),()) -> y where:\n"
-        "            val y :: () = case x:\n"
-        "                ((),=z) :: () -> z\n"
-        "    call show_Unit(v)"
+        "val i :: ((),((),())) = ((),((),()))\n"
+        "val j :: ((),((),())) = i\n"
+        "val v :: () = case j:\n"
+        "    ((),=x) :: ((),()) -> y where:\n"
+        "        val y :: () = case x:\n"
+        "            ((),=z) :: () -> z\n"
+        "call show_Unit(v)"
     ));
     assert(all(
         "()\n",
-        ":\n"
-        "    val i :: ((),((),())) = ((),((),()))\n"
-        "    val j :: ((),((),())) = i\n"
-        "    val v :: () = case j:\n"
-        "        (=x,(_,=z)) :: ((),()) -> y where:\n"
-        "            val y :: () = case (x,z):\n"
-        "                ((),=a) :: () -> a\n"
-        "    call show_Unit(v)"
+        "val i :: ((),((),())) = ((),((),()))\n"
+        "val j :: ((),((),())) = i\n"
+        "val v :: () = case j:\n"
+        "    (=x,(_,=z)) :: ((),()) -> y where:\n"
+        "        val y :: () = case (x,z):\n"
+        "            ((),=a) :: () -> a\n"
+        "call show_Unit(v)"
     ));
     assert(all(
         "()\n",
-        ":\n"
-        "    data Pair = ((),())\n"
-        "    val n :: () = case Pair ((),()):\n"
-        "        Pair (=x,_) :: () -> x\n"
-        "    call show_Unit(n)"
+        "data Pair = ((),())\n"
+        "val n :: () = case Pair ((),()):\n"
+        "    Pair (=x,_) :: () -> x\n"
+        "call show_Unit(n)"
     ));
     assert(all(
         "True\n",
-        ":\n"
-        "    data Bool:\n"
-        "        False = ()\n"
-        "        True  = ()\n"
-        "    data Pair = (Bool,Bool)\n"
-        "    val n :: Bool = case Pair (True,False):\n"
-        "        Pair (=x,_) :: Bool -> x\n"
-        "    call show_Bool(n)"
+        "data Bool:\n"
+        "    False = ()\n"
+        "    True  = ()\n"
+        "data Pair = (Bool,Bool)\n"
+        "val n :: Bool = case Pair (True,False):\n"
+        "    Pair (=x,_) :: Bool -> x\n"
+        "call show_Bool(n)"
     ));
     assert(all(
         "1\n",
-        ":\n"
-        "    data List:\n"
-        "        Nil  = ()\n"
-        "        Cons = ((), List)\n"
-        "    val l :: List = Cons((),Cons((),Cons((),Nil)))\n"
-        "    val n :: () = case l:\n"
-        "        List(=x,_) :: () -> x\n"
-        "    call show_Bool(n)"
+        "data List:\n"
+        "    Nil  = ()\n"
+        "    Cons = ((), List)\n"
+        "val l :: List = Cons((),Cons((),Cons((),Nil)))\n"
+        "val n :: () = case l:\n"
+        "    List(=x,_) :: () -> x\n"
+        "call show_Bool(n)"
     ));
     assert(all(
         "1\n",
-        ":\n"
-        "    data Nat:\n"
-        "        One = ()\n"
-        "        Two = ()\n"
-        "        Tre = ()\n"
-        "    data List:\n"
-        "        Nil  = ()\n"
-        "        Cons = (Nat, List)\n"
-        "    val l :: List = Cons(Tre,Cons(Two,Cons(One,Nil)))\n"
-        "    val n :: Nat = case l:\n"
-        "        List(=x,_) :: Nat -> x\n"
-        "    call show_Bool(toint(n))"
+        "data Nat:\n"
+        "    One = ()\n"
+        "    Two = ()\n"
+        "    Tre = ()\n"
+        "data List:\n"
+        "    Nil  = ()\n"
+        "    Cons = (Nat, List)\n"
+        "val l :: List = Cons(Tre,Cons(Two,Cons(One,Nil)))\n"
+        "val n :: Nat = case l:\n"
+        "    List(=x,_) :: Nat -> x\n"
+        "call show_Bool(toint(n))"
     ));
 }
 

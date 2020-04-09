@@ -121,15 +121,16 @@ int parser_list_comma (List* ret, void* fst, List_F f, size_t unit) {
     return 1;
 }
 
-int parser_list_line (List* ret, List_F f, size_t unit) {
-    if (!pr_accept(':',1)) {
-        return err_expected("`:`");
-    }
+int parser_list_line (int doind, List* ret, List_F f, size_t unit) {
+    if (doind) {
+        if (!pr_accept(':',1)) {
+            return err_expected("`:`");
+        }
+        ALL.ind++;
 
-    ALL.ind++;
-
-    if (!pr_accept(TK_LINE, NXT.tk.val.n==ALL.ind)) {
-        return err_unexpected("indentation level");
+        if (!pr_accept(TK_LINE, NXT.tk.val.n==ALL.ind)) {
+            return err_unexpected("indentation level");
+        }
     }
 
     void* vec = NULL;
@@ -155,7 +156,9 @@ int parser_list_line (List* ret, List_F f, size_t unit) {
         }
     }
 
-    ALL.ind--;
+    if (doind) {
+        ALL.ind--;
+    }
     ret->size = i;
     ret->vec  = vec;
     return 1;
@@ -324,7 +327,7 @@ int parser_data (Data* ret) {
     List lst = { 0, NULL };
     int lst_ok = pr_check(':', 1);
     if (lst_ok) {
-        if (!parser_list_line(&lst, &parser_cons_, sizeof(Cons))) {
+        if (!parser_list_line(1, &lst, &parser_cons_, sizeof(Cons))) {
             return 0;
         }
     }
@@ -405,7 +408,7 @@ void* parser_decl_ (void) {
 
 int parser_decls (Decls* ret) {
     List lst;
-    if (!parser_list_line(&lst, &parser_decl_, sizeof(Decl))) {
+    if (!parser_list_line(1, &lst, &parser_decl_, sizeof(Decl))) {
         return 0;
     }
     *ret = (Decls) { lst.size, lst.vec };
@@ -572,7 +575,7 @@ int parser_expr_one (Expr* ret) {
     // EXPR_SEQ
     } else if (pr_check(':',1)) {
         List lst;
-        if (!parser_list_line(&lst, &parser_expr__, sizeof(Expr))) {
+        if (!parser_list_line(1, &lst, &parser_expr__, sizeof(Expr))) {
             return 0;
         }
         *ret = (Expr) { EXPR_SEQ, NULL, .Seq={lst.size,lst.vec} };
@@ -585,7 +588,7 @@ int parser_expr_one (Expr* ret) {
         }
 
         List lst;
-        if (!parser_list_line(&lst, &parser_case_, sizeof(Case))) {
+        if (!parser_list_line(1, &lst, &parser_case_, sizeof(Case))) {
             return 0;
         }
 
@@ -686,11 +689,12 @@ void* parser_glob_ (void) {
 
 int parser_prog (Prog* ret) {
     List lst;
-    if (!parser_list_line(&lst, &parser_glob_, sizeof(Glob))) {
+    if (!parser_list_line(0, &lst, &parser_glob_, sizeof(Glob))) {
         return 0;
     }
     *ret = (Prog) { lst.size, lst.vec };
 
+    pr_accept(TK_LINE,1);   // optional newline
     if (!pr_accept(TK_EOF,1)) {
         return err_expected("end of file");
     }
