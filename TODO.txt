@@ -1,3 +1,6 @@
+- lexer.ce
+    - is
+    - type in C
 - ce0
     - new in all constructors
 - show fields

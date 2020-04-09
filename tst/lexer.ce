@@ -1,0 +1,14 @@
+
+{ typedef char Tk_s[256] }
+
+data Tk = ({int},{Tk_s}):
+    Tk_ERR = ()
+
+mut :: {char*} inp
+
+t_lexer :: () -> () = func :: () -> ():
+    set inp = {stropen ("r", 0, "-- foobar")
+    call assert (tk._1 is ?)
+    let tk :: Tk = lexer():
+
+call t_lexer ()
