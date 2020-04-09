@@ -70,7 +70,7 @@ syn match hsImport		"\<import\>.*"he=s+6 contains=hsImportMod,hsLineComment,hsBl
 syn match hsImportMod		contained "\<\(as\|qualified\|hiding\)\>"
 syn match hsInfix		"\<\(infix\|infixl\|infixr\)\>"
 syn match hsStructure		"\<\(class\|data\|deriving\|instance\|default\|where\|func\)\>"
-syn match hsTypedef		"\<\(type\|newtype\|var\|val\|ref\|pool\)\>"
+syn match hsTypedef		"\<\(type\|newtype\|val\)\>"
 syn match hsStatement		"\<\(do\|case\|of\|let\|in\|set\|new\|call\|traverse\)\>"
 syn match hsConditional		"\<\(if\|then\|else\)\>"
 

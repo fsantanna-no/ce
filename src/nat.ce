@@ -2,10 +2,10 @@ data Nat:
     Zero = ()
     Succ = Nat
 
-pool[0] zero :: Nat
+val[0] zero :: Nat
 
-ref[1] one = new Succ (zero)
-ref[2] two = new Succ (Succ (Zero))
+val[1] one = new Succ (zero)
+val[2] two = new Succ (Succ (Zero))
 
 -- In Ce, recursive data types impose some restrictions:
 --  - Elements in different pools cannot be mixed without copying.
@@ -66,7 +66,7 @@ pool {
 }
     
 
-ref[5] l = new Cons((),Cons((),Cons((),Nil)))
+val[5] l = new Cons((),Cons((),Cons((),Nil)))
 
 set List(l1,_) [:: ref List] = l
 set List(l1,_) = l

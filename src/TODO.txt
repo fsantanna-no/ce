@@ -1,4 +1,4 @@
-- show data
+- pool, new
 
 - match sem case
     match (=x,...) = 

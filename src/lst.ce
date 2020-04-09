@@ -1,24 +1,26 @@
+data List
+
 data List:
     Nil  = ()
-    Cons = ((), ref List)
+    Cons = ((), List)
 
 -- fail memory
 :
-    pool[1] lst1 :: List = new Cons (10, Cons (20, Cons (30, Nil)))
+    val[1] lst1 :: List = new Cons (10, Cons (20, Cons (30, Nil)))
     call show (lst1.Cons._1, lst1.Cons._2 is Nil?)
         -- 10, True
     -- deallocs lst1
 
 -- release memory
 :
-    pool[] lst2 :: List = new Cons (10, cons (20, Cons (30, Nil)))
+    val[] lst2 :: List = new Cons (10, cons (20, Cons (30, Nil)))
     set lst2.Cons._2 = Cons (50, Nil)
     call show (lst2.Cons._2.Cons._1)
         -- 50, deallocs 20,30
 
 -- traverse
 :
-    pool[] lst2 :: List = new <...>
+    val[] lst2 :: List = new <...>
 
     -- recursive function
     val sum = func :: List -> Int :
