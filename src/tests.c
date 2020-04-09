@@ -455,7 +455,7 @@ void t_code (void) {
         code(p);
         fclose(ALL.out);
         char* ret =
-            "#include \"ce.c\"\n"
+            "#include \"ce/ce.c\"\n"
             "int main (void) {\n"
             "\n"
             "int a;\n"

@@ -1,4 +1,5 @@
-- new Cons
+- ce0
+    - new in all constructors
 - show fields
 - valgrind --tool=memcheck --leak-check=full --track-origins=yes ./tests
 - f()()

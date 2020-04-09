@@ -494,7 +494,7 @@ void code_prog (int spc, Prog prog) {
 
 void code (Prog prog) {
     out (
-        "#include \"ce.c\"\n"
+        "#include \"ce/ce.c\"\n"
         "int main (void) {\n"
         "\n"
     );
