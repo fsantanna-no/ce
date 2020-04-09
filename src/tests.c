@@ -636,29 +636,32 @@ void t_all (void) {
         "call show_List(l)\n"
         "call show_Unit(n)"
     ));
+#if 0
     assert(all(
         "1\n",
         "data List\n"
         "data List:\n"
         "    Nil  = ()\n"
         "    Cons = ((), List)\n"
-        "val l :: List = new Cons((),new Cons((),new Cons((),new Nil)))\n"
+        "val l :: List = new Cons((),new Cons((),new Nil))\n"
         "val n :: () = case l:\n"
-        "    Cons(_,Cons(=x,_)) :: () -> x\n"
-        "call show_Bool(n)"
+        "    Cons(_,Cons(=x,_)) :: () -> x\n"   // TODO
+        "call show_Unit(n)"
     ));
+#endif
     assert(all(
-        "1\n",
+        "Tre\n",
         "data Nat:\n"
         "    One = ()\n"
         "    Two = ()\n"
         "    Tre = ()\n"
+        "data List\n"
         "data List:\n"
         "    Nil  = ()\n"
         "    Cons = (Nat, List)\n"
-        "val l :: List = Cons(Tre,Cons(Two,Cons(One,Nil)))\n"
+        "val l :: List = new Cons(Tre,new Cons(Two,new Cons(One,new Nil)))\n"
         "val n :: Nat = case l:\n"
-        "    List(=x,_) :: Nat -> x\n"
+        "    Cons(=x,_) :: Nat -> x\n"
         "call show_Nat(n)"
     ));
 }

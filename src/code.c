@@ -33,13 +33,9 @@ void code_type (Type tp) {
             break;
         case TYPE_DATA: {
             int is = is_rec(tp.Data.val.s);
-            if (is) {
-                out("struct ");
-            }
+            if (is) out("struct ");
             out(tp.Data.val.s);
-            if (is) {
-                out("*");
-            }
+            if (is) out("*");
             break;
         }
         case TYPE_TUPLE:
