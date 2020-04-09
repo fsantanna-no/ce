@@ -23,8 +23,8 @@ int all (const char* xp, char* src) {
         return !strcmp(ALL.err, xp);
     }
     code(prog);
+//puts(out);
     fclose(ALL.out);
-puts(out);
     remove("a.out");
     compile(out);
     FILE* f = popen("./a.out", "r");
@@ -110,7 +110,7 @@ void t_parser_datas (void) {
     {
         init(NULL, stropen("r", 0, "data Err"));
         Data dts;
-        assert(!parser_data(&dts));
+        assert(parser_data(&dts));
         assert(ALL.data_recs.size == 1);
         //assert(!strcmp(ALL.err, "(ln 1, col 9): expected `=` or `:` : have end of file"));
         fclose(ALL.inp);
@@ -503,6 +503,14 @@ void t_all (void) {
     ));
     assert(all(
         "True\n",
+        "data Bool:\n"
+        "    False = ()\n"
+        "    True  = ()\n"
+        "call show_Bool(True)\n"
+    ));
+    assert(all(
+        "True\n",
+        "data List\n"
         "data Bool:\n"
         "    False = ()\n"
         "    True  = ()\n"

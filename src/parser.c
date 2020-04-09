@@ -336,7 +336,8 @@ int parser_data (Data* ret) {
         // recursive pre declaration
         assert(ALL.data_recs.size < sizeof(ALL.data_recs.buf));
         ALL.data_recs.buf[ALL.data_recs.size++] = id;
-        return 0;   // behave as if it failed
+        *ret = (Data) { id, 0, NULL };
+        return 1;
     }
 
     *ret = (Data) { id, lst.size, lst.vec };

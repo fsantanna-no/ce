@@ -26,14 +26,31 @@ void code_ret (tce_ret* ret) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
+int is_rec (const char* v) {
+    for (int i=0; i<ALL.data_recs.size; i++) {
+        if (!strcmp(ALL.data_recs.buf[i].val.s, v)) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
 void code_type (Type tp) {
     switch (tp.sub) {
         case TYPE_UNIT:
             out("int");
             break;
-        case TYPE_DATA:
+        case TYPE_DATA: {
+            int is = is_rec(tp.Data.val.s);
+            if (is) {
+                out("struct ");
+            }
             out(tp.Data.val.s);
+            if (is) {
+                out("*");
+            }
             break;
+        }
         case TYPE_TUPLE:
             //out("\nstruct Tuple_XXX {\n");
             //out("}\n\n");
@@ -68,6 +85,12 @@ void code_data (Data data) {
     char SUP[256];
     assert(strlen(sup) < sizeof(SUP));
     strcpy(SUP, strupper(sup));
+
+    // only pre declaration
+    if (data.size == 0) {
+        fprintf(ALL.out, "struct %s;\n", sup);
+        return;
+    }
 
     for (int i=0; i<data.size; i++) {
         Cons cons = data.vec[i];

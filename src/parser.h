@@ -97,7 +97,7 @@ typedef struct {
 
 typedef struct {
     Tk    tk;
-    int   size;
+    int   size;     // size=0: recursive pre declaration
     Cons* vec;
 } Data;
 
