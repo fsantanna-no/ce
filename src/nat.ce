@@ -37,6 +37,7 @@ val v :: Nat = ...
     -- copy semantics, can share within same pool as well
     -- must respect scoping rules on *sharing*
     -- only discards after scope
+    -- (maybe also use ref count here?)
 
 mut x :: Nat = ...
     -- can change nodes
@@ -47,6 +48,8 @@ mut x :: Nat = ...
     -- discards on NIL
     -- with Céu semantics allow to hold pointer via watching
     --  (better, support frame linked list of refs)
+    --  (only (flat) locals, but not in nested structures?)
+    --  (diff to refcount is that 1-strong vs N-weak)
 
 -- In this paper, we explore the design space of dynamic recursive data
 -- structures (lists but not arrays)

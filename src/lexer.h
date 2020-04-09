@@ -38,6 +38,10 @@ typedef struct {
     FILE* inp;
     char  err[256];
     int   ind;
+    struct {
+        int size;
+        Tk  buf[256];
+    } data_recs;
 } State_All;
 
 typedef struct {

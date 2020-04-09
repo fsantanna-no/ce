@@ -1,4 +1,5 @@
-- pool, new
+- data w/o field to indicate recursive def
+- val[], new
 
 - match sem case
     match (=x,...) = 

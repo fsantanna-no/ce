@@ -79,7 +79,7 @@ int err_unexpected (const char* v) {
 ///////////////////////////////////////////////////////////////////////////////
 
 void init (FILE* out, FILE* inp) {
-    ALL = (State_All) { out,inp,{},0 };
+    ALL = (State_All) { out,inp,{},0,{0,{}} };
     NXT = (State_Tok) { -1,0,0,{} };
     if (inp != NULL) {
         pr_next();
@@ -333,7 +333,10 @@ int parser_data (Data* ret) {
     }
 
     if (!tp_ok && !lst_ok) {
-        return err_expected("`=` or `:`");
+        // recursive pre declaration
+        assert(ALL.data_recs.size < sizeof(ALL.data_recs.buf));
+        ALL.data_recs.buf[ALL.data_recs.size++] = id;
+        return 0;   // behave as if it failed
     }
 
     *ret = (Data) { id, lst.size, lst.vec };

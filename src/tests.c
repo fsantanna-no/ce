@@ -111,7 +111,8 @@ void t_parser_datas (void) {
         init(NULL, stropen("r", 0, "data Err"));
         Data dts;
         assert(!parser_data(&dts));
-        assert(!strcmp(ALL.err, "(ln 1, col 9): expected `=` or `:` : have end of file"));
+        assert(ALL.data_recs.size == 1);
+        //assert(!strcmp(ALL.err, "(ln 1, col 9): expected `=` or `:` : have end of file"));
         fclose(ALL.inp);
     }
     {
