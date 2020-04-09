@@ -499,6 +499,8 @@ void* parser_case_ (void) {
 }
 
 int parser_expr_one (Expr* ret) {
+    int is_line = (PRV.tk.sym==TK_LINE);
+
     // EXPR_RAW
     if (pr_accept(TK_RAW,1)) {
         *ret = (Expr) { EXPR_RAW, NULL, .Raw=PRV.tk };
@@ -612,6 +614,22 @@ int parser_expr_one (Expr* ret) {
         *pe = e;
 
         *ret = (Expr) { EXPR_CASES, NULL, .Cases={pe,lst.size,lst.vec} };
+
+    // EXPR_CALL
+    } else if (pr_accept(TK_CALL,1)) {
+        if (!is_line) {
+            return err_unexpected("`call`");    // use `call` only starting line
+        }
+        Expr func, arg;
+        if (!parser_expr_one(&func) || !parser_expr(&arg)) {
+            return 0;
+        }
+        Expr* p1 = malloc(sizeof(*p1));
+        Expr* p2 = malloc(sizeof(*p2));
+        assert(p1!=NULL && p2!=NULL);
+        *p1 = func;
+        *p2 = arg;
+        *ret = (Expr) { EXPR_CALL, NULL, .Call={p1,p2} };
     }
 
     return 1;
@@ -619,29 +637,26 @@ int parser_expr_one (Expr* ret) {
 
 int parser_expr (Expr* ret) {
     int is_line = (PRV.tk.sym==TK_LINE);
-    int is_call = pr_accept(TK_CALL,1);
-
-    if (is_call && !is_line) {
-        return err_unexpected("`call`");
-    }
 
     Expr e;
     if (!parser_expr_one(&e)) {
-        if (is_call) {
-            return err_expected("call expression");
-        }
+        return 0;
+    }
+    *ret = e;
+
+    if (pr_check('(',1) && is_line && e.sub!=EXPR_CALL) {
+        sprintf(ALL.err,
+            "(ln %ld, col %ld): expected `call` at the beginning of line",
+            NXT.lin, NXT.col
+        );
         return 0;
     }
 
-    // CALL
-    if (pr_check('(',1)) {
-        if (is_line && !is_call) {
-            sprintf(ALL.err,
-                "(ln %ld, col %ld): expected `call` at the beginning of line",
-                NXT.lin, NXT.col);
-            return 0;
+    // CALLS
+    while (1) {
+        if (!pr_check('(',1)) {
+            break;
         }
-
         Expr arg;
         if (!parser_expr(&arg)) {
             return 0;
@@ -650,18 +665,11 @@ int parser_expr (Expr* ret) {
         Expr* pe1 = malloc(sizeof(*pe1));
         Expr* pe2 = malloc(sizeof(*pe2));
         assert(pe1!=NULL && pe2!=NULL);
-        *pe1 = e;
+        *pe1 = *ret;
         *pe2 = arg;
         *ret = (Expr) { EXPR_CALL, NULL, .Call={pe1,pe2} };
-        return 1;
-    } else {
-        if (is_call) {
-            return err_expected("call argument");
-        }
     }
 
-    // SINGLE
-    *ret = e;
     return 1;
 }
 

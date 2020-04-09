@@ -1,3 +1,6 @@
+- valgrind --tool=memcheck --leak-check=full --track-origins=yes ./tests
+- f()()
+    - test multiple calls
 - data w/o field to indicate recursive def
 - val[], new
 
