@@ -206,7 +206,7 @@ void* parser_type_ (void) {
 }
 
 int parser_type (Type* ret) {
-    // EXPR_RAW
+    // TYPE_RAW
     if (pr_accept(TK_RAW,1)) {
         *ret = (Type) { TYPE_RAW, .Raw=PRV.tk };
 
@@ -267,8 +267,11 @@ void* parser_patt_ (void) {
 }
 
 int parser_patt (Patt* ret) {
+    // PATT_RAW
+    if (pr_accept(TK_RAW,1)) {
+        *ret = (Patt) { PATT_RAW, .Raw=PRV.tk };
     // PATT_UNIT
-    if (pr_accept('(',1)) {
+    } else if (pr_accept('(',1)) {
         if (pr_accept(')',1)) {
             *ret = (Patt) { PATT_UNIT, {} };
         } else {

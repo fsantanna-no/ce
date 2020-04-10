@@ -7,6 +7,7 @@ typedef enum {
 } TYPE;
 
 typedef enum {
+    PATT_RAW,
     PATT_UNIT,
     PATT_ARG,
     PATT_ANY,
@@ -108,6 +109,7 @@ typedef struct {
 typedef struct Patt {
     PATT sub;
     union {
+        Tk Raw;         // PATT_RAW
         Tk Set;         // PATT_SET
         struct {        // PATT_TUPLE
             int size;

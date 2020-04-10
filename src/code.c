@@ -181,6 +181,9 @@ void code_data (Data data) {
 
 void code_case_tst (Expr tst, Patt p) {
     switch (p.sub) {
+        case PATT_RAW:
+            out(p.Raw.val.s);
+            break;
         case PATT_ANY:
         case PATT_SET:
             out("1");

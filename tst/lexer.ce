@@ -10,7 +10,7 @@ data Tk:
 mut inp :: {char*}
 
 set stropen = func :: ({char*}, {size_t}, {char*}) -> {FILE*}: -- TODO: (mode::char*, ...)
-    let (mode,size,str) :: (...) = ...:
+    let (mode,size,str) :: ({char*}, {size_t}, {char*}) = ...:
         set size = case size:
             {0}  -> strlen (str)
             else -> size
