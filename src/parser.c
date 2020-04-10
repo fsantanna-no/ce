@@ -308,10 +308,7 @@ int parser_patt (Patt* ret) {
             *ret = (Patt) { PATT_CONS, .Cons={ret->Cons.data,parg} };
         }
     // PATT_SET
-    } else if (pr_accept('=',1)) {
-        if (!pr_accept(TK_IDVAR,1)) {
-            return err_expected("variable identifier");
-        }
+    } else if (pr_accept(TK_IDVAR,1)) {
         *ret = (Patt) { PATT_SET, .Set=PRV.tk };
     }
     return 1;
@@ -397,32 +394,56 @@ int parser_data (Data* ret) {
 ///////////////////////////////////////////////////////////////////////////////
 
 int parser_decl_nopre (Decl* decl) {
-    if (!pr_accept(TK_IDVAR,1)) {
-        return err_expected("variable identifier");
+    State_Tok BEF = PRV;
+
+    if (!parser_patt(&decl->vars)) {
+        return 0;
     }
-    decl->var = PRV.tk;
+    switch (decl->vars.sub) {
+        case PATT_TUPLE:
+            for (int i=0; i<decl->vars.Tuple.size; i++) {
+                if (decl->vars.Tuple.vec[i].sub != PATT_SET) {
+                    sprintf(ALL.err, "(ln %ld, col %ld): invalid pattern", BEF.lin, BEF.col);
+                    return 0;
+                }
+            }
+            break;      // OK
+        case PATT_SET:
+            break;      // OK
+        default:
+            sprintf(ALL.err, "(ln %ld, col %ld): invalid pattern", BEF.lin, BEF.col);
+            return 0;
+    }
 
     if (!pr_accept(TK_DECL,1)) {
         return err_expected("`::`");
     }
 
+    BEF = PRV;
+
     if (!parser_type(&decl->type)) {
         return 0;
     }
+    if (decl->vars.sub == PATT_TUPLE) {
+        if (decl->type.sub!=TYPE_TUPLE || decl->vars.Tuple.size!=decl->type.Tuple.size) {
+            sprintf(ALL.err, "(ln %ld, col %ld): invalid type", BEF.lin, BEF.col);
+            return 0;
+        }
+    }
 
     if (pr_accept('=',1)) {
-        Expr set;
-        if (!parser_expr(&set)) {
+        Expr init;
+        if (!parser_expr(&init)) {
             return 0;
         }
-        if (!parser_where(&set.decls)) {
+        if (!parser_where(&init.decls)) {
             return 0;
         }
-        decl->set = malloc(sizeof(*decl->set));
-        assert(decl->set != NULL);
-        *decl->set = set;
+        decl->init = malloc(sizeof(*decl->init));
+        assert(decl->init != NULL);
+        *decl->init = init;
     } else {
-        decl->set = NULL;
+        decl->init = NULL;
     }
 
     return 1;
@@ -637,7 +658,7 @@ int parser_expr_one (Expr* ret) {
         if (!parser_decl_nopre(&d)) {
             return 0;
         }
-        if (d.set == NULL) {
+        if (d.init == NULL) {
             return err_expected("`=`");
         }
 

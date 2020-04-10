@@ -459,11 +459,11 @@ void code_expr (int spc, Expr e, tce_ret* ret) {
 void code_decl (int spc, Decl d) {
     code_type(d.type);
     out(" ");
-    out(d.var.val.s);
+    out(d.vars.Set.val.s);
     out(";\n");
-    if (d.set != NULL) {
-        tce_ret r = { d.var.val.s, NULL };
-        code_expr(spc, *d.set, &r);
+    if (d.init != NULL) {
+        tce_ret r = { d.vars.Set.val.s, NULL };
+        code_expr(spc, *d.init, &r);
         code_spc(spc);
         out(";\n");
     }

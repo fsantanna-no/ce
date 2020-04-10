@@ -361,7 +361,7 @@ void t_parser_decls (void) {
         Decls ds;
         assert(parser_decls(&ds));
         assert(ds.size == 1);
-        assert(!strcmp(ds.vec[0].var.val.s, "a"));
+        assert(!strcmp(ds.vec[0].vars.Set.val.s, "a"));
         assert(ds.vec[0].type.sub == TYPE_UNIT);
         fclose(ALL.inp);
     }
@@ -370,9 +370,20 @@ void t_parser_decls (void) {
         Decls ds;
         assert(parser_decls(&ds));
         assert(ds.size == 1);
-        assert(!strcmp(ds.vec[0].var.val.s, "a"));
+        assert(!strcmp(ds.vec[0].vars.Set.val.s, "a"));
         assert(ds.vec[0].type.sub == TYPE_RAW);
         assert(!strcmp(ds.vec[0].type.Raw.val.s,"char"));
+        fclose(ALL.inp);
+    }
+    {
+        init(NULL, stropen("r", 0, ":\n    val (a,b) :: ((),{char})\n    val x :: ()"));
+        Decls ds;
+        assert(parser_decls(&ds));
+        assert(ds.size == 2);
+        assert(!strcmp(ds.vec[0].vars.Tuple.vec[0].Set.val.s, "a"));
+        assert(ds.vec[0].type.sub == TYPE_TUPLE);
+        assert(!strcmp(ds.vec[0].type.Tuple.vec[1].Raw.val.s,"char"));
+        assert(ds.vec[1].type.sub == TYPE_UNIT);
         fclose(ALL.inp);
     }
     {
@@ -451,9 +462,9 @@ void t_code (void) {
             e.Var.sym = TK_IDVAR;
             strcpy(e.Var.val.s, "xxx");
         Decl d;
-            d.set = NULL;
-            d.var.sym = TK_IDVAR;
-            strcpy(d.var.val.s, "xxx");
+            d.init = NULL;
+            d.vars.Set.sym = TK_IDVAR;
+            strcpy(d.vars.Set.val.s, "xxx");
             d.type.sub = TYPE_UNIT;
         e.decls = (Decls) { 1, &d };
         // xxx: xxx::()
@@ -596,30 +607,30 @@ void t_all (void) {
         "data Vv Bool\n"
         "val v :: Vv = Vv(True)\n"
         "val b :: Bool = case v:\n"
-        "    Vv(False)      -> False\n"
-        "    Vv(=x) :: Bool -> x\n"
+        "    Vv(False)     -> False\n"
+        "    Vv(x) :: Bool -> x\n"
         "call show_Bool(b)"
     ));
     assert(all(
         "()\n",
         "val i :: ((),()) = ((),())\n"
         "case i:\n"
-        "    (=x,_) :: () -> show_Unit(x)"
+        "    (x,_) :: () -> show_Unit(x)"
     ));
     assert(all(
         "()\n",
         "val i :: ((),((),())) = ((),((),()))\n"
         "case i:\n"
-        "    (_,(=x,_)) :: () -> show_Unit(x)"
+        "    (_,(x,_)) :: () -> show_Unit(x)"
     ));
     assert(all(
         "()\n",
         "val i :: ((),((),())) = ((),((),()))\n"
         "val j :: ((),((),())) = i\n"
         "val v :: () = case j:\n"
-        "    ((),=x) :: ((),()) -> y where:\n"
+        "    ((),x) :: ((),()) -> y where:\n"
         "        val y :: () = case x:\n"
-        "            ((),=z) :: () -> z\n"
+        "            ((),z) :: () -> z\n"
         "call show_Unit(v)"
     ));
     assert(all(
@@ -627,16 +638,16 @@ void t_all (void) {
         "val i :: ((),((),())) = ((),((),()))\n"
         "val j :: ((),((),())) = i\n"
         "val v :: () = case j:\n"
-        "    (=x,(_,=z)) :: ((),()) -> y where:\n"
+        "    (x,(_,z)) :: ((),()) -> y where:\n"
         "        val y :: () = case (x,z):\n"
-        "            ((),=a) :: () -> a\n"
+        "            ((),a) :: () -> a\n"
         "call show_Unit(v)"
     ));
     assert(all(
         "()\n",
         "data Pair ((),())\n"
         "val n :: () = case Pair ((),()):\n"
-        "    Pair (=x,_) :: () -> x\n"
+        "    Pair (x,_) :: () -> x\n"
         "call show_Unit(n)"
     ));
     assert(all(
@@ -646,7 +657,7 @@ void t_all (void) {
         "    True  ()\n"
         "data Pair (Bool,Bool)\n"
         "val n :: Bool = case Pair (True,False):\n"
-        "    Pair (=x,_) :: Bool -> x\n"
+        "    Pair (x,_) :: Bool -> x\n"
         "call show_Bool(n)"
     ));
     assert(all(
@@ -666,7 +677,7 @@ void t_all (void) {
         "    Cons ((), List)\n"
         "val l :: List = new Cons((),new Nil)\n"
         "val n :: () = case l:\n"
-        "    Cons(=x,_) :: () -> x\n"
+        "    Cons(x,_) :: () -> x\n"
         "call show_List(l)\n"
         "call show_Unit(n)"
     ));
@@ -695,7 +706,7 @@ void t_all (void) {
         "    Cons (Nat, List)\n"
         "val l :: List = new Cons(Tre,new Cons(Two,new Cons(One,new Nil)))\n"
         "val n :: Nat = case l:\n"
-        "    Cons(=x,_) :: Nat -> x\n"
+        "    Cons(x,_) :: Nat -> x\n"
         "call show_Nat(n)"
     ));
 }

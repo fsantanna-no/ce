@@ -45,30 +45,30 @@ typedef enum {
 
 /*
  *
- * Cons  ::= <Id> `=` Type
+ * Prog  ::= { Data | Decl | Expr }
+ *
  * Data  ::= data <Id> [`=` Type] [`:` { Cons }]
+ * Cons  ::= <Id> `=` Type
  *
  * Type  ::= `(` `)` | <Id>
  *        |  Type `->` Type
  *        | `(` Type { `,` Type } `)`
  *        | `(` Type `)`
  *
- * Decl  ::= <id> `::` Type [`=` Expr [Where]]
+ * Decl  ::= (val | mut) Patt `::` Type [`=` Expr [Where]]
  * Where ::= where `:` { Decl }
  *
- * Patt  ::=  `(` `)` | `...` | `_`
- *        |   <Id> [ `(` Patt `)`
- *        |   `=` <id>
- *        |   `~` Expr
+ * Patt  ::=  `(` `)` | `_` | <id>
+ *        |   <Id> [ `(` Patt `)` ]
  *        |   `(` Patt { `,` Patt } `)`
  *
- * Expr  ::= `(` `)` | <id>
+ * Expr  ::= `(` `)` | `...` | <id>
  *        |  <Id> [`(` Expr `)`]
  *        |  set <id> `=` Expr
  *        |  func `::` Type Expr [Where]
  *        |  case Expr `:` { Patt [`::` Type] [`->`] Expr [Where] }
  *        |  `:` { Expr [Where] }   // sequence
- *        |  let <id> `::` Type `=` Expr [`->`] Expr
+ *        |  let Decl [`->`] Expr
  *        |  Expr `(` Expr `)`      // call
  *        | `(` Expr { `,` Expr } `)`
  *        | `(` Expr `)`
@@ -105,17 +105,6 @@ typedef struct {
     Cons* vec;
 } Data;
 
-typedef struct {
-    Tk   var;
-    Type type;
-    struct Expr* set;
-} Decl;
-
-typedef struct {
-    int   size;
-    Decl* vec;
-} Decls;
-
 typedef struct Patt {
     PATT sub;
     union {
@@ -130,6 +119,17 @@ typedef struct Patt {
         } Cons;
     };
 } Patt;
+
+typedef struct {
+    Patt vars;
+    Type type;
+    struct Expr* init;
+} Decl;
+
+typedef struct {
+    int   size;
+    Decl* vec;
+} Decls;
 
 typedef struct {
     Patt  patt;
