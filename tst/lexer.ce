@@ -1,8 +1,8 @@
 
 { typedef char Tk_s[256] }
 
-data Tk = ({int},{Tk_s}):
-    Tk_ERR = ()
+data Tk ({int},{Tk_s}):
+    Tk_ERR ()               -- TODO: optional ()
 
 mut :: {char*} inp
 

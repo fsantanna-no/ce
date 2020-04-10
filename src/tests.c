@@ -366,6 +366,16 @@ void t_parser_decls (void) {
         fclose(ALL.inp);
     }
     {
+        init(NULL, stropen("r", 0, ":\n    val a :: {char}"));
+        Decls ds;
+        assert(parser_decls(&ds));
+        assert(ds.size == 1);
+        assert(!strcmp(ds.vec[0].var.val.s, "a"));
+        assert(ds.vec[0].type.sub == TYPE_RAW);
+        assert(!strcmp(ds.vec[0].type.Raw.val.s,"char"));
+        fclose(ALL.inp);
+    }
+    {
         init(NULL, stropen("r", 0, ":\n    val a :: (x)"));
         Decls ds;
         assert(!parser_decls(&ds));

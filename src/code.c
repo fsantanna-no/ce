@@ -28,6 +28,9 @@ void code_ret (tce_ret* ret) {
 
 void code_type (Type tp) {
     switch (tp.sub) {
+        case TYPE_RAW:
+            out(tp.Raw.val.s);
+            break;
         case TYPE_UNIT:
             out("int");
             break;

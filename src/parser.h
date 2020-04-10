@@ -1,4 +1,5 @@
 typedef enum {
+    TYPE_RAW,
     TYPE_UNIT,
     TYPE_DATA,
     TYPE_FUNC,
@@ -78,6 +79,7 @@ struct Expr;
 typedef struct Type {
     TYPE sub;
     union {
+        Tk Raw;
         Tk Data;
         struct {        // TYPE_FUNC
             struct Type* inp;
