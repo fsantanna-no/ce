@@ -43,15 +43,24 @@ void pr_next () {
     long off = ftell(ALL.inp);
     Tk   tk  = lexer();
 
-    // skip comments
-    while (tk.sym == TK_COMMENT) {
-        tk = lexer();
-    }
-
     int lns = 0;
-    while (PRV.tk.sym==TK_LINE && tk.sym==TK_LINE && tk.val.n==0) {
-        tk = lexer();
-        lns++;  // skip empty line
+    int ok  = 0;
+    while (!ok) {
+        ok = 1;
+
+        // skip comments
+        if (tk.sym == TK_COMMENT) {
+            off = ftell(ALL.inp);
+            tk  = lexer();
+            ok  = 0;
+        }
+
+        // skip empty line
+        if (PRV.tk.sym==TK_LINE && tk.sym==TK_LINE && tk.val.n==0) {
+            tk = lexer();
+            lns++;  // but count it
+            ok  = 0;
+        }
     }
 
     if (PRV.off == -1) {
