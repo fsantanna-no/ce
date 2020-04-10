@@ -141,7 +141,7 @@ void t_parser_datas (void) {
         fclose(ALL.inp);
     }
     {
-        init(NULL, stropen("r", 0, "data Km = ()"));
+        init(NULL, stropen("r", 0, "data Km ()"));
         Data dts;
         parser_data(&dts);
         assert(dts.size == 1);
@@ -151,7 +151,7 @@ void t_parser_datas (void) {
         fclose(ALL.inp);
     }
     {
-        init(NULL, stropen("r", 0, "data Bool:\n    False = ()\n    True = ()"));
+        init(NULL, stropen("r", 0, "data Bool:\n    False ()\n    True ()"));
         Data dts;
         parser_data(&dts);
         assert(dts.size == 2);
@@ -166,7 +166,7 @@ void t_parser_datas (void) {
 #if 0
     // TODO: both at same time
     {
-        init(NULL, stropen("r", 0, "data Ast = Int:\n    Expr = Int\n    Decl = ()"));
+        init(NULL, stropen("r", 0, "data Ast (Int):\n    Expr Int\n    Decl ()"));
         Data dts;
         parser_data(&dts);
         assert(dts.size == 2);
@@ -479,8 +479,8 @@ void t_code (void) {
             stropen("w", sizeof(out), out),
             stropen("r", 0,
                 "data Bool:\n"
-                "    False = ()\n"
-                "    True = ()"
+                "    False ()\n"
+                "    True ()"
             )
         );
         Data d;
@@ -529,23 +529,23 @@ void t_all (void) {
     assert(all(
         "True\n",
         "data Bool:\n"
-        "    False = ()\n"
-        "    True  = ()\n"
+        "    False ()\n"
+        "    True  ()\n"
         "call show_Bool(True)\n"
     ));
     assert(all(
         "True\n",
         "data List\n"
         "data Bool:\n"
-        "    False = ()\n"
-        "    True  = ()\n"
+        "    False ()\n"
+        "    True  ()\n"
         "call show_Bool(True)\n"
     ));
     assert(all(
         "False\n",
         "data Bool:\n"
-        "    False = ()\n"
-        "    True  = ()\n"
+        "    False ()\n"
+        "    True  ()\n"
         "mut v :: Bool\n"
         "set v = case ():\n"
         "    ()   -> False\n"
@@ -555,8 +555,8 @@ void t_all (void) {
     assert(all(
         "False\n",
         "data Bool:\n"
-        "    False = ()\n"
-        "    True  = ()\n"
+        "    False ()\n"
+        "    True  ()\n"
         "set inv = func :: Bool -> Bool :\n"
         "    case ...:\n"
         "        False -> True\n"
@@ -566,9 +566,9 @@ void t_all (void) {
     assert(all(
         "True\n",
         "data Bool:\n"
-        "    False = ()\n"
-        "    True  = ()\n"
-        "data Vv = Bool\n"
+        "    False ()\n"
+        "    True  ()\n"
+        "data Vv Bool\n"
         "val v :: Vv = Vv(True)\n"
         "val b :: Bool = case v:\n"
         "    Vv(False)      -> False\n"
@@ -609,7 +609,7 @@ void t_all (void) {
     ));
     assert(all(
         "()\n",
-        "data Pair = ((),())\n"
+        "data Pair ((),())\n"
         "val n :: () = case Pair ((),()):\n"
         "    Pair (=x,_) :: () -> x\n"
         "call show_Unit(n)"
@@ -617,9 +617,9 @@ void t_all (void) {
     assert(all(
         "True\n",
         "data Bool:\n"
-        "    False = ()\n"
-        "    True  = ()\n"
-        "data Pair = (Bool,Bool)\n"
+        "    False ()\n"
+        "    True  ()\n"
+        "data Pair (Bool,Bool)\n"
         "val n :: Bool = case Pair (True,False):\n"
         "    Pair (=x,_) :: Bool -> x\n"
         "call show_Bool(n)"
@@ -628,8 +628,8 @@ void t_all (void) {
         "Nil\n",
         "data List\n"
         "data List:\n"
-        "    Nil  = ()\n"
-        "    Cons = ((), List)\n"
+        "    Nil  ()\n"
+        "    Cons ((), List)\n"
         "val l :: List = new Nil\n"
         "call show_List(l)"
     ));
@@ -637,8 +637,8 @@ void t_all (void) {
         "Cons\n()\n",
         "data List\n"
         "data List:\n"
-        "    Nil  = ()\n"
-        "    Cons = ((), List)\n"
+        "    Nil  ()\n"
+        "    Cons ((), List)\n"
         "val l :: List = new Cons((),new Nil)\n"
         "val n :: () = case l:\n"
         "    Cons(=x,_) :: () -> x\n"
@@ -650,8 +650,8 @@ void t_all (void) {
         "1\n",
         "data List\n"
         "data List:\n"
-        "    Nil  = ()\n"
-        "    Cons = ((), List)\n"
+        "    Nil  ()\n"
+        "    Cons ((), List)\n"
         "val l :: List = new Cons((),new Cons((),new Nil))\n"
         "val n :: () = case l:\n"
         "    Cons(_,Cons(=x,_)) :: () -> x\n"   // TODO
@@ -661,13 +661,13 @@ void t_all (void) {
     assert(all(
         "Tre\n",
         "data Nat:\n"
-        "    One = ()\n"
-        "    Two = ()\n"
-        "    Tre = ()\n"
+        "    One ()\n"
+        "    Two ()\n"
+        "    Tre ()\n"
         "data List\n"
         "data List:\n"
-        "    Nil  = ()\n"
-        "    Cons = (Nat, List)\n"
+        "    Nil  ()\n"
+        "    Cons (Nat, List)\n"
         "val l :: List = new Cons(Tre,new Cons(Two,new Cons(One,new Nil)))\n"
         "val n :: Nat = case l:\n"
         "    Cons(=x,_) :: Nat -> x\n"

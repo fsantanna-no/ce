@@ -311,11 +311,6 @@ void* parser_cons_ (void) {
     }
     c.tk = PRV.tk;
 
-    if (!pr_accept('=',1)) {
-        err_expected("`=`");
-        return NULL;
-    }
-
     if (!parser_type(&c.type)) {
         return NULL;
     }
@@ -334,10 +329,7 @@ int parser_data (Data* ret) {
     Tk id = PRV.tk;
 
     Type tp;
-    int tp_ok = pr_accept('=', 1);
-    if (tp_ok) {
-        parser_type(&tp);
-    }
+    int tp_ok = parser_type(&tp);
 
     List lst = { 0, NULL };
     int lst_ok = pr_check(':', 1);
