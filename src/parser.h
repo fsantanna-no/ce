@@ -68,6 +68,7 @@ typedef enum {
  *        |  func `::` Type Expr [Where]
  *        |  case Expr `:` { Patt [`::` Type] [`->`] Expr [Where] }
  *        |  `:` { Expr [Where] }   // sequence
+ *        |  let <id> `::` Type `=` Expr [`->`] Expr
  *        |  Expr `(` Expr `)`      // call
  *        | `(` Expr { `,` Expr } `)`
  *        | `(` Expr `)`
@@ -137,8 +138,8 @@ typedef struct {
 } Case;
 
 typedef struct Expr {
-    EXPR   sub;
-    Decls* decls;
+    EXPR  sub;
+    Decls decls;
     union {
         Tk Raw;
         Tk Unit;
@@ -206,6 +207,6 @@ int parser_type  (Type*  ret);
 int parser_data  (Data*  ret);
 int parser_decls (Decls* ret);
 int parser_patt  (Patt*  ret);
-int parser_where (Decls** ds);
+int parser_where (Decls* ds);
 int parser_expr  (Expr*  ret);
-int parser_prog  (Prog* prog);
+int parser_prog  (Prog*  prog);

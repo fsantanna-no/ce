@@ -7,11 +7,15 @@
 data Tk:
     Tk_ERR ({int},{Tk_s})
 
-mut :: {char*} inp
+mut inp :: {char*}
 
-t_lexer :: () -> () = func :: () -> ():
-    set inp = {stropen ("r", 0, "-- foobar")
-    call assert (tk._1 is ?)
-    let tk :: Tk = lexer():
+val t_lexer :: () -> () = func :: () -> ():
+    :
+        set inp = {stropen ("r", 0, "-- foobar")}
+        let tk :: Tk = lexer():             -- TODO: optional [tk :: Tk =] (assume it)
+            call assert (ok) where:
+                val ok :: {int} = case tk:
+                    Tk_COMMENT (_) -> {1}
+                    else           -> {0}
 
 call t_lexer ()

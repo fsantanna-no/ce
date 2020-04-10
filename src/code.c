@@ -281,10 +281,10 @@ void code_case_vars (Tk* vars, int* vars_i, Patt patt) {
 }
 
 void code_case (int spc, Expr tst, Case c, tce_ret* ret) {
-    Expr star = (Expr) { EXPR_VAR, NULL, .Var=(Tk){'*',{.s="*"}} };
+    Expr star = (Expr) { EXPR_VAR, {.size=0}, .Var=(Tk){'*',{.s="*"}} };
     Expr old  = tst;
     if (c.patt.sub==PATT_CONS && is_rec(c.patt.Cons.data.val.s)) {
-        tst = (Expr) { EXPR_CALL, NULL, .Call={&star,&old} };
+        tst = (Expr) { EXPR_CALL, {.size=0}, .Call={&star,&old} };
     }
 
     out("if (");
@@ -322,10 +322,10 @@ void code_case (int spc, Expr tst, Case c, tce_ret* ret) {
 ///////////////////////////////////////////////////////////////////////////////
 
 void code_expr (int spc, Expr e, tce_ret* ret) {
-    if (e.decls != NULL) {
+    if (e.decls.size > 0) {
         code_spc(spc-4);
         out("{\n");
-        code_decls(spc, *e.decls);
+        code_decls(spc, e.decls);
     }
     switch (e.sub) {
         case EXPR_RAW:
@@ -446,7 +446,7 @@ void code_expr (int spc, Expr e, tce_ret* ret) {
 //printf("%d\n", e.sub);
             assert(0 && "TODO");
     }
-    if (e.decls != NULL) {
+    if (e.decls.size > 0) {
         out(";\n");
         code_spc(spc-4);
         out("}\n");

@@ -403,10 +403,10 @@ void t_parser_block (void) {
         assert(parser_expr(&e));
         assert(e.sub == EXPR_SEQ);
         assert(e.Seq.size == 2);
-        assert(e.Seq.vec[0].decls != NULL);
-        assert(e.Seq.vec[1].decls != NULL);
-        assert(e.Seq.vec[0].decls->size == 1);
-        assert(e.Seq.vec[1].decls->size == 1);
+        assert(e.Seq.vec[0].decls.size > 0);
+        assert(e.Seq.vec[1].decls.size > 0);
+        assert(e.Seq.vec[0].decls.size == 1);
+        assert(e.Seq.vec[1].decls.size == 1);
         fclose(ALL.inp);
     }
     {
@@ -420,7 +420,7 @@ void t_parser_block (void) {
         assert(parser_expr(&e));
         assert(e.sub == EXPR_VAR);
         assert(parser_where(&e.decls));
-        assert(e.decls->size == 2);
+        assert(e.decls.size == 2);
         fclose(ALL.inp);
     }
 }
@@ -437,7 +437,7 @@ void t_code (void) {
     {
         char out[256];
         init(stropen("w",sizeof(out),out), NULL);
-        Expr e = { EXPR_VAR, NULL, {} };
+        Expr e = { EXPR_VAR, {.size=0}, {} };
             e.Var.sym = TK_IDVAR;
             strcpy(e.Var.val.s, "xxx");
         code_expr(0, e, NULL);
@@ -447,7 +447,7 @@ void t_code (void) {
     {
         char out[256];
         init(stropen("w",sizeof(out),out), NULL);
-        Expr e = { EXPR_VAR, NULL, {} };
+        Expr e = { EXPR_VAR, {.size=0}, {} };
             e.Var.sym = TK_IDVAR;
             strcpy(e.Var.val.s, "xxx");
         Decl d;
@@ -455,8 +455,7 @@ void t_code (void) {
             d.var.sym = TK_IDVAR;
             strcpy(d.var.val.s, "xxx");
             d.type.sub = TYPE_UNIT;
-        Decls ds = { 1, &d };
-        e.decls = &ds;
+        e.decls = (Decls) { 1, &d };
         // xxx: xxx::()
         tce_ret ret = { "ret", NULL };
         code_expr(0, e, &ret);
@@ -535,6 +534,23 @@ void t_all (void) {
     assert(all(
         "1\n",
         "mut a :: ()\nset a = ()\n{ printf(\"%d\\n\",a) }\n"
+    ));
+puts("======");
+    assert(all(
+        "1\n",
+        "let a :: () = ():\n    { printf(\"%d\\n\",a) }\n"
+    ));
+    assert(all(
+        "99\n",
+        "val b :: () = let a :: {int} = {99}:\n    {1}\n    a\n{ printf(\"%d\\n\",b) }"
+    ));
+    assert(all(
+        "99\n",
+        "val b :: () = let it :: {int} -> it\n{ printf(\"%d\\n\",b) }\n"
+    ));
+    assert(all(
+        "99\n",
+        "val b :: () = let it :: {int} = {99} -> it\n{ printf(\"%d\\n\",b) }\n"
     ));
     assert(all(
         "True\n",
