@@ -463,12 +463,14 @@ void t_code (void) {
             strcpy(e.Var.val.s, "xxx");
         Decl d;
             d.init = NULL;
+            d.vars.sub = PATT_SET;
             d.vars.Set.sym = TK_IDVAR;
             strcpy(d.vars.Set.val.s, "xxx");
             d.type.sub = TYPE_UNIT;
         e.decls = (Decls) { 1, &d };
         // xxx: xxx::()
-        tce_ret ret = { "ret", NULL };
+        Patt pt = (Patt){PATT_SET,.Set={TK_IDVAR,{.s="ret"}}};
+        tce_ret ret = { &pt, NULL };
         code_expr(0, e, &ret);
         fclose(ALL.out);
         assert(!strcmp(out,"{\nint xxx;\nret = *(typeof(ret)*) &xxx;\n}\n"));
@@ -561,6 +563,10 @@ void t_all (void) {
     assert(all(
         "99\n",
         "val b :: () = let it :: {int} = {99} -> it\n{ printf(\"%d\\n\",b) }\n"
+    ));
+    assert(all(
+        "99\n",
+        "let (a,b) :: ((),{int}) = ((),{99}):\n    { printf(\"%d\\n\",b) }\n"
     ));
     assert(all(
         "True\n",

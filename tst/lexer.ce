@@ -14,8 +14,7 @@ set stropen = func :: ({char*}, {size_t}, {char*}) -> {FILE*}: -- TODO: (mode::c
         set size = case size:
             {0}  -> strlen (str)
             else -> size
-        fmemopen (str,size,mode);
-}
+        call fmemopen (str,size,mode)
 
 set t_lexer = func :: () -> ():             -- TODO: func t_lexer ::
     :

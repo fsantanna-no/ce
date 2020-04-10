@@ -1,5 +1,5 @@
 typedef struct tce_ret {
-    const char*     val;
+    Patt* patt;
     struct tce_ret* nxt;
 } tce_ret;
 

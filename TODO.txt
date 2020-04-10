@@ -1,4 +1,5 @@
-- let w/ multiple vars
+- ret w/ patt w/ multivars
+- a ~ b ? x else y
 - show fields
 - valgrind --tool=memcheck --leak-check=full --track-origins=yes ./tests
 - f()()

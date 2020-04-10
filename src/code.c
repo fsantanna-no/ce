@@ -18,7 +18,7 @@ void code_spc (int spc) {
 
 void code_ret (tce_ret* ret) {
     while (ret != NULL) {
-        out(ret->val);
+        out(ret->patt->Set.val.s);
         out(" = ");
         ret = ret->nxt;
     }
@@ -223,6 +223,7 @@ void code_case_tst (Expr tst, Patt p) {
 
 void code_case_set (int spc, Expr tst, Patt p) {
     switch (p.sub) {
+        case PATT_RAW:
         case PATT_ANY:
         case PATT_UNIT:
             break;
@@ -261,6 +262,7 @@ void code_case_set (int spc, Expr tst, Patt p) {
 
 void code_case_vars (Tk* vars, int* vars_i, Patt patt) {
     switch (patt.sub) {
+        case PATT_RAW:
         case PATT_ANY:
         case PATT_UNIT:
             break;
@@ -347,7 +349,7 @@ void code_expr (int spc, Expr e, tce_ret* ret) {
             code_ret(ret);
             if (ret != NULL) {
                 out("*(typeof(");
-                out(ret->val);
+                out(ret->patt->Set.val.s);
                 out(")*) &");
             }
             out(e.Var.val.s);
@@ -368,7 +370,8 @@ void code_expr (int spc, Expr e, tce_ret* ret) {
             out("; ptr; })");
             break;
         case EXPR_SET: {
-            tce_ret r = { e.Set.var.val.s, ret };
+            Patt pt = (Patt) { PATT_SET, .Set=e.Set.var };
+            tce_ret r = { &pt, ret };
             code_expr(spc, *e.Set.val, &r);
             break;
         }
@@ -383,7 +386,7 @@ void code_expr (int spc, Expr e, tce_ret* ret) {
             code_ret(ret);
             if (ret != NULL) {
                 out("(typeof(");
-                out(ret->val);
+                out(ret->patt->Set.val.s);
                 out(")) ");
             }
             out("{ ");
@@ -401,14 +404,15 @@ void code_expr (int spc, Expr e, tce_ret* ret) {
             out("\n");
             code_type(*e.Func.type.Func.out);
                 out(" ");
-                out(ret->val);
+                out(ret->patt->Set.val.s);
                 out(" (");
                 code_type(*e.Func.type.Func.inp);
             out(" ce_arg) {\n");
                 code_spc(spc+4);
                 code_type(*e.Func.type.Func.out);
                 out(" ce_ret;\n");
-                tce_ret r = { "ce_ret", NULL };
+                Patt pt = (Patt){PATT_SET,.Set={TK_IDVAR,{.s="ce_ret"}}};
+                tce_ret r = { &pt, NULL };
                 code_expr(spc+4, *e.Func.body, &r);
                 code_spc(spc+4);
                 out("return ce_ret;\n");
@@ -460,12 +464,25 @@ void code_expr (int spc, Expr e, tce_ret* ret) {
 ///////////////////////////////////////////////////////////////////////////////
 
 void code_decl (int spc, Decl d) {
-    code_type(d.type);
-    out(" ");
-    out(d.vars.Set.val.s);
-    out(";\n");
+    if (d.vars.sub == PATT_SET) {
+        //code_spc(spc+4);
+        code_type(d.type);
+        out(" ");
+        out(d.vars.Set.val.s);
+        out(";\n");
+    } else {
+        for (int i=0; i<d.vars.Tuple.size; i++) {
+            //code_spc(spc+4);
+            code_type(d.type.Tuple.vec[i]);
+            out(" ");
+            out(d.vars.Tuple.vec[i].Set.val.s);
+            out(";\n");
+        }
+    }
     if (d.init != NULL) {
-        tce_ret r = { d.vars.Set.val.s, NULL };
+        Patt pt = (Patt){PATT_SET,.Set=d.vars.Set};
+        tce_ret r = { &pt, NULL };
+        //code_spc(spc+4);
         code_expr(spc, *d.init, &r);
         code_spc(spc);
         out(";\n");
