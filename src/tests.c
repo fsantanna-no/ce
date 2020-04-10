@@ -535,7 +535,6 @@ void t_all (void) {
         "1\n",
         "mut a :: ()\nset a = ()\n{ printf(\"%d\\n\",a) }\n"
     ));
-puts("======");
     assert(all(
         "1\n",
         "let a :: () = ():\n    { printf(\"%d\\n\",a) }\n"
@@ -546,7 +545,7 @@ puts("======");
     ));
     assert(all(
         "99\n",
-        "val b :: () = let it :: {int} -> it\n{ printf(\"%d\\n\",b) }\n"
+        "val b :: () = let it :: {int} = {99} -> it\n{ printf(\"%d\\n\",b) }\n"
     ));
     assert(all(
         "99\n",

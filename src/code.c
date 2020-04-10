@@ -415,6 +415,7 @@ void code_expr (int spc, Expr e, tce_ret* ret) {
             for (int i=0; i<e.Seq.size; i++) {
                 code_spc(spc);
                 code_expr(spc, e.Seq.vec[i], (i==e.Seq.size-1) ? ret : NULL);
+                out(";\n");
             }
             break;
         case EXPR_CASES:
