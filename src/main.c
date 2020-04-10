@@ -1,27 +1,54 @@
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
+#include <stdlib.h>
 
 #include "lexer.h"
 #include "parser.h"
 #include "code.h"
 
+enum {
+    MODE_CODE,
+    MODE_EXE
+} MODE;
+
 int main (int argc, char* argv[]) {
-    assert(argc == 2);
+    char* inp = NULL;
+    char* out = "ce.out";
+    int mode = MODE_EXE;
 
-    FILE* fsrc = fopen(argv[1], "r");
-    //FILE* fgcc = fopen("/tmp/x.c", "w");
-    FILE* fgcc = popen("gcc -xc -", "w");
-    assert(fsrc!=NULL && fgcc!=NULL);
+    for (int i=1; i<argc; i++) {
+        if (!strcmp(argv[i], "-o")) {
+            out = argv[++i];
+        } else if (!strcmp(argv[i], "-c")) {
+            mode = MODE_CODE;
+        } else {
+            inp = argv[i];
+        }
+    }
+    assert(inp != NULL);
+    assert(strlen(out) < 64);
 
-    init(fgcc, fsrc);
+    FILE* finp = fopen(inp, "r");
+    FILE* fout; {
+        if (mode == MODE_CODE) {
+            fout = fopen(out, "w");
+        } else {
+            char gcc[128];
+            sprintf(gcc, "gcc -o %s -xc -", out);
+            fout = popen(gcc, "w");
+        }
+    }
+    assert(finp!=NULL && fout!=NULL);
+
+    init(fout, finp);
 
     Prog prog;
     if (!parser_prog(&prog)) {
         fprintf(stderr, "%s\n", ALL.err);
-        fclose(fsrc);
-        fclose(fgcc);
-        return -1;
+        fclose(finp);
+        fclose(fout);
+        exit(EXIT_FAILURE);
     }
     code(prog);
 
