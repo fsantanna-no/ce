@@ -43,6 +43,11 @@ void pr_next () {
     long off = ftell(ALL.inp);
     Tk   tk  = lexer();
 
+    // skip comments
+    while (tk.sym == TK_COMMENT) {
+        tk = lexer();
+    }
+
     int lns = 0;
     while (PRV.tk.sym==TK_LINE && tk.sym==TK_LINE && tk.val.n==0) {
         tk = lexer();
