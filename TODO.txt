@@ -1,13 +1,8 @@
-- main optparse
-- lexer.ce
-    - is
-- ce0
-    - new in all constructors
+- let w/ multiple vars
 - show fields
 - valgrind --tool=memcheck --leak-check=full --track-origins=yes ./tests
 - f()()
     - test multiple calls
-- data w/o field to indicate recursive def
 - val[], new
 
 - match sem case
