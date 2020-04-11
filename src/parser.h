@@ -62,6 +62,7 @@ typedef enum {
  * Where ::= where `:` { Decl }
  *
  * Patt  ::=  `(` `)` | `_` | <id>
+ *        |   `~` Expr
  *        |   <Id> [ `(` Patt `)` ]
  *        |   `(` Patt { `,` Patt } `)`
  *
@@ -111,13 +112,14 @@ typedef struct {
 typedef struct Patt {
     PATT sub;
     union {
-        Tk Raw;         // PATT_RAW
-        Tk Set;         // PATT_SET
-        struct {        // PATT_TUPLE
+        Tk Raw;             // PATT_RAW
+        Tk Set;             // PATT_SET
+        struct Expr* Expr;  // PATT_SET
+        struct {            // PATT_TUPLE
             int size;
             struct Patt* vec;
         } Tuple;
-        struct {        // PATT_CONS
+        struct {            // PATT_CONS
             Tk data;
             struct Patt* arg;
         } Cons;

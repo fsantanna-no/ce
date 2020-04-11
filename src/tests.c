@@ -599,6 +599,19 @@ void t_all (void) {
         "call {show_Bool}(True)\n"
     ));
     assert(all(
+        "()\n",
+        "val v :: () = case ():\n"
+        "    ~() -> ()\n"
+        "call {show_Unit}(v)"
+    ));
+    assert(all(
+        "()\n",
+        "val a :: () = ()\n"
+        "val b :: () = case ():\n"
+        "    ~a -> ()\n"
+        "call {show_Unit}(b)"
+    ));
+    assert(all(
         "False\n",
         "data Bool:\n"
         "    False ()\n"

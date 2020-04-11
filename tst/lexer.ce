@@ -5,22 +5,19 @@ data Tk: -- ({int},{Tk_s}):     -- TODO: inheritance
     Tk_ERROR   ({int},{Tk_s})   -- TODO: optional `|`
     Tk_COMMENT ({int},{Tk_s})   -- TODO: optional `\n`
 
-mut inp :: {char*}
+mut inp :: {FILE*}
 
-set stropen = func :: ({char*}, {size_t}, {char*}) -> {FILE*}: -- TODO: (mode::char*, ...)
+set stropen = func :: (({char*}, {size_t}, {char*}) -> {FILE*}): -- TODO: (mode::char*, ...)
     let (mode,size,str) :: ({char*}, {size_t}, {char*}) = ...:
         set size = case size:
-            {0}  -> strlen (str)
+            {0}  -> {strlen} (str)
             else -> size
         { fmemopen(str,size,mode) }
 
-set t_lexer = func :: () -> ():             -- TODO: func t_lexer ::
+set t_lexer = func :: (() -> ()):           -- TODO: func t_lexer ::
     :
         set inp = stropen ({"r"}, {0}, {"-- foobar"})
         let tk :: Tk = lexer():             -- TODO: optional [tk :: Tk =] (assume it)
-            call assert (ok) where:
-                val ok :: {int} = case tk:  -- TODO: is / matches
-                    Tk_COMMENT (_) -> {1}
-                    else           -> {0}
+            call {assert} ((tk ~ TK_COMMENT (_)) ? {1} : {0})
 
 call t_lexer ()

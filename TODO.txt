@@ -1,7 +1,6 @@
-- valor de retorno de let
-- declaracao com multivar
-- ret w/ patt w/ multivars
-- a ~ b ? x else y
+- False/True -> 0/1 (enums)
+- a ~ b ? x : y
+- ~ be structural not referential
 - show fields
 - valgrind --tool=memcheck --leak-check=full --track-origins=yes ./tests
 - f()()

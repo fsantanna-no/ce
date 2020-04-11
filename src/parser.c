@@ -292,11 +292,9 @@ int parser_patt (Patt* ret) {
                 return err_expected("`)`");
             }
         }
-
     // PATT_ANY
     } else if (pr_accept('_',1)) {
         *ret = (Patt) { PATT_ANY };
-
     // PATT_CONS
     } else if (pr_accept(TK_IDDATA,1)) {
         *ret = (Patt) { PATT_CONS, .Cons={PRV.tk,NULL} };
@@ -314,6 +312,17 @@ int parser_patt (Patt* ret) {
     // PATT_SET
     } else if (pr_accept(TK_IDVAR,1)) {
         *ret = (Patt) { PATT_SET, .Set=PRV.tk };
+    } else if (pr_accept('~',1)) {
+        Expr e;
+        if (!parser_expr(&e)) {
+            return 0;
+        }
+        Expr* pe = malloc(sizeof(e));
+        assert(pe != NULL);
+        *pe = e;
+        *ret = (Patt) { PATT_EXPR, .Expr=pe };
+    } else {
+        assert(0 && "TODO");
     }
     return 1;
 }

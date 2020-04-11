@@ -33,8 +33,17 @@ void code_ret (tce_ret* ret) {
 
 char* type2str (Type* tp) {
     switch (tp->sub) {
-        case TYPE_RAW:
-            return tp->Raw.val.s;
+        case TYPE_RAW: {
+            static Type _tp_;
+            // char* -> char_
+            if (tp->Raw.val.s[strlen(tp->Raw.val.s)-1] == '*') {
+                _tp_ = *tp;
+                _tp_.Raw.val.s[strlen(_tp_.Raw.val.s)-1] = '_';
+                return _tp_.Raw.val.s;
+            } else {
+                return tp->Raw.val.s;
+            }
+        }
         case TYPE_UNIT:
             return "unit";
         case TYPE_DATA: {
@@ -244,6 +253,11 @@ void code_case_tst (Expr tst, Patt p) {
         case PATT_SET:
             out("1");
             break;
+        case PATT_EXPR:
+            code_expr(tst, NULL);
+            out(" == ");
+            code_expr(*p.Expr, NULL);
+            break;
         case PATT_UNIT:
             code_expr(tst, NULL);
             out(" == 1");
@@ -282,6 +296,7 @@ void code_case_set (Patt p, Expr tst) {
         case PATT_RAW:
         case PATT_ANY:
         case PATT_UNIT:
+        case PATT_EXPR:
             break;
         case PATT_SET:          // x = ce_tst
             out(p.Set.val.s);
@@ -321,6 +336,7 @@ void code_case_vars (Patt patt, Type type) {
             case PATT_RAW:
             case PATT_ANY:
             case PATT_UNIT:
+            case PATT_EXPR:
                 break;
             case PATT_SET:
                 assert(*vars_i < 16);
