@@ -19,6 +19,7 @@ void code_spc (int spc) {
 // TODO: spc
 void code_ret (tce_ret* ret) {
     while (ret != NULL) {
+        assert (ret->patt->sub == PATT_SET);
         out(ret->patt->Set.val.s);
         out(" = ");
         ret = ret->nxt;
@@ -242,7 +243,7 @@ void code_case_set (int spc, Patt p, Expr tst) {
             code_spc(spc);
             out(p.Set.val.s);
             out(" = ");
-            if (tst.sub == EXPR_VAR) {
+            if (tst.sub!=EXPR_UNIT && tst.sub!=EXPR_RAW) {
                 out("*(typeof(");
                 out(p.Set.val.s);
                 out(")*) &");

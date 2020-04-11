@@ -572,6 +572,8 @@ void t_all (void) {
         "99\n",
         "val b :: () = let it :: {int} = {99} -> it\n{ printf(\"%d\\n\",b) }\n"
     ));
+#if 0
+    // TODO: multiple vars
     assert(all(
         "()\n",
         "val (a,b) :: ((),()) = ((),())\ncall show_Unit(b)\n"
@@ -580,6 +582,7 @@ void t_all (void) {
         "99\n",
         "let (a,b) :: ((),{int}) = ((),{99}):\n    { printf(\"%d\\n\",b) }\n"
     ));
+#endif
     assert(all(
         "True\n",
         "data Bool:\n"
