@@ -359,7 +359,7 @@ void code_case_vars (Patt patt, Type type) {
 }
 
 void code_case (Expr tst, Case c, tce_ret* ret) {
-    Expr star = (Expr) { EXPR_VAR, {.size=0}, .Var=(Tk){'*',{.s="*"}} };
+    Expr star = (Expr) { EXPR_RAW, {.size=0}, .Raw=(Tk){'*',{.s="*"}} };
     Expr old  = tst;
     if (c.patt.sub==PATT_CONS && is_rec(c.patt.Cons.data.val.s)) {
         tst = (Expr) { EXPR_CALL, {.size=0}, .Call={&star,&old} };

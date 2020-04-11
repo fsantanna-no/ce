@@ -688,7 +688,7 @@ void t_all (void) {
         "    Nil  ()\n"
         "    Cons ((), List)\n"
         "val l :: List = new Nil\n"
-        "call show_List(l)"
+        "call {show_List}(l)"
     ));
     assert(all(
         "Cons\n()\n",
@@ -699,24 +699,25 @@ void t_all (void) {
         "val l :: List = new Cons((),new Nil)\n"
         "val n :: () = case l:\n"
         "    Cons(x,_) :: () -> x\n"
-        "call show_List(l)\n"
+        "call {show_List}(l)\n"
         "call {show_Unit}(n)"
     ));
-#if 1
     assert(all(
-        "1\n",
-        "set f = func :: ((),()) -> () ()\n"
+        "()\n",
+        "set f = func :: (((),()) -> ()) ()\n"
         "call {show_Unit}(f((),()))"
     ));
+#if 0
+    // TODO: nested Cons pattern
     assert(all(
-        "1\n",
+        "()\n",
         "data List\n"
         "data List:\n"
         "    Nil  ()\n"
         "    Cons ((), List)\n"
         "val l :: List = new Cons((),new Cons((),new Nil))\n"
         "val n :: () = case l:\n"
-        "    Cons(_,Cons(=x,_)) :: () -> x\n"   // TODO
+        "    Cons(_,Cons(x,_)) :: () -> x\n"   // TODO
         "call {show_Unit}(n)"
     ));
 #endif
@@ -733,7 +734,7 @@ void t_all (void) {
         "val l :: List = new Cons(Tre,new Cons(Two,new Cons(One,new Nil)))\n"
         "val n :: Nat = case l:\n"
         "    Cons(x,_) :: Nat -> x\n"
-        "call show_Nat(n)"
+        "call {show_Nat}(n)"
     ));
 }
 
