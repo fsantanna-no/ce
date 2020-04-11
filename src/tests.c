@@ -646,14 +646,6 @@ void t_all (void) {
     ));
     assert(all(
         "()\n",
-        "data Pair ((),())\n"
-        "data PPair ((),Pair)\n"
-        "val i :: PPair = PPair ((), Pair ((),()))\n"
-        "case i:\n"
-        "    PPair (_, Pair (x,_)) :: () -> show_Unit(x)"
-    ));
-    assert(all(
-        "()\n",
         "val i :: ((),((),())) = ((),((),()))\n"
         "val j :: ((),((),())) = i\n"
         "val v :: () = case j:\n"
