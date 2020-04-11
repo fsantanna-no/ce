@@ -243,7 +243,7 @@ void code_case_set (int spc, Patt p, Expr tst) {
             code_spc(spc);
             out(p.Set.val.s);
             out(" = ");
-            if (tst.sub!=EXPR_UNIT && tst.sub!=EXPR_RAW) {
+            if (tst.sub!=EXPR_UNIT && tst.sub!=EXPR_RAW && tst.sub!=EXPR_CALL) {
                 out("*(typeof(");
                 out(p.Set.val.s);
                 out(")*) &");
