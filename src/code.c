@@ -59,47 +59,58 @@ char* type2str (Type* tp) {
 }
 
 void code_type (Type tp) {
-    switch (tp.sub) {
-        case TYPE_RAW:
-            out(tp.Raw.val.s);
-            break;
-        case TYPE_UNIT:
-            out("int");
-            break;
-        case TYPE_DATA: {
-            int is = is_rec(tp.Data.val.s);
-            if (is) out("struct ");
-            out(tp.Data.val.s);
-            if (is) out("*");
-            break;
-        }
-        case TYPE_TUPLE: {
-            char* _str_ = type2str(&tp);
-            char str[256];
-            strcpy(str, _str_);
-            fprintf(ALL.out,
-                "#ifndef DEF__Tuple__%s\n"
-                "#define DEF__Tuple__%s\n"
-                "typedef struct { ",
-                str, str
-            );
-            for (int i=0; i<tp.Tuple.size; i++) {
-                code_type(tp.Tuple.vec[i]);
-                fprintf(ALL.out, " _%d; ", i);
+    void aux (char* out1, char* out2, Type tp) {
+        switch (tp.sub) {
+            case TYPE_RAW:
+                strcat(out2, tp.Raw.val.s);
+                break;
+            case TYPE_UNIT:
+                strcat(out2, "int");
+                break;
+            case TYPE_DATA: {
+                int is = is_rec(tp.Data.val.s);
+                if (is) strcat(out2, "struct ");
+                strcat(out2, tp.Data.val.s);
+                if (is) strcat(out2, "*");
+                break;
             }
-            fprintf(ALL.out,
-                "} Tuple__%s;\n"
-                "#endif\n",
-                str
-            );
-            out("Tuple__");
-            out(str);
-            break;
+            case TYPE_TUPLE: {
+                char* _str_ = type2str(&tp);
+                char str[256];
+                strcpy(str, _str_);
+                sprintf(&out1[strlen(out1)],
+                    "#ifndef DEF__Tuple__%s\n"
+                    "#define DEF__Tuple__%s\n"
+                    "typedef struct { ",
+                    str, str
+                );
+                for (int i=0; i<tp.Tuple.size; i++) {
+                    char out1_[4096] = "";
+                    char out2_[4096] = "";    // TODO: asserts
+                    aux(out1_, out2_, tp.Tuple.vec[i]);
+                    strcat(out1_, out1);
+                    strcpy(out1, out1_);
+                    sprintf(&out1[strlen(out1)], "%s _%d; ", out2_, i);
+                }
+                sprintf(&out1[strlen(out1)],
+                    "} Tuple__%s;\n"
+                    "#endif\n",
+                    str
+                );
+                strcat(out2, "Tuple__");
+                strcat(out2, str);
+                break;
+            }
+            default:
+    //printf("%d\n", tp.sub);
+                assert(0 && "TODO");
         }
-        default:
-//printf("%d\n", tp.sub);
-            assert(0 && "TODO");
     }
+    char out1[4096] = "";
+    char out2[4096] = "";    // TODO: asserts
+    aux(out1, out2, tp);
+    out(out1);
+    out(out2);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
