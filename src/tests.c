@@ -509,7 +509,7 @@ void t_code (void) {
         parser_data(&d);
         code_data(d);
         fclose(ALL.out);
-        char* ret =
+        char* xp =
             "#define SUP_False Bool_False\n"
             "#define False ((Bool) { Bool_False })\n"
             "#define SUP_True Bool_True\n"
@@ -539,7 +539,7 @@ void t_code (void) {
             "    }\n"
             "}\n"
             "\n";
-        assert(!strcmp(out,ret));
+        assert(!strcmp(out,xp));
     }
 }
 

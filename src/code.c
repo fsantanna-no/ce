@@ -58,57 +58,58 @@ char* type2str (Type* tp) {
     }
 }
 
-void code_type (Type tp) {
-    void aux (char* out1, char* out2, Type tp) {
-        switch (tp.sub) {
-            case TYPE_RAW:
-                strcat(out2, tp.Raw.val.s);
-                break;
-            case TYPE_UNIT:
-                strcat(out2, "int");
-                break;
-            case TYPE_DATA: {
-                int is = is_rec(tp.Data.val.s);
-                if (is) strcat(out2, "struct ");
-                strcat(out2, tp.Data.val.s);
-                if (is) strcat(out2, "*");
-                break;
-            }
-            case TYPE_TUPLE: {
-                char* _str_ = type2str(&tp);
-                char str[256];
-                strcpy(str, _str_);
-                sprintf(&out1[strlen(out1)],
-                    "#ifndef DEF__Tuple__%s\n"
-                    "#define DEF__Tuple__%s\n"
-                    "typedef struct { ",
-                    str, str
-                );
-                for (int i=0; i<tp.Tuple.size; i++) {
-                    char out1_[4096] = "";
-                    char out2_[4096] = "";    // TODO: asserts
-                    aux(out1_, out2_, tp.Tuple.vec[i]);
-                    strcat(out1_, out1);
-                    strcpy(out1, out1_);
-                    sprintf(&out1[strlen(out1)], "%s _%d; ", out2_, i);
-                }
-                sprintf(&out1[strlen(out1)],
-                    "} Tuple__%s;\n"
-                    "#endif\n",
-                    str
-                );
-                strcat(out2, "Tuple__");
-                strcat(out2, str);
-                break;
-            }
-            default:
-    //printf("%d\n", tp.sub);
-                assert(0 && "TODO");
+void code_type_ (char* out1, char* out2, Type tp) {
+    switch (tp.sub) {
+        case TYPE_RAW:
+            strcat(out2, tp.Raw.val.s);
+            break;
+        case TYPE_UNIT:
+            strcat(out2, "int");
+            break;
+        case TYPE_DATA: {
+            int is = is_rec(tp.Data.val.s);
+            if (is) strcat(out2, "struct ");
+            strcat(out2, tp.Data.val.s);
+            if (is) strcat(out2, "*");
+            break;
         }
+        case TYPE_TUPLE: {
+            char* _str_ = type2str(&tp);
+            char str[256];
+            strcpy(str, _str_);
+            sprintf(&out1[strlen(out1)],
+                "#ifndef DEF__Tuple__%s\n"
+                "#define DEF__Tuple__%s\n"
+                "typedef struct { ",
+                str, str
+            );
+            for (int i=0; i<tp.Tuple.size; i++) {
+                char out1_[4096] = "";
+                char out2_[4096] = "";    // TODO: asserts
+                code_type_(out1_, out2_, tp.Tuple.vec[i]);
+                strcat(out1_, out1);
+                strcpy(out1, out1_);
+                sprintf(&out1[strlen(out1)], "%s _%d; ", out2_, i);
+            }
+            sprintf(&out1[strlen(out1)],
+                "} Tuple__%s;\n"
+                "#endif\n",
+                str
+            );
+            strcat(out2, "Tuple__");
+            strcat(out2, str);
+            break;
+        }
+        default:
+//printf("%d\n", tp.sub);
+            assert(0 && "TODO");
     }
+}
+
+void code_type (Type tp) {
     char out1[4096] = "";
     char out2[4096] = "";    // TODO: asserts
-    aux(out1, out2, tp);
+    code_type_(out1, out2, tp);
     out(out1);
     out(out2);
 }
@@ -187,27 +188,29 @@ void code_data (Data data) {
     out(SUP);
     out(";\n\n");
 
-    out("typedef struct ");
-    out(sup);
-    out(" {\n");
-    out("    ");
-    out(SUP);
-    out(" sub;\n");
-    out("    union {\n");
-        for (int i=0; i<data.size; i++) {
-            Cons cons = data.vec[i];
-            if (cons.type.sub != TYPE_UNIT) {
-                out("        ");
-                code_type(cons.type);
-                out(" _");
-                out(cons.tk.val.s);
-                out(";\n");
-            }
+    char out1[4096] = "";    // TODO: asserts
+    char out2[4096] = "";
+    for (int i=0; i<data.size; i++) {
+        Cons cons = data.vec[i];
+        if (cons.type.sub != TYPE_UNIT) {
+            strcat(&out2[strlen(out2)], "        ");
+            code_type_(&out1[strlen(out1)], &out2[strlen(out2)], cons.type);
+            strcat(&out2[strlen(out2)], " _");
+            strcat(&out2[strlen(out2)], cons.tk.val.s);
+            strcat(&out2[strlen(out2)], ";\n");
         }
-    out("    };\n");
-    out("} ");
-    out(sup);
-    out(";\n\n");
+    }
+
+    out(out1);
+    fprintf(ALL.out,
+        "typedef struct %s {\n"
+        "    %s sub;\n"
+        "    union {\n"
+        "%s"
+        "    };\n"
+        "} %s;\n\n",
+        sup, SUP, out2, sup
+    );
 
     int is = is_rec(sup);
     fprintf(ALL.out,
