@@ -218,6 +218,21 @@ int parser_type (Type* ret) {
             if (!parser_type(ret)) {
                 return 0;
             }
+
+    // TYPE_FUNC
+            if (pr_accept(TK_ARROW,1)) {
+                Type tp;
+                if (parser_type(&tp)) {
+                    Type* inp = malloc(sizeof(*inp));
+                    Type* out = malloc(sizeof(*out));
+                    assert(inp != NULL);
+                    assert(out != NULL);
+                    *inp = *ret;
+                    *out = tp;
+                    *ret = (Type) { TYPE_FUNC, .Func={inp,out} };
+                }
+            }
+
     // TYPE_TUPLE
             if (pr_check(',',1)) {
                 List lst = { 0, NULL };
@@ -236,20 +251,6 @@ int parser_type (Type* ret) {
         *ret = (Type) { TYPE_DATA, .Data=PRV.tk };
     } else {
         return err_expected("type");
-    }
-
-    // TYPE_FUNC
-    if (pr_accept(TK_ARROW,1)) {
-        Type tp;
-        if (parser_type(&tp)) {
-            Type* inp = malloc(sizeof(*inp));
-            Type* out = malloc(sizeof(*out));
-            assert(inp != NULL);
-            assert(out != NULL);
-            *inp = *ret;
-            *out = tp;
-            *ret = (Type) { TYPE_FUNC, .Func={inp,out} };
-        }
     }
     return 1;
 }

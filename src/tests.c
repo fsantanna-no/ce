@@ -614,7 +614,7 @@ void t_all (void) {
         "data Bool:\n"
         "    False ()\n"
         "    True  ()\n"
-        "set inv = func :: Bool -> Bool :\n"
+        "set inv = func :: (Bool -> Bool):\n"
         "    case ...:\n"
         "        False -> True\n"
         "        True  -> False\n"
