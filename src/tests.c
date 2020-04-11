@@ -638,21 +638,19 @@ void t_all (void) {
         "case i:\n"
         "    (x,_) :: () -> show_Unit(x)"
     ));
-#if 0
-    // TODO: nested tuple: problem with nested typedef
     assert(all(
         "()\n",
         "val i :: ((),((),())) = ((),((),()))\n"
         "case i:\n"
         "    (_,(x,_)) :: () -> show_Unit(x)"
     ));
-#endif
     assert(all(
         "()\n",
         "data Pair ((),())\n"
-        "val i :: ((),Pair) = ((),Pair)\n"
+        "data PPair ((),Pair)\n"
+        "val i :: PPair = PPair ((), Pair ((),()))\n"
         "case i:\n"
-        "    (_,(x,_)) :: () -> show_Unit(x)"
+        "    PPair (_, Pair (x,_)) :: () -> show_Unit(x)"
     ));
     assert(all(
         "()\n",
