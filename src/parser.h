@@ -32,6 +32,7 @@ typedef enum {
     EXPR_CALL,
     EXPR_BLOCK,
     EXPR_LET,
+    EXPR_COND,
     EXPR_CASES,
     ////
     EXPR_TUPLE_IDX,
@@ -66,17 +67,20 @@ typedef enum {
  *        |   <Id> [ `(` Patt `)` ]
  *        |   `(` Patt { `,` Patt } `)`
  *
- * Expr  ::= `(` `)` | `...` | <id>
- *        |  <Id> [`(` Expr `)`]
- *        |  set <id> `=` Expr
- *        |  func `::` Type Expr [Where]
- *        |  case Expr `:` { Patt [`::` Type] [`->`] Expr [Where] }
- *        |  `:` { Expr [Where] }   // sequence
- *        |  let Decl [`->`] Expr
- *        |  Expr `(` Expr `)`      // call
- *        | `(` Expr { `,` Expr } `)`
+ * Expr  ::= `(` `)` | `...` | <id>         // EXPR_UNIT | EXPR_ARG | EXPR_VAR
+ *        |  <Id> [`(` Expr `)`]            // EXPR_CONS
+ *        | `{` <...> `}`                   // EXPR_RAW
+ *        | `(` Expr { `,` Expr } `)`       // EXPR_TUPLE
+ *        |  func `::` Type Expr [Where]    // EXPR_FUNC
+ *        |  Expr `(` Expr `)`              // EXPR_CALL
  *        | `(` Expr `)`
- *        | `{` <...> `}`
+ *        |  set <id> `=` Expr              // EXPR_SET
+ *        |  `:` { Expr [Where] }           // EXPR_SEQ
+ *        |  case Expr `:`                  // EXPR_CASE
+ *               { Patt [`::` Type] [`->`] Expr [Where] }
+ *        |  let Decl [`->`] Expr           // EXPR_LET
+ *        |  `(` Expr `~` Expr `)`          // EXPR_COND
+ *               `?` Expr `:` Expr
  */
 
 struct Expr;
@@ -174,6 +178,11 @@ typedef struct Expr {
             struct Expr* init;
             struct Expr* body;
         } Let;
+        struct {        // EXPR_COND
+            struct Expr* tst;
+            struct Expr* true;
+            struct Expr* false;
+        } Cond;
         struct {        // EXPR_CASES
             struct Expr* tst;
             int   size;

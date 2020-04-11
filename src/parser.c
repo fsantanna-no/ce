@@ -714,7 +714,7 @@ int parser_expr (Expr* ret) {
         return 0;
     }
 
-    // CALLS
+    // EXPR_CALL'S
     while (1) {
         if (!pr_check('(',1)) {
             break;
@@ -730,6 +730,29 @@ int parser_expr (Expr* ret) {
         *pe1 = *ret;
         *pe2 = arg;
         *ret = (Expr) { EXPR_CALL, {.size=0}, .Call={pe1,pe2} };
+    }
+
+    // EXPR_COND's
+    while (1) {
+        if (!pr_accept('?',1)) {
+            break;
+        }
+        Expr tst, true, false;
+        tst = *ret;
+        parser_expr(&true);
+        if (!pr_accept(':',1)) {
+            return err_expected("`:`");
+        }
+        parser_expr(&false);
+
+        Expr* ptst   = malloc(sizeof(tst));
+        Expr* ptrue  = malloc(sizeof(true));
+        Expr* pfalse = malloc(sizeof(false));
+        assert(ptst!=NULL && ptrue!=NULL && pfalse!=NULL);
+        *ptst   = tst;
+        *ptrue  = true;
+        *pfalse = false;
+        *ret = (Expr) { EXPR_COND, {.size=0}, .Cond={ptst,ptrue,pfalse} };
     }
 
     return 1;

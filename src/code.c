@@ -375,7 +375,7 @@ void code_case_vars (Patt patt, Type type) {
 }
 
 void code_case (Expr tst, Case c, tce_ret* ret) {
-    Expr star = (Expr) { EXPR_RAW, {.size=0}, .Raw=(Tk){'*',{.s="*"}} };
+    Expr star = (Expr) { EXPR_RAW, {.size=0}, .Raw={TK_RAW,{.s="*"}} };
     Expr old  = tst;
     if (c.patt.sub==PATT_CONS && is_rec(c.patt.Cons.data.val.s)) {
         tst = (Expr) { EXPR_CALL, {.size=0}, .Call={&star,&old} };
@@ -522,6 +522,15 @@ void code_expr (Expr e, tce_ret* ret) {
             Case c  = (Case) { e.Let.patt, e.Let.type, e.Let.body };
             Expr cs = (Expr) { EXPR_CASES, .Cases={e.Let.init,1,&c} };
             code_expr(cs, ret);
+            break;
+        }
+        case EXPR_COND: {   // tst,true,false
+            Case cs[] = {
+                { {PATT_RAW,.Raw={TK_RAW,{.s="1"}}}, {TYPE_NONE}, e.Cond.true  },
+                { {PATT_RAW,.Raw={TK_RAW,{.s="0"}}}, {TYPE_NONE}, e.Cond.false }
+            };
+            Expr css = (Expr) { EXPR_CASES, .Cases={e.Cond.tst,2,cs} };
+            code_expr(css, ret);
             break;
         }
         case EXPR_CASES:    // tst,size,vec
