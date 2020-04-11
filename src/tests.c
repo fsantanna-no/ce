@@ -554,7 +554,11 @@ void t_all (void) {
     ));
     assert(all(
         "99\n",
-        "val (a,b) :: ((),()) = ((),())\nb\n"
+        "val b :: () = case {99}:\n    a :: {int} -> a\n{ printf(\"%d\\n\",b) }"
+    ));
+    assert(all(
+        "99\n",
+        "val b :: () = case {99}:\n    a :: {int}:\n        {1}\n        a\n{ printf(\"%d\\n\",b) }"
     ));
     assert(all(
         "99\n",
@@ -567,6 +571,10 @@ void t_all (void) {
     assert(all(
         "99\n",
         "val b :: () = let it :: {int} = {99} -> it\n{ printf(\"%d\\n\",b) }\n"
+    ));
+    assert(all(
+        "()\n",
+        "val (a,b) :: ((),()) = ((),())\ncall show_Unit(b)\n"
     ));
     assert(all(
         "99\n",

@@ -442,7 +442,7 @@ void code_expr (int spc, Expr e, tce_ret* ret) {
         case EXPR_LET: {    // patt,type,init,body
             Case c  = (Case) { e.Let.patt, e.Let.type, e.Let.body };
             Expr cs = (Expr) { EXPR_CASES, .Cases={e.Let.init,1,&c} };
-            code_expr(spc, cs, NULL);
+            code_expr(spc, cs, ret);
             break;
         }
         case EXPR_CASES:    // tst,size,vec
@@ -485,7 +485,9 @@ void code_expr (int spc, Expr e, tce_ret* ret) {
 void code_decl (int spc, Decl d) {
     code_case_vars(spc+4, d.patt, d.type);
     if (d.init != NULL) {
-        code_case_set(spc+4, d.patt, *d.init);
+        tce_ret r = { &d.patt, NULL };
+        code_expr(spc+4, *d.init, &r);
+        out(";\n");
      }
 }
 
