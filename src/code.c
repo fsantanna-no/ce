@@ -31,6 +31,33 @@ void code_ret (tce_ret* ret) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
+char* type2str (Type tp) {
+    switch (tp.sub) {
+        case TYPE_RAW:
+            return tp.Raw.val.s;
+        case TYPE_UNIT:
+            return "unit";
+        case TYPE_DATA: {
+            return tp.Data.val.s;
+        }
+        case TYPE_TUPLE: {
+            static char _ret_[256];
+            char ret[256];
+            strcpy(ret, "Tuple");
+            for (int i=0; i<tp.Tuple.size; i++) {
+                // TODO: asserts
+                strcat(ret, "__");
+                strcat(ret, type2str(tp.Tuple.vec[i]));
+            }
+            strcpy(_ret_, ret);
+            return _ret_;
+        }
+        default:
+//printf("%d\n", tp.sub);
+            assert(0 && "TODO");
+    }
+}
+
 void code_type (Type tp) {
     switch (tp.sub) {
         case TYPE_RAW:
@@ -46,17 +73,29 @@ void code_type (Type tp) {
             if (is) out("*");
             break;
         }
-        case TYPE_TUPLE:
-            //out("\nstruct Tuple_XXX {\n");
-            //out("}\n\n");
-            //out("Tuple_XXX");
-            out("struct { ");
+        case TYPE_TUPLE: {
+            char* _str_ = type2str(tp);
+            char str[256];
+            strcpy(str, _str_);
+            fprintf(ALL.out,
+                "#ifndef DEF__Tuple__%s\n"
+                "#define DEF__Tuple__%s\n"
+                "typedef struct { ",
+                str, str
+            );
             for (int i=0; i<tp.Tuple.size; i++) {
                 code_type(tp.Tuple.vec[i]);
                 fprintf(ALL.out, " _%d; ", i);
             }
-            out(" }");
+            fprintf(ALL.out,
+                "} Tuple__%s;\n"
+                "#endif\n",
+                str
+            );
+            out("Tuple__");
+            out(str);
             break;
+        }
         default:
 //printf("%d\n", tp.sub);
             assert(0 && "TODO");
@@ -236,9 +275,9 @@ void code_case_set (Patt p, Expr tst) {
             out(p.Set.val.s);
             out(" = ");
             if (tst.sub!=EXPR_UNIT && tst.sub!=EXPR_RAW && tst.sub!=EXPR_CALL) {
-                out("*(typeof(");
+                out("(typeof(");
                 out(p.Set.val.s);
-                out(")*) &");
+                out(")) ");
             }
             code_expr(tst, NULL);
             out(";\n");

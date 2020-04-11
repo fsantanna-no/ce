@@ -1,5 +1,5 @@
 #LIBS  = -lkernel32 -luser32 -lgdi32 -lopengl32
-CFLAGS = -Wall -Wno-switch
+CFLAGS = -Wall -Wno-switch -Wno-return-local-addr
 
 SRC=$(wildcard src/*.c)
 SRC_TESTS := $(filter-out src/main.c,  $(SRC))
