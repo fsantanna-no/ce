@@ -8,22 +8,68 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void dump_expr (Expr e, int spc) {
+void dump_expr_ (Expr e, int spc) {
     for (int i=0; i<spc; i++) printf(" ");
     switch (e.sub) {
+        case EXPR_RAW:
+            printf("{ %s }", e.Raw.val.s);
+            break;
+        case EXPR_UNIT:
+            fputs("()", stdout);
+            break;
         case EXPR_VAR:
-            puts(e.Var.val.s);
+            fputs(e.Var.val.s, stdout);
+            break;
+        case EXPR_CONS:
+            fputs(e.Var.val.s, stdout);
+            break;
+        case EXPR_SET:
+            fputs(e.Set.var.val.s, stdout);
+            fputs(" = ", stdout);
+            dump_expr_(*e.Set.val, 0);
+            break;
+        case EXPR_FUNC:
+            fputs("func (...)", stdout);
+            break;
+        case EXPR_TUPLE:
+            fputs("<", stdout);
+            for (int i=0; i<e.Tuple.size; i++) {
+                if (i>0) fputs(", ", stdout);
+                dump_expr_(e.Tuple.vec[i], 0);
+            }
+            fputs(">", stdout);
+            break;
+        case EXPR_CALL:
+            dump_expr_(*e.Call.func, 0);
+            fputs("(", stdout);
+            dump_expr_(*e.Call.arg, 0);
+            fputs(")", stdout);
             break;
         case EXPR_SEQ:
             printf(": [%d]\n", e.Seq.size);
             for (int i=0; i<e.Seq.size; i++) {
-                dump_expr(e.Seq.vec[i], spc+4);
+                dump_expr_(e.Seq.vec[i], spc+4);
+                puts("");
             }
+            break;
+        case EXPR_LET:
+            fputs("let (...)", stdout);
+            break;
+        case EXPR_IF:
+            fputs("if (...)", stdout);
+            break;
+        case EXPR_CASES:
+            fputs("case (...)", stdout);
             break;
         default:
             printf(">>> %d\n", e.sub);
             assert(0 && "TODO");
     }
+}
+
+void dump_expr (Expr e) {
+    dump_expr_(e, 0);
+    puts("");
 }
 
 int is_rec (const char* v) {
@@ -655,7 +701,26 @@ int parser_expr_one (Expr* ret) {
         Expr* pe = malloc(sizeof(Expr));
         *pe = e;
 
-        *ret = (Expr) { EXPR_LET, .Let={d.patt,d.type,d.init,pe} };
+        *ret = (Expr) { EXPR_LET, {.size=0}, .Let={d.patt,d.type,d.init,pe} };
+
+    // EXPR_IF
+    } else if (pr_accept(TK_IF,1)) {
+        Expr tst, f, t;
+        parser_expr(&tst);
+        pr_accept(TK_ARROW,1);  // optional `->`
+        parser_expr(&t);
+        pr_accept(TK_ARROW,1);  // optional `->`
+        parser_expr(&f);
+
+        Expr* p1 = malloc(sizeof(tst));
+        Expr* p2 = malloc(sizeof(t));
+        Expr* p3 = malloc(sizeof(f));
+        assert(p1!=NULL && p2!=NULL && p3!=NULL);
+        *p1 = tst;
+        *p2 = t;
+        *p3 = f;
+
+        *ret = (Expr) { EXPR_IF, {.size=0}, .Cond={p1,p2,p3} };
 
     // EXPR_CASES
     } else if (pr_accept(TK_CASE,1)) {
@@ -694,6 +759,7 @@ int parser_expr_one (Expr* ret) {
         return err_expected("expression");
     }
 
+    assert(ret->decls.size == 0);
     return 1;
 }
 
@@ -730,29 +796,6 @@ int parser_expr (Expr* ret) {
         *pe1 = *ret;
         *pe2 = arg;
         *ret = (Expr) { EXPR_CALL, {.size=0}, .Call={pe1,pe2} };
-    }
-
-    // EXPR_COND's
-    while (1) {
-        if (!pr_accept('?',1)) {
-            break;
-        }
-        Expr tst, true, false;
-        tst = *ret;
-        parser_expr(&true);
-        if (!pr_accept(':',1)) {
-            return err_expected("`:`");
-        }
-        parser_expr(&false);
-
-        Expr* ptst   = malloc(sizeof(tst));
-        Expr* ptrue  = malloc(sizeof(true));
-        Expr* pfalse = malloc(sizeof(false));
-        assert(ptst!=NULL && ptrue!=NULL && pfalse!=NULL);
-        *ptst   = tst;
-        *ptrue  = true;
-        *pfalse = false;
-        *ret = (Expr) { EXPR_COND, {.size=0}, .Cond={ptst,ptrue,pfalse} };
     }
 
     return 1;

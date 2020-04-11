@@ -524,13 +524,15 @@ void code_expr (Expr e, tce_ret* ret) {
             code_expr(cs, ret);
             break;
         }
-        case EXPR_COND: {   // tst,true,false
-            Case cs[] = {
-                { {PATT_RAW,.Raw={TK_RAW,{.s="1"}}}, {TYPE_NONE}, e.Cond.true  },
-                { {PATT_RAW,.Raw={TK_RAW,{.s="0"}}}, {TYPE_NONE}, e.Cond.false }
-            };
-            Expr css = (Expr) { EXPR_CASES, .Cases={e.Cond.tst,2,cs} };
-            code_expr(css, ret);
+        case EXPR_IF: {   // tst,true,false
+            code_ret(ret);
+            out("(");
+            code_expr(*e.Cond.tst,   NULL);
+            out(" ? ");
+            code_expr(*e.Cond.true,  NULL);
+            out(" : ");
+            code_expr(*e.Cond.false, NULL);
+            out(")");
             break;
         }
         case EXPR_CASES:    // tst,size,vec

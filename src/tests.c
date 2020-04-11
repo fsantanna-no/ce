@@ -615,13 +615,13 @@ void t_all (void) {
         "()\n",
         "val a :: () = ()\n"
         "val b :: {int} = {matches}(a,())\n"
-        "val c :: () = (b ? () : {99})\n"
+        "val c :: () = if b -> () -> {99}\n"
         "call {show_Unit}(c)"
     ));
     assert(all(
         "()\n",
         "val a :: () = ()\n"
-        "call {show_Unit}({matches}(a,()) ? () : {99})"
+        "call {show_Unit}(if {matches} (a,()) -> () -> {99})"
     ));
     assert(all(
         "False\n",

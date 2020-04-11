@@ -32,7 +32,7 @@ typedef enum {
     EXPR_CALL,
     EXPR_BLOCK,
     EXPR_LET,
-    EXPR_COND,
+    EXPR_IF,
     EXPR_CASES,
     ////
     EXPR_TUPLE_IDX,
@@ -67,20 +67,19 @@ typedef enum {
  *        |   <Id> [ `(` Patt `)` ]
  *        |   `(` Patt { `,` Patt } `)`
  *
- * Expr  ::= `(` `)` | `...` | <id>         // EXPR_UNIT | EXPR_ARG | EXPR_VAR
- *        |  <Id> [`(` Expr `)`]            // EXPR_CONS
- *        | `{` <...> `}`                   // EXPR_RAW
- *        | `(` Expr { `,` Expr } `)`       // EXPR_TUPLE
- *        |  func `::` Type Expr [Where]    // EXPR_FUNC
- *        |  Expr `(` Expr `)`              // EXPR_CALL
+ * Expr  ::= `(` `)` | `...` | <id>             // EXPR_UNIT | EXPR_ARG | EXPR_VAR
+ *        |  <Id> [`(` Expr `)`]                // EXPR_CONS
+ *        | `{` <...> `}`                       // EXPR_RAW
+ *        | `(` Expr { `,` Expr } `)`           // EXPR_TUPLE
+ *        |  func `::` Type Expr [Where]        // EXPR_FUNC
+ *        |  Expr `(` Expr `)`                  // EXPR_CALL
  *        | `(` Expr `)`
- *        |  set <id> `=` Expr              // EXPR_SET
- *        |  `:` { Expr [Where] }           // EXPR_SEQ
- *        |  case Expr `:`                  // EXPR_CASE
+ *        |  set <id> `=` Expr                  // EXPR_SET
+ *        |  `:` { Expr [Where] }               // EXPR_SEQ
+ *        |  case Expr `:`                      // EXPR_CASE
  *               { Patt [`::` Type] [`->`] Expr [Where] }
- *        |  let Decl [`->`] Expr           // EXPR_LET
- *        |  `(` Expr `~` Expr `)`          // EXPR_COND
- *               `?` Expr `:` Expr
+ *        |  let Decl [`->`] Expr               // EXPR_LET
+ *        |  `if` Expr [`->`] Expr [`->`] Expr  // EXPR_IF
  */
 
 struct Expr;
@@ -178,7 +177,7 @@ typedef struct Expr {
             struct Expr* init;
             struct Expr* body;
         } Let;
-        struct {        // EXPR_COND
+        struct {        // EXPR_IF
             struct Expr* tst;
             struct Expr* true;
             struct Expr* false;
@@ -221,7 +220,7 @@ typedef struct {
 ///////////////////////////////////////////////////////////////////////////////
 
 int is_rec (const char* v);
-void dump_expr (Expr e, int spc);
+void dump_expr (Expr e);
 void init (FILE* out, FILE* inp);
 
 int parser_type  (Type*  ret);

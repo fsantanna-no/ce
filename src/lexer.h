@@ -20,7 +20,7 @@ typedef enum {
 
     // all reserved keywords
     TK_RESERVED,
-    TK_CALL, TK_CASE, TK_DATA, TK_ELSE, TK_FUNC, TK_LET, TK_MUT, TK_NEW,
+    TK_CALL, TK_CASE, TK_DATA, TK_ELSE, TK_FUNC, TK_IF, TK_LET, TK_MUT, TK_NEW,
     TK_SET, TK_VAL, TK_WHERE
 } TK;
 
