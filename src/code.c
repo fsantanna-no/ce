@@ -10,13 +10,6 @@ void out (const char* v) {
     fputs(v, ALL.out);
 }
 
-void code_spc (int spc) {
-    for (int i=0; i<spc; i++) {
-        out(" ");
-    }
-}
-
-// TODO: spc
 void code_ret (tce_ret* ret) {
     while (ret != NULL) {
         assert (ret->patt->sub == PATT_SET);
@@ -201,12 +194,12 @@ void code_case_tst (Expr tst, Patt p) {
             out("1");
             break;
         case PATT_UNIT:
-            code_expr(0, tst, NULL);
+            code_expr(tst, NULL);
             out(" == 1");
             break;
         case PATT_CONS:
             out("(");
-            code_expr(0, tst, NULL);
+            code_expr(tst, NULL);
             out(").sub == SUP_");
             out(p.Cons.data.val.s);
             if (p.Cons.arg != NULL) {
@@ -233,14 +226,13 @@ void code_case_tst (Expr tst, Patt p) {
     }
 }
 
-void code_case_set (int spc, Patt p, Expr tst) {
+void code_case_set (Patt p, Expr tst) {
     switch (p.sub) {
         case PATT_RAW:
         case PATT_ANY:
         case PATT_UNIT:
             break;
         case PATT_SET:          // x = ce_tst
-            code_spc(spc);
             out(p.Set.val.s);
             out(" = ");
             if (tst.sub!=EXPR_UNIT && tst.sub!=EXPR_RAW && tst.sub!=EXPR_CALL) {
@@ -248,13 +240,12 @@ void code_case_set (int spc, Patt p, Expr tst) {
                 out(p.Set.val.s);
                 out(")*) &");
             }
-            code_expr(0, tst, NULL);
+            code_expr(tst, NULL);
             out(";\n");
             break;
         case PATT_CONS:
             if (p.Cons.arg != NULL) {
                 code_case_set (
-                    spc,
                     *p.Cons.arg,
                     (Expr) { EXPR_CONS_SUB, .Cons_Sub={&tst,p.Cons.data.val.s} }
                 );
@@ -263,7 +254,6 @@ void code_case_set (int spc, Patt p, Expr tst) {
         case PATT_TUPLE:
             for (int i=0; i<p.Tuple.size; i++) {
                 code_case_set (
-                    spc,
                     p.Tuple.vec[i],
                     (Expr) { EXPR_TUPLE_IDX, .Tuple_Idx={&tst,i} }
                 );
@@ -274,7 +264,7 @@ void code_case_set (int spc, Patt p, Expr tst) {
     }
 }
 
-void code_case_vars (int spc, Patt patt, Type type) {
+void code_case_vars (Patt patt, Type type) {
     void aux (Tk* vars, int* vars_i, Patt patt) {
         switch (patt.sub) {
             case PATT_RAW:
@@ -303,14 +293,12 @@ void code_case_vars (int spc, Patt patt, Type type) {
     int vars_i = 0;
     aux(vars, &vars_i, patt);
     if (vars_i == 1) {
-        code_spc(spc);
         code_type(type);
         out(" ");
         out(vars[0].val.s);
         out(";\n");
     } else {
         for (int i=0; i<vars_i; i++) {
-            code_spc(spc);
             code_type(type.Tuple.vec[i]);
             out(" ");
             out(vars[i].val.s);
@@ -319,7 +307,7 @@ void code_case_vars (int spc, Patt patt, Type type) {
     }
 }
 
-void code_case (int spc, Expr tst, Case c, tce_ret* ret) {
+void code_case (Expr tst, Case c, tce_ret* ret) {
     Expr star = (Expr) { EXPR_VAR, {.size=0}, .Var=(Tk){'*',{.s="*"}} };
     Expr old  = tst;
     if (c.patt.sub==PATT_CONS && is_rec(c.patt.Cons.data.val.s)) {
@@ -329,23 +317,20 @@ void code_case (int spc, Expr tst, Case c, tce_ret* ret) {
     out("if (");
     code_case_tst(tst, c.patt);
     out(") {\n");
-    code_case_vars(spc+4, c.patt, c.type);
-    code_case_set(spc+4, c.patt, tst);
-    code_spc(spc+4);
-    code_expr(spc+4, *c.expr, ret);
+    code_case_vars(c.patt, c.type);
+    code_case_set(c.patt, tst);
+    code_expr(*c.expr, ret);
     out(";");
     out("\n");
-    code_spc(spc);
     out("} else ");
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void code_expr (int spc, Expr e, tce_ret* ret) {
+void code_expr (Expr e, tce_ret* ret) {
     if (e.decls.size > 0) {
-        code_spc(spc-4);
         out("{\n");
-        code_decls(spc, e.decls);
+        code_decls(e.decls);
     }
     switch (e.sub) {
         case EXPR_RAW:
@@ -377,24 +362,24 @@ void code_expr (int spc, Expr e, tce_ret* ret) {
             code_ret(ret);
             out("({");
             out("typeof(");
-            code_expr(spc, *e.New, NULL);
+            code_expr(*e.New, NULL);
             out(")* ptr = malloc(sizeof(");
-            code_expr(spc, *e.New, NULL);
+            code_expr(*e.New, NULL);
             out(")) ; *ptr=");
-            code_expr(spc, *e.New, NULL);
+            code_expr(*e.New, NULL);
             out("; ptr; })");
             break;
         case EXPR_SET: {
             Patt pt = (Patt) { PATT_SET, .Set=e.Set.var };
             tce_ret r = { &pt, ret };
-            code_expr(spc, *e.Set.val, &r);
+            code_expr(*e.Set.val, &r);
             break;
         }
         case EXPR_CALL:
             code_ret(ret);
-            code_expr(spc, *e.Call.func, NULL);
+            code_expr(*e.Call.func, NULL);
             out("(");
-            code_expr(spc, *e.Call.arg, NULL);
+            code_expr(*e.Call.arg, NULL);
             out(")");
             break;
         case EXPR_TUPLE:
@@ -410,7 +395,7 @@ void code_expr (int spc, Expr e, tce_ret* ret) {
                 if (i != 0) {
                     out(",");
                 }
-                code_expr(spc+4, e.Tuple.vec[i], NULL);
+                code_expr(e.Tuple.vec[i], NULL);
             }
             out(" }");
             break;
@@ -423,50 +408,45 @@ void code_expr (int spc, Expr e, tce_ret* ret) {
                 out(" (");
                 code_type(*e.Func.type.Func.inp);
             out(" ce_arg) {\n");
-                code_spc(spc+4);
                 code_type(*e.Func.type.Func.out);
                 out(" ce_ret;\n");
                 Patt pt = (Patt){PATT_SET,.Set={TK_IDVAR,{.s="ce_ret"}}};
                 tce_ret r = { &pt, NULL };
-                code_expr(spc+4, *e.Func.body, &r);
-                code_spc(spc+4);
+                code_expr(*e.Func.body, &r);
                 out("return ce_ret;\n");
             out("}\n\n");
             break;
         case EXPR_SEQ:
             for (int i=0; i<e.Seq.size; i++) {
-                code_spc(spc);
-                code_expr(spc, e.Seq.vec[i], (i==e.Seq.size-1) ? ret : NULL);
+                code_expr(e.Seq.vec[i], (i==e.Seq.size-1) ? ret : NULL);
                 out(";\n");
             }
             break;
         case EXPR_LET: {    // patt,type,init,body
             Case c  = (Case) { e.Let.patt, e.Let.type, e.Let.body };
             Expr cs = (Expr) { EXPR_CASES, .Cases={e.Let.init,1,&c} };
-            code_expr(spc, cs, ret);
+            code_expr(cs, ret);
             break;
         }
         case EXPR_CASES:    // tst,size,vec
             for (int i=0; i<e.Cases.size; i++) {
-                code_case(spc, *e.Cases.tst, e.Cases.vec[i], ret);
+                code_case(*e.Cases.tst, e.Cases.vec[i], ret);
             }
             out("{\n");
-            code_spc(spc+4);
             out("assert(0 && \"case not matched\");\n");
-            code_spc(spc);
             out("}\n");
             break;
         case EXPR_TUPLE_IDX:
             if (e.Tuple_Idx.tuple->sub == EXPR_TUPLE) {
-                code_expr(spc, e.Tuple_Idx.tuple->Tuple.vec[e.Tuple_Idx.idx], ret);
+                code_expr(e.Tuple_Idx.tuple->Tuple.vec[e.Tuple_Idx.idx], ret);
             } else {
-                code_expr(spc, *e.Tuple_Idx.tuple, ret);
+                code_expr(*e.Tuple_Idx.tuple, ret);
                 fprintf(ALL.out, "._%d", e.Tuple_Idx.idx);
             }
             break;
         case EXPR_CONS_SUB:
             out("(");
-            code_expr(spc, *e.Cons_Sub.cons, ret);
+            code_expr(*e.Cons_Sub.cons, ret);
             out(")._");
             out(e.Cons_Sub.sub);
             break;
@@ -476,32 +456,30 @@ void code_expr (int spc, Expr e, tce_ret* ret) {
     }
     if (e.decls.size > 0) {
         out(";\n");
-        code_spc(spc-4);
         out("}\n");
     }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void code_decl (int spc, Decl d) {
-    code_case_vars(spc+4, d.patt, d.type);
+void code_decl (Decl d) {
+    code_case_vars(d.patt, d.type);
     if (d.init != NULL) {
         tce_ret r = { &d.patt, NULL };
-        code_expr(spc+4, *d.init, &r);
+        code_expr(*d.init, &r);
         out(";\n");
      }
 }
 
-void code_decls (int spc, Decls ds) {
+void code_decls (Decls ds) {
     for (int i=0; i<ds.size; i++) {
-        code_spc(spc);
-        code_decl(spc, ds.vec[i]);
+        code_decl(ds.vec[i]);
     }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void code_prog (int spc, Prog prog) {
+void code_prog (Prog prog) {
     for (int i=0; i<prog.size; i++) {
         Glob g = prog.vec[i];
         switch (g.sub) {
@@ -509,10 +487,10 @@ void code_prog (int spc, Prog prog) {
                 code_data(g.data);
                 break;
             case GLOB_DECL:
-                code_decl(spc, g.decl);
+                code_decl(g.decl);
                 break;
             case GLOB_EXPR:
-                code_expr(spc, g.expr, NULL);
+                code_expr(g.expr, NULL);
                 out(";\n");
                 break;
         }
@@ -525,7 +503,7 @@ void code (Prog prog) {
         "int main (void) {\n"
         "\n"
     );
-    code_prog(0, prog);
+    code_prog(prog);
     fprintf(ALL.out, "\n");
     out("}\n");
 }

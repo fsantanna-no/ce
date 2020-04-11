@@ -1,11 +1,9 @@
+{ #include <string.h> }
 { typedef char Tk_s[256] }
 
---data Tk ({int},{Tk_s}):     -- TODO: inheritance
---    Tk_ERR ()               -- TODO: optional ()
---                            -- TODO: |
-
-data Tk:
-    Tk_ERR ({int},{Tk_s})
+data Tk: -- ({int},{Tk_s}):     -- TODO: inheritance
+    Tk_ERROR   ({int},{Tk_s})   -- TODO: optional `|`
+    Tk_COMMENT ({int},{Tk_s})   -- TODO: optional `\n`
 
 mut inp :: {char*}
 
@@ -14,11 +12,11 @@ set stropen = func :: ({char*}, {size_t}, {char*}) -> {FILE*}: -- TODO: (mode::c
         set size = case size:
             {0}  -> strlen (str)
             else -> size
-        call fmemopen (str,size,mode)
+        { fmemopen(str,size,mode) }
 
 set t_lexer = func :: () -> ():             -- TODO: func t_lexer ::
     :
-        set inp = {stropen ("r", 0, "-- foobar")}
+        set inp = stropen ({"r"}, {0}, {"-- foobar"})
         let tk :: Tk = lexer():             -- TODO: optional [tk :: Tk =] (assume it)
             call assert (ok) where:
                 val ok :: {int} = case tk:  -- TODO: is / matches

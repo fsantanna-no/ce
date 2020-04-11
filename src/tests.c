@@ -451,7 +451,7 @@ void t_code (void) {
         Expr e = { EXPR_VAR, {.size=0}, {} };
             e.Var.sym = TK_IDVAR;
             strcpy(e.Var.val.s, "xxx");
-        code_expr(0, e, NULL);
+        code_expr(e, NULL);
         fclose(ALL.out);
         assert(!strcmp(out,"xxx"));
     }
@@ -471,9 +471,9 @@ void t_code (void) {
         // xxx: xxx::()
         Patt pt = (Patt){PATT_SET,.Set={TK_IDVAR,{.s="ret"}}};
         tce_ret ret = { &pt, NULL };
-        code_expr(0, e, &ret);
+        code_expr(e, &ret);
         fclose(ALL.out);
-        assert(!strcmp(out,"{\n    int xxx;\nret = *(typeof(ret)*) &xxx;\n}\n"));
+        assert(!strcmp(out,"{\nint xxx;\nret = *(typeof(ret)*) &xxx;\n}\n"));
     }
     {
         char out[256];
@@ -489,7 +489,7 @@ void t_code (void) {
             "#include \"inc/ce.c\"\n"
             "int main (void) {\n"
             "\n"
-            "    int a;\n"
+            "int a;\n"
             "show_Bool(a);\n"
             "\n"
             "}\n";
