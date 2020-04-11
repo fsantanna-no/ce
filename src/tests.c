@@ -473,7 +473,7 @@ void t_code (void) {
         tce_ret ret = { &pt, NULL };
         code_expr(0, e, &ret);
         fclose(ALL.out);
-        assert(!strcmp(out,"{\nint xxx;\nret = *(typeof(ret)*) &xxx;\n}\n"));
+        assert(!strcmp(out,"{\n    int xxx;\nret = *(typeof(ret)*) &xxx;\n}\n"));
     }
     {
         char out[256];
@@ -489,7 +489,7 @@ void t_code (void) {
             "#include \"inc/ce.c\"\n"
             "int main (void) {\n"
             "\n"
-            "int a;\n"
+            "    int a;\n"
             "show_Bool(a);\n"
             "\n"
             "}\n";
@@ -551,6 +551,10 @@ void t_all (void) {
     assert(all(
         "1\n",
         "let a :: () = ():\n    { printf(\"%d\\n\",a) }\n"
+    ));
+    assert(all(
+        "99\n",
+        "val (a,b) :: ((),()) = ((),())\nb\n"
     ));
     assert(all(
         "99\n",

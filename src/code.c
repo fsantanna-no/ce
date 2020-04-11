@@ -232,7 +232,7 @@ void code_case_tst (Expr tst, Patt p) {
     }
 }
 
-void code_case_set (int spc, Expr tst, Patt p) {
+void code_case_set (int spc, Patt p, Expr tst) {
     switch (p.sub) {
         case PATT_RAW:
         case PATT_ANY:
@@ -242,9 +242,11 @@ void code_case_set (int spc, Expr tst, Patt p) {
             code_spc(spc);
             out(p.Set.val.s);
             out(" = ");
-            out("*(typeof(");
-            out(p.Set.val.s);
-            out(")*) &");
+            if (tst.sub == EXPR_VAR) {
+                out("*(typeof(");
+                out(p.Set.val.s);
+                out(")*) &");
+            }
             code_expr(0, tst, NULL);
             out(";\n");
             break;
@@ -252,8 +254,8 @@ void code_case_set (int spc, Expr tst, Patt p) {
             if (p.Cons.arg != NULL) {
                 code_case_set (
                     spc,
-                    (Expr) { EXPR_CONS_SUB, .Cons_Sub={&tst,p.Cons.data.val.s} },
-                    *p.Cons.arg
+                    *p.Cons.arg,
+                    (Expr) { EXPR_CONS_SUB, .Cons_Sub={&tst,p.Cons.data.val.s} }
                 );
             }
             break;
@@ -261,8 +263,8 @@ void code_case_set (int spc, Expr tst, Patt p) {
             for (int i=0; i<p.Tuple.size; i++) {
                 code_case_set (
                     spc,
-                    (Expr) { EXPR_TUPLE_IDX, .Tuple_Idx={&tst,i} },
-                    p.Tuple.vec[i]
+                    p.Tuple.vec[i],
+                    (Expr) { EXPR_TUPLE_IDX, .Tuple_Idx={&tst,i} }
                 );
             }
             break;
@@ -271,28 +273,48 @@ void code_case_set (int spc, Expr tst, Patt p) {
     }
 }
 
-void code_case_vars (Tk* vars, int* vars_i, Patt patt) {
-    switch (patt.sub) {
-        case PATT_RAW:
-        case PATT_ANY:
-        case PATT_UNIT:
-            break;
-        case PATT_SET:
-            assert(*vars_i < 16);
-            vars[(*vars_i)++] = patt.Set;
-            break;
-        case PATT_CONS:
-            if (patt.Cons.arg != NULL) {
-                code_case_vars(vars, vars_i, *patt.Cons.arg);
-            }
-            break;
-        case PATT_TUPLE:
-            for (int i=0; i<patt.Tuple.size; i++) {
-                code_case_vars(vars, vars_i, patt.Tuple.vec[i]);
-            }
-            break;
-        default:
-            assert(0 && "TODO");
+void code_case_vars (int spc, Patt patt, Type type) {
+    void aux (Tk* vars, int* vars_i, Patt patt) {
+        switch (patt.sub) {
+            case PATT_RAW:
+            case PATT_ANY:
+            case PATT_UNIT:
+                break;
+            case PATT_SET:
+                assert(*vars_i < 16);
+                vars[(*vars_i)++] = patt.Set;
+                break;
+            case PATT_CONS:
+                if (patt.Cons.arg != NULL) {
+                    aux(vars, vars_i, *patt.Cons.arg);
+                }
+                break;
+            case PATT_TUPLE:
+                for (int i=0; i<patt.Tuple.size; i++) {
+                    aux(vars, vars_i, patt.Tuple.vec[i]);
+                }
+                break;
+            default:
+                assert(0 && "TODO");
+        }
+    }
+    Tk vars[16];
+    int vars_i = 0;
+    aux(vars, &vars_i, patt);
+    if (vars_i == 1) {
+        code_spc(spc);
+        code_type(type);
+        out(" ");
+        out(vars[0].val.s);
+        out(";\n");
+    } else {
+        for (int i=0; i<vars_i; i++) {
+            code_spc(spc);
+            code_type(type.Tuple.vec[i]);
+            out(" ");
+            out(vars[i].val.s);
+            out(";\n");
+        }
     }
 }
 
@@ -306,27 +328,8 @@ void code_case (int spc, Expr tst, Case c, tce_ret* ret) {
     out("if (");
     code_case_tst(tst, c.patt);
     out(") {\n");
-    {
-        Tk vars[16];
-        int vars_i = 0;
-        code_case_vars(vars, &vars_i, c.patt);
-        if (vars_i == 1) {
-            code_spc(spc+4);
-            code_type(c.type);
-            out(" ");
-            out(vars[0].val.s);
-            out(";\n");
-        } else {
-            for (int i=0; i<vars_i; i++) {
-                code_spc(spc+4);
-                code_type(c.type.Tuple.vec[i]);
-                out(" ");
-                out(vars[i].val.s);
-                out(";\n");
-            }
-        }
-    }
-    code_case_set(spc+4, tst, c.patt);
+    code_case_vars(spc+4, c.patt, c.type);
+    code_case_set(spc+4, c.patt, tst);
     code_spc(spc+4);
     code_expr(spc+4, *c.expr, ret);
     out(";");
@@ -480,39 +483,10 @@ void code_expr (int spc, Expr e, tce_ret* ret) {
 ///////////////////////////////////////////////////////////////////////////////
 
 void code_decl (int spc, Decl d) {
-    // declaration w/o initialization: do not transform to `case`
-    if (d.init == NULL) {
-        if (d.patt.sub == PATT_SET) {
-            //code_spc(spc+4);
-            code_type(d.type);
-            out(" ");
-            out(d.patt.Set.val.s);
-            out(";\n");
-        } else {
-            for (int i=0; i<d.patt.Tuple.size; i++) {
-                //code_spc(spc+4);
-                code_type(d.type.Tuple.vec[i]);
-                out(" ");
-                out(d.patt.Tuple.vec[i].Set.val.s);
-                out(";\n");
-            }
-        }
-    } else {
-        Expr es[d.patt.sub==PATT_SET ? 0 : d.patt.Tuple.size];
-        Expr e;
-            if (d.patt.sub == PATT_SET) {
-                e = (Expr) { EXPR_VAR, .Var=d.patt.Set };
-            } else {
-                e = (Expr) { EXPR_TUPLE, .Tuple={d.patt.Tuple.size,es} };
-                for (int i=0; i<d.patt.Tuple.size; i++) {
-                    assert(d.patt.Tuple.vec[i].sub == PATT_SET);
-                    es[i] = (Expr) { EXPR_VAR, .Var=d.patt.Tuple.vec[i].Set };
-                }
-            }
-        Case c  = (Case) { d.patt, d.type, &e };
-        Expr cs = (Expr) { EXPR_CASES, .Cases={d.init,1,&c} };
-        code_expr(spc, cs, NULL);
-    }
+    code_case_vars(spc+4, d.patt, d.type);
+    if (d.init != NULL) {
+        code_case_set(spc+4, d.patt, *d.init);
+     }
 }
 
 void code_decls (int spc, Decls ds) {

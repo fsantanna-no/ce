@@ -1,3 +1,5 @@
+- valor de retorno de let
+- declaracao com multivar
 - ret w/ patt w/ multivars
 - a ~ b ? x else y
 - show fields
@@ -14,6 +16,7 @@ let x = 1 in
     ...
 ... where:
     x = 1
+val (x,y) :: (I,I) = (10,10)
 
 - match sem case
     match (=x,...) = 
@@ -80,4 +83,3 @@ let x = 1 in
    54   115   860 lexer.h
   193   504  3715 parser.h
  1965  4915 47808 total
-

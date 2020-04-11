@@ -397,41 +397,16 @@ int parser_data (Data* ret) {
 ///////////////////////////////////////////////////////////////////////////////
 
 int parser_decl_nopre (Decl* decl) {
-    State_Tok BEF = PRV;
-
     if (!parser_patt(&decl->patt)) {
         return 0;
-    }
-    switch (decl->patt.sub) {
-        case PATT_TUPLE:
-            for (int i=0; i<decl->patt.Tuple.size; i++) {
-                if (decl->patt.Tuple.vec[i].sub != PATT_SET) {
-                    sprintf(ALL.err, "(ln %ld, col %ld): invalid pattern", BEF.lin, BEF.col);
-                    return 0;
-                }
-            }
-            break;      // OK
-        case PATT_SET:
-            break;      // OK
-        default:
-            sprintf(ALL.err, "(ln %ld, col %ld): invalid pattern", BEF.lin, BEF.col);
-            return 0;
     }
 
     if (!pr_accept(TK_DECL,1)) {
         return err_expected("`::`");
     }
 
-    BEF = PRV;
-
     if (!parser_type(&decl->type)) {
         return 0;
-    }
-    if (decl->patt.sub == PATT_TUPLE) {
-        if (decl->type.sub!=TYPE_TUPLE || decl->patt.Tuple.size!=decl->type.Tuple.size) {
-            sprintf(ALL.err, "(ln %ld, col %ld): invalid type", BEF.lin, BEF.col);
-            return 0;
-        }
     }
 
     if (pr_accept('=',1)) {
