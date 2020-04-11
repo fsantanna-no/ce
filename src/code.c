@@ -42,8 +42,7 @@ char* type2str (Type* tp) {
         }
         case TYPE_TUPLE: {
             static char _ret_[256];
-            char ret[256];
-            strcpy(ret, "Tuple");
+            char ret[256] = "Tuple";
             for (int i=0; i<tp->Tuple.size; i++) {
                 // TODO: asserts
                 strcat(ret, "__");
@@ -78,8 +77,8 @@ void code_type_ (char* out1, char* out2, Type tp) {
             char str[256];
             strcpy(str, _str_);
             sprintf(&out1[strlen(out1)],
-                "#ifndef DEF__Tuple__%s\n"
-                "#define DEF__Tuple__%s\n"
+                "#ifndef DEF__%s\n"
+                "#define DEF__%s\n"
                 "typedef struct { ",
                 str, str
             );
@@ -92,11 +91,10 @@ void code_type_ (char* out1, char* out2, Type tp) {
                 sprintf(&out1[strlen(out1)], "%s _%d; ", out2_, i);
             }
             sprintf(&out1[strlen(out1)],
-                "} Tuple__%s;\n"
+                "} %s;\n"
                 "#endif\n",
                 str
             );
-            strcat(out2, "Tuple__");
             strcat(out2, str);
             break;
         }
@@ -432,7 +430,25 @@ void code_expr (Expr e, tce_ret* ret) {
             code_ret(ret);
             code_expr(*e.Call.func, NULL);
             out("(");
-            code_expr(*e.Call.arg, NULL);
+            if (e.Call.func->sub == EXPR_RAW) {
+                if (e.Call.arg->sub == EXPR_TUPLE) {
+                    for (int i=0; i<e.Call.arg->Tuple.size; i++) {
+                        if (i > 0) {
+                            out(", ");
+                        }
+                        code_expr(e.Call.arg->Tuple.vec[i], NULL);
+                    }
+                } else {
+                    code_expr(*e.Call.arg, NULL);
+                }
+            } else if (e.Call.func->sub == EXPR_CONS) {
+                code_expr(*e.Call.arg, NULL);
+            } else {
+                out("(typeof(TYPE_");
+                code_expr(*e.Call.func, NULL);
+                out("))");
+                code_expr(*e.Call.arg, NULL);
+            }
             out(")");
             break;
         case EXPR_TUPLE:
@@ -452,23 +468,34 @@ void code_expr (Expr e, tce_ret* ret) {
             }
             out(" }");
             break;
-        case EXPR_FUNC:
+        case EXPR_FUNC: {
             assert(ret!=NULL && ret->nxt==NULL);    // set f = func (only supported)
             out("\n");
+            char out1[4096] = "";
+            char out2[4096] = "";    // TODO: asserts
+            code_type_(out1, out2, *e.Func.type.Func.inp);
+            out(out1);
+            out("#define TYPE_");
+                out(ret->patt->Set.val.s);
+                out(" ");
+                out(out2);
+                out("\n");
             code_type(*e.Func.type.Func.out);
                 out(" ");
                 out(ret->patt->Set.val.s);
                 out(" (");
-                code_type(*e.Func.type.Func.inp);
+                out(out2);
             out(" ce_arg) {\n");
                 code_type(*e.Func.type.Func.out);
                 out(" ce_ret;\n");
                 Patt pt = (Patt){PATT_SET,.Set={TK_IDVAR,{.s="ce_ret"}}};
                 tce_ret r = { &pt, NULL };
                 code_expr(*e.Func.body, &r);
+                out(";\n");
                 out("return ce_ret;\n");
             out("}\n\n");
             break;
+        }
         case EXPR_SEQ:
             for (int i=0; i<e.Seq.size; i++) {
                 code_expr(e.Seq.vec[i], (i==e.Seq.size-1) ? ret : NULL);
