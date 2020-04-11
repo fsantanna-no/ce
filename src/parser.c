@@ -399,13 +399,13 @@ int parser_data (Data* ret) {
 int parser_decl_nopre (Decl* decl) {
     State_Tok BEF = PRV;
 
-    if (!parser_patt(&decl->vars)) {
+    if (!parser_patt(&decl->patt)) {
         return 0;
     }
-    switch (decl->vars.sub) {
+    switch (decl->patt.sub) {
         case PATT_TUPLE:
-            for (int i=0; i<decl->vars.Tuple.size; i++) {
-                if (decl->vars.Tuple.vec[i].sub != PATT_SET) {
+            for (int i=0; i<decl->patt.Tuple.size; i++) {
+                if (decl->patt.Tuple.vec[i].sub != PATT_SET) {
                     sprintf(ALL.err, "(ln %ld, col %ld): invalid pattern", BEF.lin, BEF.col);
                     return 0;
                 }
@@ -427,8 +427,8 @@ int parser_decl_nopre (Decl* decl) {
     if (!parser_type(&decl->type)) {
         return 0;
     }
-    if (decl->vars.sub == PATT_TUPLE) {
-        if (decl->type.sub!=TYPE_TUPLE || decl->vars.Tuple.size!=decl->type.Tuple.size) {
+    if (decl->patt.sub == PATT_TUPLE) {
+        if (decl->type.sub!=TYPE_TUPLE || decl->patt.Tuple.size!=decl->type.Tuple.size) {
             sprintf(ALL.err, "(ln %ld, col %ld): invalid type", BEF.lin, BEF.col);
             return 0;
         }
@@ -524,14 +524,11 @@ void* parser_case_ (void) {
 
     // decls
     if (pr_accept(TK_DECL,1)) {
-        Type tp;
-        if (!parser_type(&tp)) {
+        if (!parser_type(&c.type)) {
             return 0;
         }
-        c.type = malloc(sizeof(tp));
-        *c.type = tp;
     } else {
-        c.type = NULL;
+        c.type.sub = TYPE_NONE;
     }
 
     // ->
@@ -670,11 +667,10 @@ int parser_expr_one (Expr* ret) {
         if (!parser_expr(&e)) {
             return 0;
         }
-        assert(e.decls.size == 0);
-        e.decls.size = 1;
-        e.decls.vec = malloc(sizeof(d));
-        e.decls.vec[0] = d;
-        *ret = e;
+        Expr* pe = malloc(sizeof(Expr));
+        *pe = e;
+
+        *ret = (Expr) { EXPR_LET, .Let={d.patt,d.type,d.init,pe} };
 
     // EXPR_CASES
     } else if (pr_accept(TK_CASE,1)) {

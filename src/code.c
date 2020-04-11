@@ -16,11 +16,22 @@ void code_spc (int spc) {
     }
 }
 
+// TODO: spc
 void code_ret (tce_ret* ret) {
     while (ret != NULL) {
         out(ret->patt->Set.val.s);
         out(" = ");
         ret = ret->nxt;
+#if 0
+        if (ret->patt->sub == PATT_SET) {
+        } else {
+            for (int i=0; i<ret->patt->Tuple.size; i++) {
+                out(ret->patt->Tuple->vec[i].val.s);
+                out(" = ");
+                ret = ret->nxt;
+            }
+        }
+#endif
     }
 }
 
@@ -301,14 +312,14 @@ void code_case (int spc, Expr tst, Case c, tce_ret* ret) {
         code_case_vars(vars, &vars_i, c.patt);
         if (vars_i == 1) {
             code_spc(spc+4);
-            code_type(*c.type);
+            code_type(c.type);
             out(" ");
             out(vars[0].val.s);
             out(";\n");
         } else {
             for (int i=0; i<vars_i; i++) {
                 code_spc(spc+4);
-                code_type(c.type->Tuple.vec[i]);
+                code_type(c.type.Tuple.vec[i]);
                 out(" ");
                 out(vars[i].val.s);
                 out(";\n");
@@ -425,8 +436,13 @@ void code_expr (int spc, Expr e, tce_ret* ret) {
                 out(";\n");
             }
             break;
-        case EXPR_CASES:
-            code_spc(spc);
+        case EXPR_LET: {    // patt,type,init,body
+            Case c  = (Case) { e.Let.patt, e.Let.type, e.Let.body };
+            Expr cs = (Expr) { EXPR_CASES, .Cases={e.Let.init,1,&c} };
+            code_expr(spc, cs, NULL);
+            break;
+        }
+        case EXPR_CASES:    // tst,size,vec
             for (int i=0; i<e.Cases.size; i++) {
                 code_case(spc, *e.Cases.tst, e.Cases.vec[i], ret);
             }
@@ -464,28 +480,38 @@ void code_expr (int spc, Expr e, tce_ret* ret) {
 ///////////////////////////////////////////////////////////////////////////////
 
 void code_decl (int spc, Decl d) {
-    if (d.vars.sub == PATT_SET) {
-        //code_spc(spc+4);
-        code_type(d.type);
-        out(" ");
-        out(d.vars.Set.val.s);
-        out(";\n");
-    } else {
-        for (int i=0; i<d.vars.Tuple.size; i++) {
+    // declaration w/o initialization: do not transform to `case`
+    if (d.init == NULL) {
+        if (d.patt.sub == PATT_SET) {
             //code_spc(spc+4);
-            code_type(d.type.Tuple.vec[i]);
+            code_type(d.type);
             out(" ");
-            out(d.vars.Tuple.vec[i].Set.val.s);
+            out(d.patt.Set.val.s);
             out(";\n");
+        } else {
+            for (int i=0; i<d.patt.Tuple.size; i++) {
+                //code_spc(spc+4);
+                code_type(d.type.Tuple.vec[i]);
+                out(" ");
+                out(d.patt.Tuple.vec[i].Set.val.s);
+                out(";\n");
+            }
         }
-    }
-    if (d.init != NULL) {
-        Patt pt = (Patt){PATT_SET,.Set=d.vars.Set};
-        tce_ret r = { &pt, NULL };
-        //code_spc(spc+4);
-        code_expr(spc, *d.init, &r);
-        code_spc(spc);
-        out(";\n");
+    } else {
+        Expr es[d.patt.sub==PATT_SET ? 0 : d.patt.Tuple.size];
+        Expr e;
+            if (d.patt.sub == PATT_SET) {
+                e = (Expr) { EXPR_VAR, .Var=d.patt.Set };
+            } else {
+                e = (Expr) { EXPR_TUPLE, .Tuple={d.patt.Tuple.size,es} };
+                for (int i=0; i<d.patt.Tuple.size; i++) {
+                    assert(d.patt.Tuple.vec[i].sub == PATT_SET);
+                    es[i] = (Expr) { EXPR_VAR, .Var=d.patt.Tuple.vec[i].Set };
+                }
+            }
+        Case c  = (Case) { d.patt, d.type, &e };
+        Expr cs = (Expr) { EXPR_CASES, .Cases={d.init,1,&c} };
+        code_expr(spc, cs, NULL);
     }
 }
 

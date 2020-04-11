@@ -1,4 +1,5 @@
 typedef enum {
+    TYPE_NONE,
     TYPE_RAW,
     TYPE_UNIT,
     TYPE_DATA,
@@ -30,6 +31,7 @@ typedef enum {
     EXPR_SEQ,
     EXPR_CALL,
     EXPR_BLOCK,
+    EXPR_LET,
     EXPR_CASES,
     ////
     EXPR_TUPLE_IDX,
@@ -123,7 +125,7 @@ typedef struct Patt {
 } Patt;
 
 typedef struct {
-    Patt vars;
+    Patt patt;
     Type type;
     struct Expr* init;
 } Decl;
@@ -134,8 +136,8 @@ typedef struct {
 } Decls;
 
 typedef struct {
-    Patt  patt;
-    Type* type;
+    Patt patt;
+    Type type;
     struct Expr* expr;
 } Case;
 
@@ -164,6 +166,12 @@ typedef struct Expr {
             struct Expr* func;
             struct Expr* arg;
         } Call;
+        struct {        // EXPR_LET
+            Patt patt;
+            Type type;
+            struct Expr* init;
+            struct Expr* body;
+        } Let;
         struct {        // EXPR_CASES
             struct Expr* tst;
             int   size;

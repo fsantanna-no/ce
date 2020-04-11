@@ -361,7 +361,7 @@ void t_parser_decls (void) {
         Decls ds;
         assert(parser_decls(&ds));
         assert(ds.size == 1);
-        assert(!strcmp(ds.vec[0].vars.Set.val.s, "a"));
+        assert(!strcmp(ds.vec[0].patt.Set.val.s, "a"));
         assert(ds.vec[0].type.sub == TYPE_UNIT);
         fclose(ALL.inp);
     }
@@ -370,7 +370,7 @@ void t_parser_decls (void) {
         Decls ds;
         assert(parser_decls(&ds));
         assert(ds.size == 1);
-        assert(!strcmp(ds.vec[0].vars.Set.val.s, "a"));
+        assert(!strcmp(ds.vec[0].patt.Set.val.s, "a"));
         assert(ds.vec[0].type.sub == TYPE_RAW);
         assert(!strcmp(ds.vec[0].type.Raw.val.s,"char"));
         fclose(ALL.inp);
@@ -380,7 +380,7 @@ void t_parser_decls (void) {
         Decls ds;
         assert(parser_decls(&ds));
         assert(ds.size == 2);
-        assert(!strcmp(ds.vec[0].vars.Tuple.vec[0].Set.val.s, "a"));
+        assert(!strcmp(ds.vec[0].patt.Tuple.vec[0].Set.val.s, "a"));
         assert(ds.vec[0].type.sub == TYPE_TUPLE);
         assert(!strcmp(ds.vec[0].type.Tuple.vec[1].Raw.val.s,"char"));
         assert(ds.vec[1].type.sub == TYPE_UNIT);
@@ -463,9 +463,9 @@ void t_code (void) {
             strcpy(e.Var.val.s, "xxx");
         Decl d;
             d.init = NULL;
-            d.vars.sub = PATT_SET;
-            d.vars.Set.sym = TK_IDVAR;
-            strcpy(d.vars.Set.val.s, "xxx");
+            d.patt.sub = PATT_SET;
+            d.patt.Set.sym = TK_IDVAR;
+            strcpy(d.patt.Set.val.s, "xxx");
             d.type.sub = TYPE_UNIT;
         e.decls = (Decls) { 1, &d };
         // xxx: xxx::()

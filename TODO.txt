@@ -6,6 +6,15 @@
     - test multiple calls
 - val[], new
 
+set x = 1:
+    x
+case 1 of
+    =x -> ...
+let x = 1 in
+    ...
+... where:
+    x = 1
+
 - match sem case
     match (=x,...) = 
 - list type
