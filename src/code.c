@@ -585,13 +585,18 @@ void code_decl (Decl d) {
             out(" (");
             out(out2);
         out(" ce_arg) {\n");
-            code_type(*d.type.Func.out);
-            out(" ce_ret;\n");
-            Patt pt = (Patt){PATT_SET,.Set={TK_IDVAR,{.s="ce_ret"}}};
-            tce_ret r = { &pt, NULL };
-            code_expr(*d.init, &r);
-            out(";\n");
-            out("return ce_ret;\n");
+            if (d.type.Func.out->sub == TYPE_UNIT) {
+                code_expr(*d.init, NULL);
+                out(";\n");
+            } else {
+                code_type(*d.type.Func.out);
+                out(" ce_ret;\n");
+                Patt pt = (Patt){PATT_SET,.Set={TK_IDVAR,{.s="ce_ret"}}};
+                tce_ret r = { &pt, NULL };
+                code_expr(*d.init, &r);
+                out(";\n");
+                out("return ce_ret;\n");
+            }
         out("}\n\n");
     } else {
         code_case_vars(d.patt, d.type);

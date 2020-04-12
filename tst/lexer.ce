@@ -1,15 +1,33 @@
 { #include <string.h> }
 { typedef char Tk_s[256] }
 
-data Tk: -- ({int},{Tk_s}):     -- TODO: inheritance
-    Tk_ERROR   ({int},{Tk_s})   -- TODO: optional `|`
-    Tk_COMMENT ({int},{Tk_s})   -- TODO: optional `\n`
+data Tk:        -- TODO: inheritance // optional | \n
+    Tk_ERR
+    Tk_EOF
+    Tk_COMMENT
+    Tk_ARROW
 
 mut inp :: {FILE*}
 
-func lexer :: (Tk -> ()):
-    loop:
-}
+func lexer :: (() -> Tk):
+    case {fgetc} (inp):
+        {EOF} -> Tk_EOF
+        {'-'} -> :
+            case {fgetc} (inp):
+                {'>'} -> return Tk_ARROW
+                {'-'} -> :
+                    loop:
+                        case {fgetc} (inp):
+                            {EOF}:
+                                call {ungetc} ({EOF},inp)
+                                break
+                            {'\n'}:                     -- TODO `;` for seq
+                                call {ungetc} ({'\n'},inp)
+                                break
+                            else -> ()
+                        return Tk_COMMENT
+                else  -> return Tk_ERR
+    return lexer ()
 
 func stropen :: (({char*}, {size_t}, {char*}) -> {FILE*}): -- TODO: (mode::char*, ...)
     let (mode,size,str) :: ({char*}, {size_t}, {char*}) = ...:
