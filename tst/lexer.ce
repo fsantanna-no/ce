@@ -13,9 +13,11 @@ func to_bool :: ({int} -> Bool):
 
 data Tk:        -- TODO: inheritance // optional | \n
     Tk_ERR
+    Tk_CHAR     {char}
     Tk_EOF
     Tk_LINE     {int}
     Tk_COMMENT
+    Tk_DECL
     Tk_ARROW
     Tk_IDVAR    {String}
     Tk_IDDATA   {String}
@@ -71,6 +73,12 @@ func lexer_ :: (() -> Tk):
                                 return Tk_COMMENT
                             else -> pass
                 else  -> return Tk_ERR
+        {':'}:
+            match {fgetc} (inp):
+                {':'} -> return Tk_DECL
+                c :: {int}:
+                    {ungetc} (c,inp)
+                    return Tk_CHAR ({':'})
         c :: {int} -> let (i,ret) :: ({int},{String}) = ({0},{(String){""}}):
             if:
                 {isalpha (c)} -> pass
@@ -156,6 +164,14 @@ func t_lexer :: (() -> ()):
         match lexer():
             Tk_IDVAR (s) :: {String} -> {assert (! strcmp (s.v,"letx"))}
         {assert} (lexer() ~ Tk_EOF)
+        {fclose} (inp)
+    :
+        set inp = stropen({"r"}, {0}, {": :: :"})
+        let tk :: Tk = lexer():
+            {assert} (tk ~ Tk_CHAR({':'}))
+        {assert} (lexer() ~ Tk_DECL)
+        let tk :: Tk = lexer():
+            {assert} (tk ~ Tk_CHAR({':'}))
         {fclose} (inp)
 
 t_lexer ()
