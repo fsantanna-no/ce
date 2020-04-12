@@ -28,6 +28,9 @@ int is_reserved (TK_val* val) {
 const char* lexer_tk2str (Tk* tk) {
     static char str[512];
     switch (tk->sym) {
+        case TK_ERR:
+            sprintf(str, "`%c`", tk->val.n);
+            break;
         case TK_EOF:
             sprintf(str, "end of file");
             break;
@@ -163,6 +166,7 @@ TK lexer_ (TK_val* val) {
         default:
 
             if (!isalpha(c)) {
+                val->n = c;
                 return TK_ERR;
             }
 

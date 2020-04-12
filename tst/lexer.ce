@@ -53,9 +53,16 @@ func stropen :: (({char*}, {size_t}, {char*}) -> {FILE*}): -- TODO: (mode::char*
 func t_lexer :: (() -> ()):
     :
         set inp = stropen ({"r"}, {0}, {"-- foobar"})
-        let tk :: Tk = lexer():             -- TODO: it // optional [tk :: Tk =] (assume it)
-            call {show_Tk}(tk)
-            call {assert} (tk ~ Tk_COMMENT (_))
+        call {assert} (lexer() ~ Tk_COMMENT)
+        call {fclose} (inp)
+    :
+        set inp = stropen({"r"}, {0}, {"-- c1\n--c2\n\n"})
+        call {assert} (lexer() ~ Tk_COMMENT)
+        call {assert} (lexer() ~ Tk_LINE)
+        call {assert} (lexer() ~ Tk_COMMENT)
+        call {assert} (lexer() ~ Tk_LINE)
+        call {assert} (lexer() ~ Tk_EOF)
+        call {fclose} (inp)
 
 call t_lexer ()
 

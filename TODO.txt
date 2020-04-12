@@ -1,4 +1,3 @@
-- case assign tst
 - False/True -> 0/1 (enums)
 - ~ be structural not referential
 - show fields
