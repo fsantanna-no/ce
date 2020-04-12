@@ -308,14 +308,14 @@ void t_parser_expr (void) {
         init(NULL, stropen("r", 0, ":\n    x\n    y ("));
         Expr e;
         assert(!parser_expr(&e));
-        assert(!strcmp(ALL.err, "(ln 3, col 7): expected `call` at the beginning of line"));
+        assert(!strcmp(ALL.err, "(ln 3, col 8): expected expression : have end of file"));
         fclose(ALL.inp);
     }
     {
-        init(NULL, stropen("r", 0, ":\n    x\n    call y ("));
+        init(NULL, stropen("r", 0, ":\n    x\n    y ("));
         Expr e;
         assert(!parser_expr(&e));
-        assert(!strcmp(ALL.err, "(ln 3, col 13): expected expression : have end of file"));
+        assert(!strcmp(ALL.err, "(ln 3, col 8): expected expression : have end of file"));
         fclose(ALL.inp);
     }
     {
@@ -479,7 +479,7 @@ void t_code (void) {
         char out[256] = "";
         init (
             stropen("w", sizeof(out), out),
-            stropen("r", 0, "val a :: ()\ncall {show_Bool}(a)")
+            stropen("r", 0, "val a :: ()\n{show_Bool}(a)")
         );
         Prog p;
         parser_prog(&p);
@@ -601,7 +601,7 @@ void t_all (void) {
     // TODO: multiple vars
     assert(all(
         "()\n",
-        "val (a,b) :: ((),()) = ((),())\ncall {show_Unit}(b)\n"
+        "val (a,b) :: ((),()) = ((),())\n{show_Unit}(b)\n"
     ));
     assert(all(
         "99\n",
@@ -613,7 +613,7 @@ void t_all (void) {
         "data Bool:\n"
         "    False\n"
         "    True\n"
-        "call {show_Bool}(True)\n"
+        "{show_Bool}(True)\n"
     ));
     assert(all(
         "True\n",
@@ -621,27 +621,27 @@ void t_all (void) {
         "data Bool:\n"
         "    False ()\n"
         "    True  ()\n"
-        "call {show_Bool}(True)\n"
+        "{show_Bool}(True)\n"
     ));
     assert(all(
         "()\n",
         "val v :: () = case ():\n"
         "    ~() -> ()\n"
-        "call {show_Unit}(v)"
+        "{show_Unit}(v)"
     ));
     assert(all(
         "()\n",
         "val a :: () = ()\n"
         "val b :: () = case ():\n"
         "    ~a -> ()\n"
-        "call {show_Unit}(b)"
+        "{show_Unit}(b)"
     ));
     assert(all(
         "()\n",
         "val a :: () = ()\n"
         "val b :: {int} = a ~ ()\n"
         "val c :: () = if b -> () -> {99}\n"
-        "call {show_Unit}(c)"
+        "{show_Unit}(c)"
     ));
     assert(all(
         "()\n",
@@ -649,12 +649,12 @@ void t_all (void) {
         "val c :: () = if:\n"
         "    a ~ () -> ()\n"
         "    else   -> {99}\n"
-        "call {show_Unit}(c)"
+        "{show_Unit}(c)"
     ));
     assert(all(
         "()\n",
         "val a :: () = ()\n"
-        "call {show_Unit}(if a~() -> () -> {99})"
+        "{show_Unit}(if a~() -> () -> {99})"
     ));
     assert(all(
         "False\n",
@@ -665,7 +665,7 @@ void t_all (void) {
         "set v = case ():\n"
         "    ()   -> False\n"
         "    else -> True\n"
-        "call {show_Bool}(v)"
+        "{show_Bool}(v)"
     ));
     assert(all(
         "10",
@@ -685,7 +685,7 @@ void t_all (void) {
         "    case ...:\n"
         "        False -> True\n"
         "        True  -> False\n"
-        "call {show_Bool}(inv(True))"
+        "{show_Bool}(inv(True))"
     ));
     assert(all(
         "False\n",
@@ -696,7 +696,7 @@ void t_all (void) {
         "    case ...:\n"
         "        False -> return True\n"
         "        True  -> return False\n"
-        "call {show_Bool}(inv(True))"
+        "{show_Bool}(inv(True))"
     ));
     assert(all(
         "True\n",
@@ -708,7 +708,7 @@ void t_all (void) {
         "val b :: Bool = case v:\n"
         "    Vv(False)     -> False\n"
         "    Vv(x) :: Bool -> x\n"
-        "call {show_Bool}(b)"
+        "{show_Bool}(b)"
     ));
     assert(all(
         "()\n",
@@ -730,7 +730,7 @@ void t_all (void) {
         "    ((),x) :: ((),()) -> y where:\n"
         "        val y :: () = case x:\n"
         "            ((),z) :: () -> z\n"
-        "call {show_Unit}(v)"
+        "{show_Unit}(v)"
     ));
     assert(all(
         "()\n",
@@ -740,14 +740,14 @@ void t_all (void) {
         "    (x,(_,z)) :: ((),()) -> y where:\n"
         "        val y :: () = case (x,z):\n"
         "            ((),a) :: () -> a\n"
-        "call {show_Unit}(v)"
+        "{show_Unit}(v)"
     ));
     assert(all(
         "()\n",
         "data Pair ((),())\n"
         "val n :: () = case Pair ((),()):\n"
         "    Pair (x,_) :: () -> x\n"
-        "call {show_Unit}(n)"
+        "{show_Unit}(n)"
     ));
     assert(all(
         "True\n",
@@ -757,7 +757,7 @@ void t_all (void) {
         "data Pair (Bool,Bool)\n"
         "val n :: Bool = case Pair (True,False):\n"
         "    Pair (x,_) :: Bool -> x\n"
-        "call {show_Bool}(n)"
+        "{show_Bool}(n)"
     ));
     assert(all(
         "Nil\n",
@@ -766,7 +766,7 @@ void t_all (void) {
         "    Nil  ()\n"
         "    Cons ((), List)\n"
         "val l :: List = new Nil\n"
-        "call {show_List}(l)"
+        "{show_List}(l)"
     ));
     assert(all(
         "Cons\n()\n",
@@ -777,13 +777,13 @@ void t_all (void) {
         "val l :: List = new Cons((),new Nil)\n"
         "val n :: () = case l:\n"
         "    Cons(x,_) :: () -> x\n"
-        "call {show_List}(l)\n"
-        "call {show_Unit}(n)"
+        "{show_List}(l)\n"
+        "{show_Unit}(n)"
     ));
     assert(all(
         "()\n",
         "func f :: (((),()) -> ()) ()\n"
-        "call {show_Unit}(f((),()))"
+        "{show_Unit}(f((),()))"
     ));
 #if 0
     // TODO: nested Cons pattern
@@ -796,7 +796,7 @@ void t_all (void) {
         "val l :: List = new Cons((),new Cons((),new Nil))\n"
         "val n :: () = case l:\n"
         "    Cons(_,Cons(x,_)) :: () -> x\n"   // TODO
-        "call {show_Unit}(n)"
+        "{show_Unit}(n)"
     ));
 #endif
     assert(all(
@@ -812,7 +812,7 @@ void t_all (void) {
         "val l :: List = new Cons(Tre,new Cons(Two,new Cons(One,new Nil)))\n"
         "val n :: Nat = case l:\n"
         "    Cons(x,_) :: Nat -> x\n"
-        "call {show_Nat}(n)"
+        "{show_Nat}(n)"
     ));
 
     // LOOP
@@ -820,13 +820,13 @@ void t_all (void) {
     assert(all(
         "()\n",
         "val n :: () = loop break ()\n"
-        "call {show_Unit}(n)"
+        "{show_Unit}(n)"
     ));
 
     assert(all(
         "()\n",
         "loop break\n"
-        "call {show_Unit}(())"
+        "{show_Unit}(())"
     ));
 }
 

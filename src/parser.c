@@ -628,8 +628,6 @@ void* parser_if_ (void) {
 }
 
 int parser_expr_one (Expr* ret) {
-    int is_line = (PRV.tk.sym==TK_LINE);
-
     // EXPR_RAW
     if (pr_accept(TK_RAW,1)) {
         *ret = (Expr) { EXPR_RAW, {.size=0}, .Raw=PRV.tk };
@@ -800,23 +798,6 @@ int parser_expr_one (Expr* ret) {
         }
         *ret = (Expr) { EXPR_LOOP, {.size=0}, .Loop=pe };
 
-    // EXPR_CALL
-    } else if (pr_accept(TK_CALL,1)) {
-        if (!is_line) {
-            return err_unexpected("`call`");    // use `call` only starting line
-        }
-        Expr func;
-        if (!parser_expr_one(&func)) {
-            return 0;
-        }
-        Expr* arg  = expr_new();
-        if (arg == NULL) {
-            return 0;
-        }
-        Expr* p = malloc(sizeof(Expr));
-        assert(p != NULL);
-        *p = func;
-        *ret = (Expr) { EXPR_CALL, {.size=0}, .Call={p,arg} };
     } else {
         return err_expected("expression");
     }
@@ -826,21 +807,11 @@ int parser_expr_one (Expr* ret) {
 }
 
 int parser_expr (Expr* ret) {
-    int is_line = (PRV.tk.sym==TK_LINE);
-
     Expr e;
     if (!parser_expr_one(&e)) {
         return 0;
     }
     *ret = e;
-
-    if (pr_check('(',1) && is_line && e.sub!=EXPR_CALL) {
-        sprintf(ALL.err,
-            "(ln %ld, col %ld): expected `call` at the beginning of line",
-            NXT.lin, NXT.col
-        );
-        return 0;
-    }
 
     // EXPR_MATCH'S
     while (1) {

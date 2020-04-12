@@ -19,7 +19,7 @@ func lexer :: (() -> Tk):
                     {EOF} -> return Tk_EOF      -- consider \nEOF as EOF
                     {' '} -> set i = {i+1}
                     c :: {int}:
-                        call {ungetc} (c,inp)
+                        {ungetc} (c,inp)
                         break
             if:
                 {i%4 == 0} -> return Tk_LINE ({i/4})
@@ -32,10 +32,10 @@ func lexer :: (() -> Tk):
                     loop:
                         case {fgetc} (inp):
                             {EOF}:
-                                call {ungetc} ({EOF},inp)
+                                {ungetc} ({EOF},inp)
                                 return Tk_COMMENT
                             {'\n'}:                     -- TODO `;` for seq
-                                call {ungetc} ({'\n'},inp)
+                                {ungetc} ({'\n'},inp)
                                 return Tk_COMMENT
                             else -> pass
                 else  -> return Tk_ERR
@@ -53,17 +53,17 @@ func stropen :: (({char*}, {size_t}, {char*}) -> {FILE*}): -- TODO: (mode::char*
 func t_lexer :: (() -> ()):
     :
         set inp = stropen ({"r"}, {0}, {"-- foobar"})
-        call {assert} (lexer() ~ Tk_COMMENT)
-        call {fclose} (inp)
+        {assert} (lexer() ~ Tk_COMMENT)
+        {fclose} (inp)
     :
         set inp = stropen({"r"}, {0}, {"-- c1\n--c2\n\n"})
-        call {assert} (lexer() ~ Tk_COMMENT)
-        call {assert} (lexer() ~ Tk_LINE)
-        call {assert} (lexer() ~ Tk_COMMENT)
-        call {assert} (lexer() ~ Tk_LINE)
-        call {assert} (lexer() ~ Tk_EOF)
-        call {fclose} (inp)
+        {assert} (lexer() ~ Tk_COMMENT)
+        {assert} (lexer() ~ Tk_LINE)
+        {assert} (lexer() ~ Tk_COMMENT)
+        {assert} (lexer() ~ Tk_LINE)
+        {assert} (lexer() ~ Tk_EOF)
+        {fclose} (inp)
 
-call t_lexer ()
+t_lexer ()
 
 { puts("OK") }

@@ -20,8 +20,8 @@ typedef enum {
 
     // all reserved keywords
     TK_RESERVED,
-    TK_BREAK, TK_CALL, TK_CASE, TK_DATA, TK_ELSE,   TK_FUNC, TK_IF,  TK_LET,
-    TK_LOOP,  TK_MUT,  TK_NEW,  TK_PASS, TK_RETURN, TK_SET,  TK_VAL, TK_WHERE
+    TK_BREAK, TK_CASE, TK_DATA, TK_ELSE,   TK_FUNC, TK_IF,  TK_LET, TK_LOOP,
+    TK_MUT,   TK_NEW,  TK_PASS, TK_RETURN, TK_SET,  TK_VAL, TK_WHERE
 } TK;
 
 typedef union {
