@@ -648,7 +648,7 @@ void t_all (void) {
         "data Bool:\n"
         "    False ()\n"
         "    True  ()\n"
-        "set inv = func :: (Bool -> Bool):\n"
+        "func inv :: (Bool -> Bool):\n"
         "    case ...:\n"
         "        False -> True\n"
         "        True  -> False\n"
@@ -738,7 +738,7 @@ void t_all (void) {
     ));
     assert(all(
         "()\n",
-        "set f = func :: (((),()) -> ()) ()\n"
+        "func f :: (((),()) -> ()) ()\n"
         "call {show_Unit}(f((),()))"
     ));
 #if 0

@@ -484,34 +484,6 @@ void code_expr (Expr e, tce_ret* ret) {
             }
             out(" }");
             break;
-        case EXPR_FUNC: {
-            assert(ret!=NULL && ret->nxt==NULL);    // set f = func (only supported)
-            out("\n");
-            char out1[4096] = "";
-            char out2[4096] = "";    // TODO: asserts
-            code_type_(out1, out2, *e.Func.type.Func.inp);
-            out(out1);
-            out("#define TYPE_");
-                out(ret->patt->Set.val.s);
-                out(" ");
-                out(out2);
-                out("\n");
-            code_type(*e.Func.type.Func.out);
-                out(" ");
-                out(ret->patt->Set.val.s);
-                out(" (");
-                out(out2);
-            out(" ce_arg) {\n");
-                code_type(*e.Func.type.Func.out);
-                out(" ce_ret;\n");
-                Patt pt = (Patt){PATT_SET,.Set={TK_IDVAR,{.s="ce_ret"}}};
-                tce_ret r = { &pt, NULL };
-                code_expr(*e.Func.body, &r);
-                out(";\n");
-                out("return ce_ret;\n");
-            out("}\n\n");
-            break;
-        }
         case EXPR_SEQ:
             for (int i=0; i<e.Seq.size; i++) {
                 code_expr(e.Seq.vec[i], (i==e.Seq.size-1) ? ret : NULL);
@@ -574,12 +546,41 @@ void code_expr (Expr e, tce_ret* ret) {
 ///////////////////////////////////////////////////////////////////////////////
 
 void code_decl (Decl d) {
-    code_case_vars(d.patt, d.type);
-    if (d.init != NULL) {
-        tce_ret r = { &d.patt, NULL };
-        code_expr(*d.init, &r);
-        out(";\n");
-     }
+    if (d.type.sub == TYPE_FUNC) {
+        assert(d.init != NULL);
+        assert(d.patt.sub == PATT_SET);
+        out("\n");
+        char out1[4096] = "";
+        char out2[4096] = "";    // TODO: asserts
+        code_type_(out1, out2, *d.type.Func.inp);
+        out(out1);
+        out("#define TYPE_");
+            out(d.patt.Set.val.s);
+            out(" ");
+            out(out2);
+            out("\n");
+        code_type(*d.type.Func.out);
+            out(" ");
+            out(d.patt.Set.val.s);
+            out(" (");
+            out(out2);
+        out(" ce_arg) {\n");
+            code_type(*d.type.Func.out);
+            out(" ce_ret;\n");
+            Patt pt = (Patt){PATT_SET,.Set={TK_IDVAR,{.s="ce_ret"}}};
+            tce_ret r = { &pt, NULL };
+            code_expr(*d.init, &r);
+            out(";\n");
+            out("return ce_ret;\n");
+        out("}\n\n");
+    } else {
+        code_case_vars(d.patt, d.type);
+        if (d.init != NULL) {
+            tce_ret r = { &d.patt, NULL };
+            code_expr(*d.init, &r);
+            out(";\n");
+         }
+    }
 }
 
 void code_decls (Decls ds) {

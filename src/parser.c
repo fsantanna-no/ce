@@ -461,6 +461,7 @@ int parser_data (Data* ret) {
 ///////////////////////////////////////////////////////////////////////////////
 
 int parser_decl_nopre (Decl* decl) {
+    int is_func = (PRV.tk.sym == TK_FUNC);
     if (!parser_patt(&decl->patt,0)) {
         return 0;
     }
@@ -473,10 +474,10 @@ int parser_decl_nopre (Decl* decl) {
         return 0;
     }
 
-    if (pr_accept('=',1)) {
+    if (is_func || (!is_func && pr_accept('=',1))) {
         Expr init;
         if (!parser_expr(&init)) {
-            return 0;
+            return is_func;
         }
         if (!parser_where(&init.decls)) {
             return 0;
@@ -492,8 +493,8 @@ int parser_decl_nopre (Decl* decl) {
 }
 
 int parser_decl (Decl* decl) {
-    if (!pr_accept(TK_MUT,1) && !pr_accept(TK_VAL,1)) {
-        return err_expected("`mut` or `val`");
+    if (!pr_accept(TK_MUT,1) && !pr_accept(TK_VAL,1) && !pr_accept(TK_FUNC,1)) {
+        return err_expected("`mut` or `val` or `func`");
     }
     return parser_decl_nopre(decl);
 }
@@ -845,7 +846,7 @@ void* parser_glob_ (void) {
         return &g_;
     }
 
-    if (pr_check(TK_MUT,1) || pr_check(TK_VAL,1)) {
+    if (pr_check(TK_MUT,1) || pr_check(TK_VAL,1) || pr_check(TK_FUNC,1)) {
         if (!parser_decl(&g.decl)) {
             return NULL;
         }
