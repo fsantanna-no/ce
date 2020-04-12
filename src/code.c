@@ -528,6 +528,7 @@ void code_expr (Expr e, tce_ret* ret) {
             code_case_tst(*e.Match.expr, *e.Match.patt);
             break;
         case EXPR_CASES: {  // tst,size,vec
+            out("{");
             Expr tst = *e.Cases.tst;
             if (tst.sub != EXPR_TUPLE) {
                 out("typeof(");
@@ -544,6 +545,7 @@ void code_expr (Expr e, tce_ret* ret) {
             out("{\n");
             out("assert(0 && \"match failed\");\n");
             out("}\n");
+            out("}");
             break;
         }
         case EXPR_IFS:    // tst,size,vec
