@@ -678,6 +678,10 @@ int parser_expr_one (Expr* ret) {
             return 0;
         }
 
+    // EXPR_RETURN
+    } else if (pr_accept(TK_RETURN,1)) {
+        *ret = (Expr) { EXPR_RETURN, {.size=0}, .Return=expr_new() };
+
     // EXPR_SEQ
     } else if (pr_check(':',1)) {
         List lst;

@@ -655,6 +655,17 @@ void t_all (void) {
         "call {show_Bool}(inv(True))"
     ));
     assert(all(
+        "False\n",
+        "data Bool:\n"
+        "    False ()\n"
+        "    True  ()\n"
+        "func inv :: (Bool -> Bool):\n"
+        "    case ...:\n"
+        "        False -> return True\n"
+        "        True  -> return False\n"
+        "call {show_Bool}(inv(True))"
+    ));
+    assert(all(
         "True\n",
         "data Bool:\n"
         "    False ()\n"

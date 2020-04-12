@@ -521,6 +521,12 @@ void code_expr (Expr e, tce_ret* ret) {
             out("break;\n");
             break;
         }
+        case EXPR_RETURN: {
+            out("return ");
+            code_expr(*e.Return, NULL);
+            out(";\n");
+            break;
+        }
         case EXPR_MATCH:
             code_ret(ret);
             code_case_tst(*e.Match.expr, *e.Match.patt);

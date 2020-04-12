@@ -27,6 +27,7 @@ typedef enum {
     EXPR_NEW,
     EXPR_SET,
     EXPR_FUNC,
+    EXPR_RETURN,
     EXPR_TUPLE,
     EXPR_SEQ,
     EXPR_CALL,
@@ -160,9 +161,10 @@ typedef struct Expr {
         Tk Unit;
         Tk Var;
         Tk Cons;
-        struct Expr* New;
-        struct Expr* Loop;  // EXPR_LOOP
-        struct Expr* Break; // EXPR_BREAK
+        struct Expr* New;       // EXPR_NEW
+        struct Expr* Loop;      // EXPR_LOOP
+        struct Expr* Break;     // EXPR_BREAK
+        struct Expr* Return;    // EXPR_RETURN
         struct {        // EXPR_TUPLE
             int size;
             struct Expr* vec;
