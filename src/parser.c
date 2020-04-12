@@ -78,7 +78,7 @@ void dump_expr_ (Expr e, int spc) {
             fputs("if (...)", stdout);
             break;
         case EXPR_CASES:
-            fputs("case (...)", stdout);
+            fputs("match (...)", stdout);
             break;
         default:
             printf(">>> %d\n", e.sub);

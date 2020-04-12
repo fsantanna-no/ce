@@ -11,11 +11,11 @@ data Tk:        -- TODO: inheritance // optional | \n
 mut inp :: {FILE*}
 
 func lexer :: (() -> Tk):
-    case {fgetc} (inp):
+    match {fgetc} (inp):
         {EOF}  -> Tk_EOF
         {'\n'} -> let i :: {int} = {0}:
             loop:
-                case {fgetc} (inp):
+                match {fgetc} (inp):
                     {EOF} -> return Tk_EOF      -- consider \nEOF as EOF
                     {' '} -> set i = {i+1}
                     c :: {int}:
@@ -25,12 +25,12 @@ func lexer :: (() -> Tk):
                 {i%4 == 0} -> return Tk_LINE ({i/4})
                 else       -> return Tk_ERR
         {'-'}:
-            case {fgetc} (inp):
+            match {fgetc} (inp):
                 {'>'} -> return Tk_ARROW
                 {'-'} -> :
                     {puts("1")}
                     loop:
-                        case {fgetc} (inp):
+                        match {fgetc} (inp):
                             {EOF}:
                                 {ungetc} ({EOF},inp)
                                 return Tk_COMMENT
@@ -45,7 +45,7 @@ func lexer :: (() -> Tk):
 
 func stropen :: (({char*}, {size_t}, {char*}) -> {FILE*}): -- TODO: (mode::char*, ...)
     let (mode,size,str) :: ({char*}, {size_t}, {char*}) = ...:
-        set size = case size:
+        set size = match size:
             {0}  -> {strlen} (str)
             else -> size
         { fmemopen (str,size,mode) }

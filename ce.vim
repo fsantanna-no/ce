@@ -20,7 +20,7 @@ syn keyword Repeat      loop
 syn match   Operator    "\(\<[A-Z][a-zA-Z0-9_']*\.\)\=:[-!#$%&\*\+./<=>\?@\\^|~:]*"
 
 syn keyword Statement   goto break return continue asm
-syn keyword Label       case default
+syn keyword Label       match default
 syn keyword Conditional if else switch
 syn keyword Repeat      while for do
 syn keyword Structure   struct union enum typedef

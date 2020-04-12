@@ -11,7 +11,7 @@ State_Tok NXT = { -1,0,0,{} };
 State_Tok PRV = { -1,0,0,{} };
 
 static char* reserved[] = {
-    "break", "case", "data", "else",   "func", "if",  "let", "loop",
+    "break", "match", "data", "else",   "func", "if",  "let", "loop",
     "mut",   "new",  "pass", "return", "set",  "val", "where"
 };
 

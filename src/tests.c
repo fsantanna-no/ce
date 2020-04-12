@@ -499,7 +499,7 @@ void t_code (void) {
         char out[1024] = "";
         init (
             stropen("w", sizeof(out), out),
-            stropen("r", 0, "case {fgetc} (inp):\n    {'\\n'} -> ()")
+            stropen("r", 0, "match {fgetc} (inp):\n    {'\\n'} -> ()")
         );
         Prog p;
         parser_prog(&p);
@@ -513,7 +513,7 @@ void t_code (void) {
             "if (ce_tst == '\\n') {\n"
             "1;\n"
             "} else {\n"
-            "assert(0 && \"case not matched\");\n"
+            "assert(0 && \"match failed\");\n"
             "}\n"
             ";\n"
             "\n"
@@ -579,11 +579,11 @@ void t_all (void) {
     ));
     assert(all(
         "99\n",
-        "val b :: () = case {99}:\n    a :: {int} -> a\n{ printf(\"%d\\n\",b) }"
+        "val b :: () = match {99}:\n    a :: {int} -> a\n{ printf(\"%d\\n\",b) }"
     ));
     assert(all(
         "99\n",
-        "val b :: () = case {99}:\n    a :: {int}:\n        {1}\n        a\n{ printf(\"%d\\n\",b) }"
+        "val b :: () = match {99}:\n    a :: {int}:\n        {1}\n        a\n{ printf(\"%d\\n\",b) }"
     ));
     assert(all(
         "99\n",
@@ -625,14 +625,14 @@ void t_all (void) {
     ));
     assert(all(
         "()\n",
-        "val v :: () = case ():\n"
+        "val v :: () = match ():\n"
         "    ~() -> ()\n"
         "{show_Unit}(v)"
     ));
     assert(all(
         "()\n",
         "val a :: () = ()\n"
-        "val b :: () = case ():\n"
+        "val b :: () = match ():\n"
         "    ~a -> ()\n"
         "{show_Unit}(b)"
     ));
@@ -662,7 +662,7 @@ void t_all (void) {
         "    False ()\n"
         "    True  ()\n"
         "mut v :: Bool\n"
-        "set v = case ():\n"
+        "set v = match ():\n"
         "    ()   -> False\n"
         "    else -> True\n"
         "{show_Bool}(v)"
@@ -682,7 +682,7 @@ void t_all (void) {
         "    False ()\n"
         "    True  ()\n"
         "func inv :: (Bool -> Bool):\n"
-        "    case ...:\n"
+        "    match ...:\n"
         "        False -> True\n"
         "        True  -> False\n"
         "{show_Bool}(inv(True))"
@@ -693,7 +693,7 @@ void t_all (void) {
         "    False ()\n"
         "    True  ()\n"
         "func inv :: (Bool -> Bool):\n"
-        "    case ...:\n"
+        "    match ...:\n"
         "        False -> return True\n"
         "        True  -> return False\n"
         "{show_Bool}(inv(True))"
@@ -705,7 +705,7 @@ void t_all (void) {
         "    True  ()\n"
         "data Vv Bool\n"
         "val v :: Vv = Vv(True)\n"
-        "val b :: Bool = case v:\n"
+        "val b :: Bool = match v:\n"
         "    Vv(False)     -> False\n"
         "    Vv(x) :: Bool -> x\n"
         "{show_Bool}(b)"
@@ -713,22 +713,22 @@ void t_all (void) {
     assert(all(
         "()\n",
         "val i :: ((),()) = ((),())\n"
-        "case i:\n"
+        "match i:\n"
         "    (x,_) :: () -> {show_Unit}(x)"
     ));
     assert(all(
         "()\n",
         "val i :: ((),((),())) = ((),((),()))\n"
-        "case i:\n"
+        "match i:\n"
         "    (_,(x,_)) :: () -> {show_Unit}(x)"
     ));
     assert(all(
         "()\n",
         "val i :: ((),((),())) = ((),((),()))\n"
         "val j :: ((),((),())) = i\n"
-        "val v :: () = case j:\n"
+        "val v :: () = match j:\n"
         "    ((),x) :: ((),()) -> y where:\n"
-        "        val y :: () = case x:\n"
+        "        val y :: () = match x:\n"
         "            ((),z) :: () -> z\n"
         "{show_Unit}(v)"
     ));
@@ -736,16 +736,16 @@ void t_all (void) {
         "()\n",
         "val i :: ((),((),())) = ((),((),()))\n"
         "val j :: ((),((),())) = i\n"
-        "val v :: () = case j:\n"
+        "val v :: () = match j:\n"
         "    (x,(_,z)) :: ((),()) -> y where:\n"
-        "        val y :: () = case (x,z):\n"
+        "        val y :: () = match (x,z):\n"
         "            ((),a) :: () -> a\n"
         "{show_Unit}(v)"
     ));
     assert(all(
         "()\n",
         "data Pair ((),())\n"
-        "val n :: () = case Pair ((),()):\n"
+        "val n :: () = match Pair ((),()):\n"
         "    Pair (x,_) :: () -> x\n"
         "{show_Unit}(n)"
     ));
@@ -755,7 +755,7 @@ void t_all (void) {
         "    False ()\n"
         "    True  ()\n"
         "data Pair (Bool,Bool)\n"
-        "val n :: Bool = case Pair (True,False):\n"
+        "val n :: Bool = match Pair (True,False):\n"
         "    Pair (x,_) :: Bool -> x\n"
         "{show_Bool}(n)"
     ));
@@ -775,7 +775,7 @@ void t_all (void) {
         "    Nil  ()\n"
         "    Cons ((), List)\n"
         "val l :: List = new Cons((),new Nil)\n"
-        "val n :: () = case l:\n"
+        "val n :: () = match l:\n"
         "    Cons(x,_) :: () -> x\n"
         "{show_List}(l)\n"
         "{show_Unit}(n)"
@@ -794,7 +794,7 @@ void t_all (void) {
         "    Nil  ()\n"
         "    Cons ((), List)\n"
         "val l :: List = new Cons((),new Cons((),new Nil))\n"
-        "val n :: () = case l:\n"
+        "val n :: () = match l:\n"
         "    Cons(_,Cons(x,_)) :: () -> x\n"   // TODO
         "{show_Unit}(n)"
     ));
@@ -810,7 +810,7 @@ void t_all (void) {
         "    Nil  ()\n"
         "    Cons (Nat, List)\n"
         "val l :: List = new Cons(Tre,new Cons(Two,new Cons(One,new Nil)))\n"
-        "val n :: Nat = case l:\n"
+        "val n :: Nat = match l:\n"
         "    Cons(x,_) :: Nat -> x\n"
         "{show_Nat}(n)"
     ));
