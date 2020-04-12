@@ -303,11 +303,6 @@ void code_case_set (Patt p, Expr tst) {
         case PATT_SET:          // x = ce_tst
             out(p.Set.val.s);
             out(" = ");
-            if (tst.sub!=EXPR_UNIT && tst.sub!=EXPR_RAW && tst.sub!=EXPR_CALL) {
-                out("*(typeof(");
-                out(p.Set.val.s);
-                out(")*) &");
-            }
             code_expr(tst, NULL);
             out(";\n");
             break;
