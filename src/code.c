@@ -537,14 +537,25 @@ void code_expr (Expr e, tce_ret* ret) {
             code_ret(ret);
             code_case_tst(*e.Match.expr, *e.Match.patt);
             break;
-        case EXPR_CASES:    // tst,size,vec
+        case EXPR_CASES: {  // tst,size,vec
+            Expr tst = *e.Cases.tst;
+            if (tst.sub != EXPR_TUPLE) {
+                out("typeof(");
+                code_expr(*e.Cases.tst, NULL);
+                out(") ce_tst = ");
+                code_expr(*e.Cases.tst, NULL);
+                out(";\n");
+                tst = (Expr) { EXPR_VAR, {.size=0}, {.Var={TK_IDVAR,{.s="ce_tst"}}} };
+            }
+
             for (int i=0; i<e.Cases.size; i++) {
-                code_case(*e.Cases.tst, e.Cases.vec[i], ret);
+                code_case(tst, e.Cases.vec[i], ret);
             }
             out("{\n");
             out("assert(0 && \"case not matched\");\n");
             out("}\n");
             break;
+        }
         case EXPR_IFS:    // tst,size,vec
             for (int i=0; i<e.Ifs.size; i++) {
                 out("if (");

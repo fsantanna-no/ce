@@ -24,22 +24,22 @@ func lexer :: (() -> Tk):
             if:
                 {i%4 == 0} -> return Tk_LINE ({i/4})
                 else       -> return Tk_ERR
-        {'-'}  -> :
+        {'-'}:
             case {fgetc} (inp):
                 {'>'} -> return Tk_ARROW
                 {'-'} -> :
+                    {puts("1")}
                     loop:
                         case {fgetc} (inp):
                             {EOF}:
                                 call {ungetc} ({EOF},inp)
-                                break
+                                return Tk_COMMENT
                             {'\n'}:                     -- TODO `;` for seq
                                 call {ungetc} ({'\n'},inp)
-                                break
-                            else -> ()
-                        return Tk_COMMENT
+                                return Tk_COMMENT
+                            else -> pass
                 else  -> return Tk_ERR
-        c :: {int} :
+        c :: {int}:
             { printf(">>> %d %c\n", c, c) }
             return Tk_ERR
 
@@ -54,6 +54,7 @@ func t_lexer :: (() -> ()):
     :
         set inp = stropen ({"r"}, {0}, {"-- foobar"})
         let tk :: Tk = lexer():             -- TODO: it // optional [tk :: Tk =] (assume it)
+            call {show_Tk}(tk)
             call {assert} (tk ~ Tk_COMMENT (_))
 
 call t_lexer ()
