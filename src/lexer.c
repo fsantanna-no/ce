@@ -76,6 +76,7 @@ TK lexer_ (TK_val* val) {
             case '_':
             case '~':
             case '?':
+            case '=':
                 return c;
 
             case EOF:
@@ -149,7 +150,7 @@ TK lexer_ (TK_val* val) {
                         if (c == EOF) {
                             break;      // EOF stops comment
                         }
-                        if (c=='\n' || c=='\r') {
+                        if (c == '\n') {
                             ungetc(c, ALL.inp);
                             break;      // NEWLINE stops comment
                         }
@@ -158,9 +159,7 @@ TK lexer_ (TK_val* val) {
                 } else if (c == '>') {
                     return TK_ARROW;
                 }
-
-            case '=':
-                return c;
+                return TK_ERR;
 
             default:
 

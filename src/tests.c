@@ -586,8 +586,8 @@ void t_all (void) {
     assert(all(
         "True\n",
         "data Bool:\n"
-        "    False ()\n"
-        "    True  ()\n"
+        "    False\n"
+        "    True\n"
         "call {show_Bool}(True)\n"
     ));
     assert(all(

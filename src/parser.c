@@ -402,7 +402,7 @@ void* parser_cons_ (void) {
     c.tk = PRV.tk;
 
     if (!parser_type(&c.type)) {
-        return NULL;
+        c.type = (Type) { TYPE_UNIT, {} };
     }
 
     c_ = c;
