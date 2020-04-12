@@ -10,6 +10,7 @@ data Tk:        -- TODO: inheritance // optional | \n
 mut inp :: {FILE*}
 
 func lexer :: (() -> Tk):
+    { puts("OK") }
     case {fgetc} (inp):
         {EOF} -> Tk_EOF
         {'-'} -> :
@@ -27,7 +28,7 @@ func lexer :: (() -> Tk):
                             else -> ()
                         return Tk_COMMENT
                 else  -> return Tk_ERR
-    return lexer ()
+    { assert(0 && "bug found") }
 
 func stropen :: (({char*}, {size_t}, {char*}) -> {FILE*}): -- TODO: (mode::char*, ...)
     let (mode,size,str) :: ({char*}, {size_t}, {char*}) = ...:
@@ -43,3 +44,5 @@ func t_lexer :: (() -> ()):
             call {assert} (tk ~ Tk_COMMENT (_))
 
 call t_lexer ()
+
+{ puts("OK") }

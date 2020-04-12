@@ -65,124 +65,123 @@ const char* lexer_tk2str (Tk* tk) {
 }
 
 TK lexer_ (TK_val* val) {
-    while (1) {
-        int c = fgetc(ALL.inp);
+    int c = fgetc(ALL.inp);
 //printf("0> [%c] [%d]\n", c, c);
-        switch (c)
-        {
-            case '(':
-            case ')':
-            case ',':
-            case '_':
-            case '~':
-            case '?':
-            case '=':
-                return c;
+    switch (c)
+    {
+        case '(':
+        case ')':
+        case ',':
+        case '_':
+        case '~':
+        case '?':
+        case '=':
+            return c;
 
-            case EOF:
-                return TK_EOF;
+        case EOF:
+            return TK_EOF;
 
-            case '\n': {
-                int i = 0;
-                while (1) {
-                    c = fgetc(ALL.inp);
-                    if (c == EOF) {         // consider \nEOF as EOF
-                        return TK_EOF;
-                    }
-                    if (c != ' ') {
-                        ungetc(c, ALL.inp);
-                        break;
-                    }
-                    i++;
-                }
-                if (i%4 != 0) {
-                    return TK_ERR;
-                }
-                val->n = i/4;
-                return TK_LINE;
-            }
-
-            case '{': {
-                int i = 0;
-                int n = 1;
-                while (1) {
-                    c = fgetc(ALL.inp);
-                    switch (c) {
-                        case '{':
-                            n++;
-                            break;
-                        case '}':
-                            if (--n == 0) {
-                                val->s[i] = '\0';
-                                return TK_RAW;
-                            }
-                            break;
-                        case '\n':
-                            return TK_ERR;
-                    }
-                    val->s[i++] = c;
-                }
-            }
-
-            case ':':
+        case '\n': {
+            int i = 0;
+            while (1) {
                 c = fgetc(ALL.inp);
-                if (c == ':') {
-                    return TK_DECL;
-                } else {
+                if (c == EOF) {         // consider \nEOF as EOF
+                    return TK_EOF;
+                }
+                if (c != ' ') {
                     ungetc(c, ALL.inp);
-                    return ':';
+                    break;
                 }
+                i++;
+            }
+            if (i%4 != 0) {
+                return TK_ERR;
+            }
+            val->n = i/4;
+            return TK_LINE;
+        }
 
-            case '.': {
-                int c2 = fgetc(ALL.inp);
-                int c3 = fgetc(ALL.inp);
-                if (c2=='.' && c3=='.') {
-                    return TK_ARG;
+        case '{': {
+            int i = 0;
+            int n = 1;
+            while (1) {
+                c = fgetc(ALL.inp);
+                switch (c) {
+                    case '{':
+                        n++;
+                        break;
+                    case '}':
+                        if (--n == 0) {
+                            val->s[i] = '\0';
+                            return TK_RAW;
+                        }
+                        break;
+                    case '\n':
+                        return TK_ERR;
                 }
+                val->s[i++] = c;
+            }
+        }
+
+        case ':':
+            c = fgetc(ALL.inp);
+            if (c == ':') {
+                return TK_DECL;
+            } else {
+                ungetc(c, ALL.inp);
+                return ':';
+            }
+
+        case '.': {
+            int c2 = fgetc(ALL.inp);
+            int c3 = fgetc(ALL.inp);
+            if (c2=='.' && c3=='.') {
+                return TK_ARG;
+            }
+            return TK_ERR;
+        }
+
+        case '-':
+            c = fgetc(ALL.inp);
+            if (c == '-') {
+                while (1) {
+                    c = fgetc(ALL.inp);
+                    if (c == EOF) {
+                        break;      // EOF stops comment
+                    }
+                    if (c == '\n') {
+                        ungetc(c, ALL.inp);
+                        break;      // NEWLINE stops comment
+                    }
+                }
+                return TK_COMMENT;
+            } else if (c == '>') {
+                return TK_ARROW;
+            }
+            return TK_ERR;
+
+        default:
+
+            if (!isalpha(c)) {
                 return TK_ERR;
             }
 
-            case '-':
+            int i = 0;
+            while (isalnum(c) || c=='_' || c=='\'' || c=='?' || c=='!') {
+                val->s[i++] = c;
                 c = fgetc(ALL.inp);
-                if (c == '-') {
-                    while (1) {
-                        c = fgetc(ALL.inp);
-                        if (c == EOF) {
-                            break;      // EOF stops comment
-                        }
-                        if (c == '\n') {
-                            ungetc(c, ALL.inp);
-                            break;      // NEWLINE stops comment
-                        }
-                    }
-                    return TK_COMMENT;
-                } else if (c == '>') {
-                    return TK_ARROW;
-                }
-                return TK_ERR;
+            }
+            val->s[i] = '\0';
+            ungetc(c, ALL.inp);
 
-            default:
+            int key = is_reserved(val);
+            if (key) {
+                return key;
+            }
 
-                if (!isalpha(c)) {
-                    return TK_ERR;
-                }
-
-                int i = 0;
-                while (isalnum(c) || c=='_' || c=='\'' || c=='?' || c=='!') {
-                    val->s[i++] = c;
-                    c = fgetc(ALL.inp);
-                }
-                val->s[i] = '\0';
-                ungetc(c, ALL.inp);
-
-                int key = is_reserved(val);
-                if (key) {
-                    return key;
-                }
-
-                return (islower(val->s[0]) ? TK_IDVAR : TK_IDDATA);
-        }
+            return (islower(val->s[0]) ? TK_IDVAR : TK_IDDATA);
     }
+    assert(0 && "bug found");
 }
 
 Tk lexer () {
