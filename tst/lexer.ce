@@ -18,6 +18,6 @@ set t_lexer = func :: (() -> ()):           -- TODO: func t_lexer ::
     :
         set inp = stropen ({"r"}, {0}, {"-- foobar"})
         let tk :: Tk = lexer():             -- TODO: optional [tk :: Tk =] (assume it)
-            call {assert} ((tk ~ TK_COMMENT (_)) ? {1} : {0})
+            call {assert} (if tk ~ TK_COMMENT(_) -> {1} -> {0})
 
 call t_lexer ()

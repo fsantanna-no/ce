@@ -33,6 +33,7 @@ typedef enum {
     EXPR_BLOCK,
     EXPR_LET,
     EXPR_IF,
+    EXPR_MATCH,
     EXPR_CASES,
     ////
     EXPR_TUPLE_IDX,
@@ -80,6 +81,7 @@ typedef enum {
  *               { Patt [`::` Type] [`->`] Expr [Where] }
  *        |  let Decl [`->`] Expr               // EXPR_LET
  *        |  `if` Expr [`->`] Expr [`->`] Expr  // EXPR_IF
+ *        |  Expr `~` Expr                      // EXPR_MATCH
  */
 
 struct Expr;
@@ -182,6 +184,10 @@ typedef struct Expr {
             struct Expr* true;
             struct Expr* false;
         } Cond;
+        struct {        // EXPR_MATCH
+            struct Expr* expr;
+            struct Patt* patt;
+        } Match;
         struct {        // EXPR_CASES
             struct Expr* tst;
             int   size;

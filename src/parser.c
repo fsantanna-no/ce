@@ -780,6 +780,24 @@ int parser_expr (Expr* ret) {
         return 0;
     }
 
+    // EXPR_MATCH'S
+    while (1) {
+        if (!pr_check('~',1)) {
+            break;
+        }
+        Patt patt;
+        if (!parser_patt(&patt)) {
+            return 0;
+        }
+
+        Expr* pe = malloc(sizeof(Expr));
+        Patt* pp = malloc(sizeof(Patt));
+        assert(pe!=NULL && pp!=NULL);
+        *pe = *ret;
+        *pp = patt;
+        *ret = (Expr) { EXPR_MATCH, {.size=0}, .Match={pe,pp} };
+    }
+
     // EXPR_CALL'S
     while (1) {
         if (!pr_check('(',1)) {

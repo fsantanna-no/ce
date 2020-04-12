@@ -535,6 +535,10 @@ void code_expr (Expr e, tce_ret* ret) {
             out(")");
             break;
         }
+        case EXPR_MATCH:
+            code_ret(ret);
+            code_case_tst(*e.Match.expr, *e.Match.patt);
+            break;
         case EXPR_CASES:    // tst,size,vec
             for (int i=0; i<e.Cases.size; i++) {
                 code_case(*e.Cases.tst, e.Cases.vec[i], ret);
