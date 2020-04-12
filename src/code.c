@@ -247,6 +247,8 @@ void code_data (Data data) {
 void code_case_tst (Expr tst, Patt p) {
     switch (p.sub) {
         case PATT_RAW:
+            code_expr(tst, NULL);
+            out(" == ");
             out(p.Raw.val.s);
             break;
         case PATT_ANY:

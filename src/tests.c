@@ -456,7 +456,7 @@ void t_code (void) {
         assert(!strcmp(out,"xxx"));
     }
     {
-        char out[256];
+        char out[256] = "";
         init(stropen("w",sizeof(out),out), NULL);
         Expr e = { EXPR_VAR, {.size=0}, {} };
             e.Var.sym = TK_IDVAR;
@@ -476,7 +476,7 @@ void t_code (void) {
         assert(!strcmp(out,"{\nint xxx;\nret = *(typeof(ret)*) &xxx;\n}\n"));
     }
     {
-        char out[256];
+        char out[256] = "";
         init (
             stropen("w", sizeof(out), out),
             stropen("r", 0, "val a :: ()\ncall {show_Bool}(a)")
@@ -491,6 +491,30 @@ void t_code (void) {
             "\n"
             "int a;\n"
             "show_Bool(a);\n"
+            "\n"
+            "}\n";
+        assert(!strcmp(out,ret));
+    }
+    {
+        char out[1024] = "";
+        init (
+            stropen("w", sizeof(out), out),
+            stropen("r", 0, "case {fgetc} (inp):\n    {'\\n'} -> ()")
+        );
+        Prog p;
+        parser_prog(&p);
+        code(p);
+        fclose(ALL.out);
+        char* ret =
+            "#include \"inc/ce.c\"\n"
+            "int main (void) {\n"
+            "\n"
+            "if (fgetc(inp) == '\\n') {\n"
+            "1;\n"
+            "} else {\n"
+            "assert(0 && \"case not matched\");\n"
+            "}\n"
+            ";\n"
             "\n"
             "}\n";
         assert(!strcmp(out,ret));
