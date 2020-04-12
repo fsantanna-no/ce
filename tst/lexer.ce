@@ -1,5 +1,6 @@
 { #include <string.h> }
-{ typedef char Tk_s[256] }
+{ #include <ctype.h> }
+{ typedef struct { char v[256]; } Tk_s }
 
 data Tk:        -- TODO: inheritance // optional | \n
     Tk_ERR
@@ -8,6 +9,7 @@ data Tk:        -- TODO: inheritance // optional | \n
     Tk_COMMENT
     Tk_ARROW
     Tk_IDVAR    {Tk_s}
+    Tk_IDDATA   {Tk_s}
 
 mut inp :: {FILE*}
 
@@ -39,16 +41,20 @@ func lexer :: (() -> Tk):
                                 return Tk_COMMENT
                             else -> pass
                 else  -> return Tk_ERR
-        c :: {int} -> let (i,ret) :: ({int},{Tk_s}) = ({0},{""}):
-            if {isalpha (c)} -> pass -> return Tk_ERR   -- TODO: optional else
+        c :: {int} -> let (i,ret) :: ({int},{Tk_s}) = ({0},{(Tk_s){""}}):
+            if:
+                {isalpha (c)} -> pass
+                else          -> return Tk_ERR   -- TODO: optional else
             loop:
-                if {(isalnum(c) || c=='_' || c=='\'' || c=='?' || c=='!'} -> pass -> break  -- TODO: optional else
-                set {ret[i]} = c
+                if:
+                    {isalnum(c) || c=='_' || c=='\'' || c=='?' || c=='!'} -> pass
+                    else -> break  -- TODO: optional else
+                set {ret.v[i]} = c
                 set i = {i+1}
                 set c = {fgetc} (inp)
-            set {ret[i]} = {'\0'}
+            set {ret.v[i]} = {'\0'}
             {ungetc} (c,inp)
-            return if {islower (ret)} -> Tk_IDVAR (ret) -> Tk_IDDATA (ret)
+            return if {islower (ret.v[0])} -> Tk_IDVAR (ret) -> Tk_IDDATA (ret)
 
 func stropen :: (({char*}, {size_t}, {char*}) -> {FILE*}): -- TODO: (mode::char*, ...)
     let (mode,size,str) :: ({char*}, {size_t}, {char*}) = ...:
@@ -78,7 +84,7 @@ func t_lexer :: (() -> ()):
     :
         set inp = stropen({"r"}, {0}, {"c1\nc2 c3'  \n    \nc4"})
         match lexer():
-            Tk_IDVAR (s) :: {Tk_s} -> {assert (! strcmp (s,"c1"))}
+            Tk_IDVAR (s) :: {Tk_s} -> {assert (! strcmp (s.v,"c1"))}
         {fclose} (inp)
 
 t_lexer ()

@@ -1,3 +1,5 @@
+- separar stmts de exprs
+    - stmts sao exprs que nao podem aparecer em alguns contextos
 - if optional else
 - case -> match
     - match posicao errada na lista
