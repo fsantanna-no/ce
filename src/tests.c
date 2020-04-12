@@ -635,6 +635,15 @@ void t_all (void) {
         "call {show_Bool}(v)"
     ));
     assert(all(
+        "10",
+        "data Bool:\n"
+        "    False ()\n"
+        "    True  ()\n"
+        "val v :: {int} = {10}\n"
+        "val r :: {int} = {0} ~ v\n"
+        "{printf(\"%d\",v)}"
+    ));
+    assert(all(
         "False\n",
         "data Bool:\n"
         "    False ()\n"

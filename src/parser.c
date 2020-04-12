@@ -306,14 +306,14 @@ int parser_type (Type* ret) {
 void* parser_patt_ (void) {
     static Patt pt_;
     Patt pt;
-    if (!parser_patt(&pt)) {
+    if (!parser_patt(&pt,0)) {
         return NULL;
     }
     pt_ = pt;
     return &pt_;
 }
 
-int parser_patt (Patt* ret) {
+int parser_patt (Patt* ret, int is_match) {
     // PATT_RAW
     if (pr_accept(TK_RAW,1)) {
         *ret = (Patt) { PATT_RAW, .Raw=PRV.tk };
@@ -322,7 +322,7 @@ int parser_patt (Patt* ret) {
         if (pr_accept(')',1)) {
             *ret = (Patt) { PATT_UNIT, {} };
         } else {
-            if (!parser_patt(ret)) {
+            if (!parser_patt(ret,is_match)) {
                 return 0;
             }
     // PATT_TUPLE
@@ -347,7 +347,7 @@ int parser_patt (Patt* ret) {
         if (pr_check('(',1)) {
     // PATT_CONS(...)
             Patt arg;
-            if (!parser_patt(&arg)) {
+            if (!parser_patt(&arg,is_match)) {
                 return 0;
             }
             Patt* parg = malloc(sizeof(arg));
@@ -357,13 +357,21 @@ int parser_patt (Patt* ret) {
         }
     // PATT_SET
     } else if (pr_accept(TK_IDVAR,1)) {
-        *ret = (Patt) { PATT_SET, .Set=PRV.tk };
+        if (is_match) {
+            Expr e = (Expr) { EXPR_VAR, {.size=0}, .Var=PRV.tk };
+            Expr* pe = malloc(sizeof(Expr));
+            assert(pe != NULL);
+            *pe = e;
+            *ret = (Patt) { PATT_EXPR, .Expr=pe };
+        } else {
+            *ret = (Patt) { PATT_SET, .Set=PRV.tk };
+        }
     } else if (pr_accept('~',1)) {
         Expr e;
         if (!parser_expr(&e)) {
             return 0;
         }
-        Expr* pe = malloc(sizeof(e));
+        Expr* pe = malloc(sizeof(Expr));
         assert(pe != NULL);
         *pe = e;
         *ret = (Patt) { PATT_EXPR, .Expr=pe };
@@ -453,7 +461,7 @@ int parser_data (Data* ret) {
 ///////////////////////////////////////////////////////////////////////////////
 
 int parser_decl_nopre (Decl* decl) {
-    if (!parser_patt(&decl->patt)) {
+    if (!parser_patt(&decl->patt,0)) {
         return 0;
     }
 
@@ -549,7 +557,7 @@ void* parser_case_ (void) {
     // patt
     if (pr_accept(TK_ELSE,1)) {
         c.patt = (Patt) { PATT_ANY, {} };
-    } else if (!parser_patt(&c.patt)) {
+    } else if (!parser_patt(&c.patt,0)) {
         return NULL;
     }
 
@@ -574,7 +582,7 @@ void* parser_case_ (void) {
         return NULL;
     }
 
-    Expr* pe = malloc(sizeof(*pe));
+    Expr* pe = malloc(sizeof(Expr));
     assert(pe != NULL);
     *pe = e;
     c.expr = pe;
@@ -630,7 +638,7 @@ int parser_expr_one (Expr* ret) {
         if (!parser_expr(&e)) {
             return 0;
         }
-        Expr* pe = malloc(sizeof(*pe));
+        Expr* pe = malloc(sizeof(Expr));
         assert(pe != NULL);
         *pe = e;
         *ret = (Expr) { EXPR_NEW, {.size=0}, .New=pe };
@@ -648,7 +656,7 @@ int parser_expr_one (Expr* ret) {
         if (!parser_expr(&e)) {
             return 0;
         }
-        Expr* pe = malloc(sizeof(*pe));
+        Expr* pe = malloc(sizeof(Expr));
         assert(pe != NULL);
         *pe = e;
         *ret = (Expr) { EXPR_SET, {.size=0}, .Set={var,pe} };
@@ -666,7 +674,7 @@ int parser_expr_one (Expr* ret) {
         if (!parser_expr(&e)) {
             return 0;
         }
-        Expr* pe = malloc(sizeof(*pe));
+        Expr* pe = malloc(sizeof(Expr));
         assert(pe != NULL);
         *pe = e;
         *ret = (Expr) { EXPR_FUNC, {.size=0}, .Func={tp,pe} };
@@ -734,7 +742,7 @@ int parser_expr_one (Expr* ret) {
             return 0;
         }
 
-        Expr* pe = malloc(sizeof(*pe));
+        Expr* pe = malloc(sizeof(Expr));
         assert(pe != NULL);
         *pe = e;
 
@@ -749,8 +757,8 @@ int parser_expr_one (Expr* ret) {
         if (!parser_expr_one(&func) || !parser_expr(&arg)) {
             return 0;
         }
-        Expr* p1 = malloc(sizeof(*p1));
-        Expr* p2 = malloc(sizeof(*p2));
+        Expr* p1 = malloc(sizeof(Expr));
+        Expr* p2 = malloc(sizeof(Expr));
         assert(p1!=NULL && p2!=NULL);
         *p1 = func;
         *p2 = arg;
@@ -782,11 +790,11 @@ int parser_expr (Expr* ret) {
 
     // EXPR_MATCH'S
     while (1) {
-        if (!pr_check('~',1)) {
+        if (!pr_accept('~',1)) {
             break;
         }
         Patt patt;
-        if (!parser_patt(&patt)) {
+        if (!parser_patt(&patt,1)) {
             return 0;
         }
 
@@ -808,8 +816,8 @@ int parser_expr (Expr* ret) {
             return 0;
         }
 
-        Expr* pe1 = malloc(sizeof(*pe1));
-        Expr* pe2 = malloc(sizeof(*pe2));
+        Expr* pe1 = malloc(sizeof(Expr));
+        Expr* pe2 = malloc(sizeof(Expr));
         assert(pe1!=NULL && pe2!=NULL);
         *pe1 = *ret;
         *pe2 = arg;
