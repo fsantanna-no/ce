@@ -31,6 +31,25 @@ void dump_expr_ (Expr e, int spc) {
         case EXPR_FUNC:
             fputs("func (...)", stdout);
             break;
+        case EXPR_RETURN:
+            fputs("return ", stdout);
+            dump_expr_(*e.Return, 0);
+            break;
+        case EXPR_BREAK:
+            fputs("break ", stdout);
+            if (e.Break) {
+                dump_expr_(*e.Break, 0);
+            }
+            break;
+        case EXPR_LOOP: {
+            puts("loop:");
+            dump_expr_(*e.Loop, spc+4);
+            break;
+        }
+        case EXPR_MATCH:
+            dump_expr_(*e.Match.expr, 0);
+            fputs(" ~ ???", stdout);
+            break;
         case EXPR_TUPLE:
             fputs("<", stdout);
             for (int i=0; i<e.Tuple.size; i++) {
@@ -813,6 +832,23 @@ int parser_expr (Expr* ret) {
     }
     *ret = e;
 
+    // EXPR_CALL'S
+    while (1) {
+        if (!pr_check('(',1)) {
+            break;
+        }
+        Expr e;
+        if (!parser_expr_one(&e)) {
+            return 0;
+        }
+        Expr* func = malloc(sizeof(Expr));
+        Expr* arg  = malloc(sizeof(Expr));
+        assert(func!=NULL && arg!=NULL);
+        *func = *ret;
+        *arg  = e;
+        *ret  = (Expr) { EXPR_CALL, {.size=0}, .Call={func,arg} };
+    }
+
     // EXPR_MATCH'S
     while (1) {
         if (!pr_accept('~',1)) {
@@ -829,22 +865,6 @@ int parser_expr (Expr* ret) {
         *pe = *ret;
         *pp = patt;
         *ret = (Expr) { EXPR_MATCH, {.size=0}, .Match={pe,pp} };
-    }
-
-    // EXPR_CALL'S
-    while (1) {
-        if (!pr_check('(',1)) {
-            break;
-        }
-        Expr* arg = expr_new();
-        if (arg == NULL) {
-            return 0;
-        }
-
-        Expr* func = malloc(sizeof(Expr));
-        assert(func != NULL);
-        *func = *ret;
-        *ret = (Expr) { EXPR_CALL, {.size=0}, .Call={func,arg} };
     }
 
     return 1;
