@@ -4,16 +4,17 @@
 data Tk:        -- TODO: inheritance // optional | \n
     Tk_ERR
     Tk_EOF
-    Tk_LINE {int}
+    Tk_LINE     {int}
     Tk_COMMENT
     Tk_ARROW
+    Tk_IDVAR    {Tk_s}
 
 mut inp :: {FILE*}
 
 func lexer :: (() -> Tk):
     match {fgetc} (inp):
         {EOF}  -> Tk_EOF
-        {'\n'} -> let i :: {int} = {0}:
+        {'\n'} -> let i :: {int} = {0}:         -- TODO: loop i
             loop:
                 match {fgetc} (inp):
                     {EOF} -> return Tk_EOF      -- consider \nEOF as EOF
@@ -28,7 +29,6 @@ func lexer :: (() -> Tk):
             match {fgetc} (inp):
                 {'>'} -> return Tk_ARROW
                 {'-'} -> :
-                    {puts("1")}
                     loop:
                         match {fgetc} (inp):
                             {EOF}:
@@ -39,9 +39,16 @@ func lexer :: (() -> Tk):
                                 return Tk_COMMENT
                             else -> pass
                 else  -> return Tk_ERR
-        c :: {int}:
-            { printf(">>> %d %c\n", c, c) }
-            return Tk_ERR
+        c :: {int} -> let (i,ret) :: ({int},{Tk_s}) = ({0},{""}):
+            if {isalpha (c)} -> pass -> return Tk_ERR   -- TODO: optional else
+            loop:
+                if {(isalnum(c) || c=='_' || c=='\'' || c=='?' || c=='!'} -> pass -> break  -- TODO: optional else
+                set {ret[i]} = c
+                set i = {i+1}
+                set c = {fgetc} (inp)
+            set {ret[i]} = {'\0'}
+            {ungetc} (c,inp)
+            return if {islower (ret)} -> Tk_IDVAR (ret) -> Tk_IDDATA (ret)
 
 func stropen :: (({char*}, {size_t}, {char*}) -> {FILE*}): -- TODO: (mode::char*, ...)
     let (mode,size,str) :: ({char*}, {size_t}, {char*}) = ...:
@@ -62,6 +69,16 @@ func t_lexer :: (() -> ()):
         {assert} (lexer() ~ Tk_COMMENT)
         {assert} (lexer() ~ Tk_LINE)
         {assert} (lexer() ~ Tk_EOF)
+        {fclose} (inp)
+    :
+        set inp = stropen({"r"}, {0}, {"\n  \n"})
+        {assert} (lexer() ~ Tk_ERR)
+        {assert} (lexer() ~ Tk_EOF)
+        {fclose} (inp)
+    :
+        set inp = stropen({"r"}, {0}, {"c1\nc2 c3'  \n    \nc4"})
+        match lexer():
+            Tk_IDVAR (s) :: {Tk_s} -> {assert (! strcmp (s,"c1"))}
         {fclose} (inp)
 
 t_lexer ()

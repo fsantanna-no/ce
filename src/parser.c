@@ -695,7 +695,7 @@ int parser_expr_one (Expr* ret) {
 
     // EXPR_SET
     } else if (pr_accept(TK_SET,1)) {
-        if (!pr_accept(TK_IDVAR,1)) {
+        if (!pr_accept(TK_IDVAR,1) && !pr_accept(TK_RAW,1)) {
             return err_expected("variable");
         }
         Tk var = PRV.tk;

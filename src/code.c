@@ -416,11 +416,6 @@ void code_expr (Expr e, tce_ret* ret) {
             break;
         case EXPR_VAR:
             code_ret(ret);
-            if (ret != NULL) {
-                out("*(typeof(");
-                out(ret->patt->Set.val.s);
-                out(")*) &");
-            }
             out(e.Var.val.s);
             break;
         case EXPR_CONS:

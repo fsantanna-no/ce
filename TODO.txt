@@ -1,4 +1,7 @@
+- if optional else
 - case -> match
+    - match posicao errada na lista
+    - Cases -> Match (Case mantem)
 - False/True -> 0/1 (enums)
 - ~ be structural not referential
 - show fields

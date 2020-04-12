@@ -82,6 +82,7 @@ void t_lexer (void) {
         assert(lexer().sym == TK_EOF);
         fclose(ALL.inp);
     }
+///
     {
         ALL.inp = stropen("r", 0, "c1\nc2 c3'  \n    \nc4");
         Tk tk1 = lexer(); assert(tk1.sym == TK_IDVAR); assert(!strcmp(tk1.val.s, "c1"));
@@ -473,7 +474,7 @@ void t_code (void) {
         tce_ret ret = { &pt, NULL };
         code_expr(e, &ret);
         fclose(ALL.out);
-        assert(!strcmp(out,"{\nint xxx;\nret = *(typeof(ret)*) &xxx;\n}\n"));
+        assert(!strcmp(out,"{\nint xxx;\nret = xxx;\n}\n"));
     }
     {
         char out[256] = "";
