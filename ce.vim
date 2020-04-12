@@ -12,10 +12,11 @@ set cpo&vim
 
 let s:ft = matchstr(&ft, '^\([^.]\)\+')
 
-syn keyword Structure   where it
+syn keyword Structure   where
 syn keyword Statement   let set new call
 syn keyword Statement   val mut
 syn keyword Statement   data func
+syn keyword Repeat      loop
 syn match   Operator    "\(\<[A-Z][a-zA-Z0-9_']*\.\)\=:[-!#$%&\*\+./<=>\?@\\^|~:]*"
 
 syn keyword Statement   goto break return continue asm
@@ -298,36 +299,6 @@ syn match cInclude display "^\s*\zs\(%:\|#\)\s*include\>\s*["<]" contains=cInclu
 syn cluster cPreProcGroup contains=cPreCondit,cIncluded,cInclude,cDefine,cErrInParen,cErrInBracket,cUserLabel,cSpecial,cOctalZero,cCppOutWrapper,cCppInWrapper,@cCppOutInGroup,cFormat,cNumber,cFloat,cOctal,cOctalError,cNumbersCom,cString,cCommentSkip,cCommentString,cComment2String,@cCommentGroup,cCommentStartError,cParen,cBracket,cMulti,cBadBlock
 syn region cDefine  start="^\s*\zs\(%:\|#\)\s*\(define\|undef\)\>" skip="\\$" end="$" keepend contains=ALLBUT,@cPreProcGroup,@Spell
 syn region cPreProc start="^\s*\zs\(%:\|#\)\s*\(pragma\>\|line\>\|warning\>\|warn\>\|error\>\)" skip="\\$" end="$" keepend contains=ALLBUT,@cPreProcGroup,@Spell
-
-" Optional embedded Autodoc parsing
-if exists("c_autodoc")
-  syn match cAutodocReal display contained "\%(//\|[/ \t\v]\*\|^\*\)\@2<=!.*" contains=@cAutodoc containedin=cComment,cCommentL
-  syn cluster cCommentGroup add=cAutodocReal
-  syn cluster cPreProcGroup add=cAutodocReal
-endif
-
-" Highlight User Labels
-syn cluster cMultiGroup contains=cIncluded,cSpecial,cCommentSkip,cCommentString,cComment2String,@cCommentGroup,cCommentStartError,cUserCont,cUserLabel,cBitField,cOctalZero,cCppOutWrapper,cCppInWrapper,@cCppOutInGroup,cFormat,cNumber,cFloat,cOctal,cOctalError,cNumbersCom,cCppParen,cCppBracket,cCppString
-if s:ft ==# 'c' || exists("cpp_no_cpp11")
-  syn region cMulti  transparent start='?' skip='::' end=':' contains=ALLBUT,@cMultiGroup,@Spell,@cStringGroup
-endif
-" Avoid matching foo::bar() in C++ by requiring that the next char is not ':'
-syn cluster cLabelGroup contains=cUserLabel
-syn match cUserCont display "^\s*\zs\I\i*\s*:$" contains=@cLabelGroup
-syn match cUserCont display ";\s*\zs\I\i*\s*:$" contains=@cLabelGroup
-if s:ft ==# 'cpp'
-  syn match cUserCont display "^\s*\zs\%(class\|struct\|enum\)\@!\I\i*\s*:[^:]"me=e-1 contains=@cLabelGroup
-  syn match cUserCont display ";\s*\zs\%(class\|struct\|enum\)\@!\I\i*\s*:[^:]"me=e-1 contains=@cLabelGroup
-else
-  syn match cUserCont display "^\s*\zs\I\i*\s*:[^:]"me=e-1 contains=@cLabelGroup
-  syn match cUserCont display ";\s*\zs\I\i*\s*:[^:]"me=e-1 contains=@cLabelGroup
-endif
-
-syn match cUserLabel display "\I\i*" contained
-
-" Avoid recognizing most bitfields as labels
-syn match cBitField display "^\s*\zs\I\i*\s*:\s*[1-9]"me=e-1 contains=cType
-syn match cBitField display ";\s*\zs\I\i*\s*:\s*[1-9]"me=e-1 contains=cType
 
 if exists("c_minlines")
   let b:c_minlines = c_minlines
