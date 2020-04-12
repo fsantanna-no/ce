@@ -1,11 +1,8 @@
-- new_Expr
+- pass
 - False/True -> 0/1 (enums)
-- a ~ b ? x : y
 - ~ be structural not referential
 - show fields
 - valgrind --tool=memcheck --leak-check=full --track-origins=yes ./tests
-- f()()
-    - test multiple calls
 - val[], new
 
 set x = 1:

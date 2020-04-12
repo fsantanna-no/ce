@@ -678,6 +678,10 @@ int parser_expr_one (Expr* ret) {
             return 0;
         }
 
+    // EXPR_PASS
+    } else if (pr_accept(TK_PASS,1)) {
+        *ret = (Expr) { EXPR_PASS, {.size=0} };
+
     // EXPR_RETURN
     } else if (pr_accept(TK_RETURN,1)) {
         *ret = (Expr) { EXPR_RETURN, {.size=0}, .Return=expr_new() };

@@ -29,6 +29,7 @@ func lexer :: (() -> Tk):
                         return Tk_COMMENT
                 else  -> return Tk_ERR
     { assert(0 && "bug found") }
+    pass
 
 func stropen :: (({char*}, {size_t}, {char*}) -> {FILE*}): -- TODO: (mode::char*, ...)
     let (mode,size,str) :: ({char*}, {size_t}, {char*}) = ...:

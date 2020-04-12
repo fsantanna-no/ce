@@ -38,6 +38,7 @@ typedef enum {
     EXPR_CASES,
     EXPR_LOOP,
     EXPR_BREAK,
+    EXPR_PASS,
     ////
     EXPR_TUPLE_IDX,
     EXPR_CONS_SUB

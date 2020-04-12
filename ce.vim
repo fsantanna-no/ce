@@ -13,7 +13,7 @@ set cpo&vim
 let s:ft = matchstr(&ft, '^\([^.]\)\+')
 
 syn keyword Structure   where
-syn keyword Statement   let set new call
+syn keyword Statement   let set new call pass
 syn keyword Statement   val mut
 syn keyword Statement   data func
 syn keyword Repeat      loop

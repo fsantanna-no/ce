@@ -521,6 +521,10 @@ void code_expr (Expr e, tce_ret* ret) {
             out("break;\n");
             break;
         }
+        case EXPR_PASS: {
+            out("/* pass */\n");
+            break;
+        }
         case EXPR_RETURN: {
             out("return ");
             code_expr(*e.Return, NULL);
