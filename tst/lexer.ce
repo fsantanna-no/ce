@@ -13,7 +13,7 @@ data Tk:        -- TODO: inheritance // optional | \n
 
 mut inp :: {FILE*}
 
-func lexer :: (() -> Tk):
+func lexer_ :: (() -> Tk):
     match {fgetc} (inp):
         {EOF}  -> Tk_EOF
         {'\n'} -> let i :: {int} = {0}:         -- TODO: loop i
@@ -56,6 +56,16 @@ func lexer :: (() -> Tk):
             {ungetc} (c,inp)
             return if {islower (ret.v[0])} -> Tk_IDVAR (ret) -> Tk_IDDATA (ret)
 
+func lexer :: (() -> Tk):
+    let tk :: Tk = lexer_():
+        loop:
+            match {fgetc} (inp):
+                {' '} -> pass
+                c :: {int}:
+                    {ungetc} (c,inp)
+                    break
+        return tk
+
 func stropen :: (({char*}, {size_t}, {char*}) -> {FILE*}): -- TODO: (mode::char*, ...)
     let (mode,size,str) :: ({char*}, {size_t}, {char*}) = ...:
         set size = match size:
@@ -85,6 +95,11 @@ func t_lexer :: (() -> ()):
         set inp = stropen({"r"}, {0}, {"c1\nc2 c3'  \n    \nc4"})
         match lexer():
             Tk_IDVAR (s) :: {Tk_s} -> {assert (! strcmp (s.v,"c1"))}
+        {assert} (lexer() ~ Tk_LINE)
+        match lexer():
+            Tk_IDVAR (s) :: {Tk_s} -> {assert (! strcmp (s.v,"c2"))}
+        match lexer():
+            Tk_IDVAR (s) :: {Tk_s} -> {assert (! strcmp (s.v,"c3'"))}
         {fclose} (inp)
 
 t_lexer ()

@@ -82,7 +82,6 @@ void t_lexer (void) {
         assert(lexer().sym == TK_EOF);
         fclose(ALL.inp);
     }
-///
     {
         ALL.inp = stropen("r", 0, "c1\nc2 c3'  \n    \nc4");
         Tk tk1 = lexer(); assert(tk1.sym == TK_IDVAR); assert(!strcmp(tk1.val.s, "c1"));
@@ -95,6 +94,7 @@ void t_lexer (void) {
         assert(lexer().sym == TK_EOF);
         fclose(ALL.inp);
     }
+///
     {
         ALL.inp = stropen("r", 0, "c1 C1 C'a a'? C!!");
         Tk tk1 = lexer(); assert(tk1.sym == TK_IDVAR);  assert(!strcmp(tk1.val.s, "c1"));
