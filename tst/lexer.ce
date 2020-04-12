@@ -4,16 +4,27 @@
 data Tk:        -- TODO: inheritance // optional | \n
     Tk_ERR
     Tk_EOF
+    Tk_LINE {int}
     Tk_COMMENT
     Tk_ARROW
 
 mut inp :: {FILE*}
 
 func lexer :: (() -> Tk):
-    { puts("OK") }
     case {fgetc} (inp):
-        {EOF} -> Tk_EOF
-        {'-'} -> :
+        {EOF}  -> Tk_EOF
+        {'\n'} -> let i :: {int} = {0}:
+            loop:
+                case {fgetc} (inp):
+                    {EOF} -> return Tk_EOF      -- consider \nEOF as EOF
+                    {' '} -> set i = {i+1}
+                    c :: {int}:
+                        call {ungetc} (c,inp)
+                        break
+            if:
+                {i%4 == 0} -> return Tk_LINE ({i/4})
+                else       -> return Tk_ERR
+        {'-'}  -> :
             case {fgetc} (inp):
                 {'>'} -> return Tk_ARROW
                 {'-'} -> :
@@ -28,8 +39,9 @@ func lexer :: (() -> Tk):
                             else -> ()
                         return Tk_COMMENT
                 else  -> return Tk_ERR
-    { assert(0 && "bug found") }
-    pass
+        c :: {int} :
+            { printf(">>> %d %c\n", c, c) }
+            return Tk_ERR
 
 func stropen :: (({char*}, {size_t}, {char*}) -> {FILE*}): -- TODO: (mode::char*, ...)
     let (mode,size,str) :: ({char*}, {size_t}, {char*}) = ...:

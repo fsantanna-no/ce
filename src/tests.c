@@ -621,6 +621,14 @@ void t_all (void) {
     assert(all(
         "()\n",
         "val a :: () = ()\n"
+        "val c :: () = if:\n"
+        "    a ~ () -> ()\n"
+        "    else   -> {99}\n"
+        "call {show_Unit}(c)"
+    ));
+    assert(all(
+        "()\n",
+        "val a :: () = ()\n"
         "call {show_Unit}(if a~() -> () -> {99})"
     ));
     assert(all(

@@ -34,6 +34,7 @@ typedef enum {
     EXPR_BLOCK,
     EXPR_LET,
     EXPR_IF,
+    EXPR_IFS,
     EXPR_MATCH,
     EXPR_CASES,
     EXPR_LOOP,
@@ -154,6 +155,11 @@ typedef struct {
     struct Expr* expr;
 } Case;
 
+typedef struct {
+    struct Expr* tst;
+    struct Expr* ret;
+} If;
+
 typedef struct Expr {
     EXPR  sub;
     Decls decls;
@@ -202,6 +208,10 @@ typedef struct Expr {
             int   size;
             Case* vec;
         } Cases;
+        struct {        // EXPR_CASES
+            int size;
+            If* vec;
+        } Ifs;
         struct {        // EXPR_FUNC
             Type type;
             struct Expr* body;

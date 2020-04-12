@@ -596,6 +596,37 @@ void* parser_case_ (void) {
     return &c_;
 }
 
+void* parser_if_ (void) {
+    static If c_;
+    If c;
+
+    if (pr_accept(TK_ELSE,1)) {
+        c.tst = malloc(sizeof(Expr));
+        assert(c.tst != NULL);
+        *c.tst = (Expr) { EXPR_RAW, .Raw={TK_RAW,{.s="1"}} };
+    } else {
+        c.tst = expr_new();
+        if (c.tst == NULL) {
+            return NULL;
+        }
+    }
+
+    // ->
+    pr_accept(TK_ARROW,1);       // optional
+
+    // expr
+    c.ret = expr_new();
+    if (c.ret == NULL) {
+        return NULL;
+    }
+    if (!parser_where(&c.ret->decls)) {
+        return NULL;
+    }
+
+    c_ = c;
+    return &c_;
+}
+
 int parser_expr_one (Expr* ret) {
     int is_line = (PRV.tk.sym==TK_LINE);
 
@@ -713,28 +744,37 @@ int parser_expr_one (Expr* ret) {
 
         *ret = (Expr) { EXPR_LET, {.size=0}, .Let={d.patt,d.type,d.init,pe} };
 
-    // EXPR_IF
     } else if (pr_accept(TK_IF,1)) {
-        Expr* tst = expr_new();
-        if (tst == NULL) {
-            return 0;
+    // EXPR_IFS
+        if (pr_check(':',1)) {
+            List lst;
+            if (!parser_list_line(1, &lst, &parser_if_, sizeof(If))) {
+                return 0;
+            }
+            *ret = (Expr) { EXPR_IFS, {.size=0}, .Ifs={lst.size,lst.vec} };
+    // EXPR_IF
+        } else {
+            Expr* tst = expr_new();
+            if (tst == NULL) {
+                return 0;
+            }
+
+            pr_accept(TK_ARROW,1);  // optional `->`
+
+            Expr* t = expr_new();
+            if (tst == NULL) {
+                return 0;
+            }
+
+            pr_accept(TK_ARROW,1);  // optional `->`
+
+            Expr* f = expr_new();
+            if (tst == NULL) {
+                return 0;
+            }
+
+            *ret = (Expr) { EXPR_IF, {.size=0}, .Cond={tst,t,f} };
         }
-
-        pr_accept(TK_ARROW,1);  // optional `->`
-
-        Expr* t = expr_new();
-        if (tst == NULL) {
-            return 0;
-        }
-
-        pr_accept(TK_ARROW,1);  // optional `->`
-
-        Expr* f = expr_new();
-        if (tst == NULL) {
-            return 0;
-        }
-
-        *ret = (Expr) { EXPR_IF, {.size=0}, .Cond={tst,t,f} };
 
     // EXPR_CASES
     } else if (pr_accept(TK_CASE,1)) {
@@ -742,12 +782,10 @@ int parser_expr_one (Expr* ret) {
         if (pe == NULL) {
             return 0;
         }
-
         List lst;
         if (!parser_list_line(1, &lst, &parser_case_, sizeof(Case))) {
             return 0;
         }
-
         *ret = (Expr) { EXPR_CASES, {.size=0}, .Cases={pe,lst.size,lst.vec} };
 
     // EXPR_BREAK

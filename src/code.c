@@ -543,6 +543,18 @@ void code_expr (Expr e, tce_ret* ret) {
             out("assert(0 && \"case not matched\");\n");
             out("}\n");
             break;
+        case EXPR_IFS:    // tst,size,vec
+            for (int i=0; i<e.Ifs.size; i++) {
+                out("if (");
+                code_expr(*e.Ifs.vec[i].tst, NULL);
+                out(") {\n");
+                code_expr(*e.Ifs.vec[i].ret, ret);
+                out(";\n} else \n");
+            }
+            out("{\n");
+            out("assert(0 && \"if not matched\");\n");
+            out("}\n");
+            break;
         case EXPR_TUPLE_IDX:
             if (e.Tuple_Idx.tuple->sub == EXPR_TUPLE) {
                 code_expr(e.Tuple_Idx.tuple->Tuple.vec[e.Tuple_Idx.idx], ret);
