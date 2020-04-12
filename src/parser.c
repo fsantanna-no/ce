@@ -81,6 +81,17 @@ int is_rec (const char* v) {
     return 0;
 }
 
+Expr* expr_new (void) {
+    Expr e;
+    if (!parser_expr(&e)) {
+        return NULL;
+    }
+    Expr* pe = malloc(sizeof(Expr));
+    assert(pe != NULL);
+    *pe = e;
+    return pe;
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 
 void pr_next () {
@@ -367,13 +378,10 @@ int parser_patt (Patt* ret, int is_match) {
             *ret = (Patt) { PATT_SET, .Set=PRV.tk };
         }
     } else if (pr_accept('~',1)) {
-        Expr e;
-        if (!parser_expr(&e)) {
+        Expr* pe = expr_new();
+        if (pe == NULL) {
             return 0;
         }
-        Expr* pe = malloc(sizeof(Expr));
-        assert(pe != NULL);
-        *pe = e;
         *ret = (Patt) { PATT_EXPR, .Expr=pe };
     } else {
         assert(0 && "TODO");
@@ -575,19 +583,15 @@ void* parser_case_ (void) {
     pr_accept(TK_ARROW,1);       // optional
 
     // expr
-    Expr e;
-    if (!parser_expr(&e)) {
+    Expr* pe = expr_new();
+    if (pe == NULL) {
         return NULL;
     }
-    if (!parser_where(&e.decls)) {
+    if (!parser_where(&pe->decls)) {
         return NULL;
     }
 
-    Expr* pe = malloc(sizeof(Expr));
-    assert(pe != NULL);
-    *pe = e;
     c.expr = pe;
-
     c_ = c;
     return &c_;
 }
@@ -635,13 +639,10 @@ int parser_expr_one (Expr* ret) {
 
     // EXPR_NEW
     } else if (pr_accept(TK_NEW,1)) {
-        Expr e;
-        if (!parser_expr(&e)) {
+        Expr* pe = expr_new();
+        if (pe == NULL) {
             return 0;
         }
-        Expr* pe = malloc(sizeof(Expr));
-        assert(pe != NULL);
-        *pe = e;
         *ret = (Expr) { EXPR_NEW, {.size=0}, .New=pe };
 
     // EXPR_SET
@@ -653,13 +654,10 @@ int parser_expr_one (Expr* ret) {
         if (!pr_accept('=',1)) {
             return err_expected("`=`");
         }
-        Expr e;
-        if (!parser_expr(&e)) {
+        Expr* pe = expr_new();
+        if (pe == NULL) {
             return 0;
         }
-        Expr* pe = malloc(sizeof(Expr));
-        assert(pe != NULL);
-        *pe = e;
         *ret = (Expr) { EXPR_SET, {.size=0}, .Set={var,pe} };
 
     // EXPR_FUNC
@@ -671,13 +669,10 @@ int parser_expr_one (Expr* ret) {
         if (!parser_type(&tp)) {
             return 0;
         }
-        Expr e;
-        if (!parser_expr(&e)) {
+        Expr* pe = expr_new();
+        if (pe == NULL) {
             return 0;
         }
-        Expr* pe = malloc(sizeof(Expr));
-        assert(pe != NULL);
-        *pe = e;
         *ret = (Expr) { EXPR_FUNC, {.size=0}, .Func={tp,pe} };
         if (!parser_where(&ret->decls)) {
             return 0;
@@ -703,38 +698,40 @@ int parser_expr_one (Expr* ret) {
         }
 
         pr_accept(TK_ARROW,1);  // optional `->`
-        Expr e;
-        if (!parser_expr(&e)) {
+        Expr* pe = expr_new();
+        if (pe == NULL) {
             return 0;
         }
-        Expr* pe = malloc(sizeof(Expr));
-        *pe = e;
 
         *ret = (Expr) { EXPR_LET, {.size=0}, .Let={d.patt,d.type,d.init,pe} };
 
     // EXPR_IF
     } else if (pr_accept(TK_IF,1)) {
-        Expr tst, f, t;
-        parser_expr(&tst);
-        pr_accept(TK_ARROW,1);  // optional `->`
-        parser_expr(&t);
-        pr_accept(TK_ARROW,1);  // optional `->`
-        parser_expr(&f);
+        Expr* tst = expr_new();
+        if (tst == NULL) {
+            return 0;
+        }
 
-        Expr* p1 = malloc(sizeof(tst));
-        Expr* p2 = malloc(sizeof(t));
-        Expr* p3 = malloc(sizeof(f));
-        assert(p1!=NULL && p2!=NULL && p3!=NULL);
-        *p1 = tst;
-        *p2 = t;
-        *p3 = f;
+        pr_accept(TK_ARROW,1);  // optional `->`
 
-        *ret = (Expr) { EXPR_IF, {.size=0}, .Cond={p1,p2,p3} };
+        Expr* t = expr_new();
+        if (tst == NULL) {
+            return 0;
+        }
+
+        pr_accept(TK_ARROW,1);  // optional `->`
+
+        Expr* f = expr_new();
+        if (tst == NULL) {
+            return 0;
+        }
+
+        *ret = (Expr) { EXPR_IF, {.size=0}, .Cond={tst,t,f} };
 
     // EXPR_CASES
     } else if (pr_accept(TK_CASE,1)) {
-        Expr e;
-        if (!parser_expr(&e)) {
+        Expr* pe = expr_new();
+        if (pe == NULL) {
             return 0;
         }
 
@@ -743,32 +740,18 @@ int parser_expr_one (Expr* ret) {
             return 0;
         }
 
-        Expr* pe = malloc(sizeof(Expr));
-        assert(pe != NULL);
-        *pe = e;
-
         *ret = (Expr) { EXPR_CASES, {.size=0}, .Cases={pe,lst.size,lst.vec} };
 
     // EXPR_BREAK
     } else if (pr_accept(TK_BREAK,1)) {
-        Expr* pe = NULL;
-        Expr e;
-        if (parser_expr(&e)) {      // optional expr
-            pe = malloc(sizeof(Expr));
-            assert(pe != NULL);
-            *pe = e;
-        }
-        *ret = (Expr) { EXPR_BREAK, {.size=0}, .Break=pe };
+        *ret = (Expr) { EXPR_BREAK, {.size=0}, .Break=expr_new() };
 
     // EXPR_LOOP
     } else if (pr_accept(TK_LOOP,1)) {
-        Expr e;
-        if (!parser_expr(&e)) {
+        Expr* pe = expr_new();
+        if (pe == NULL) {
             return 0;
         }
-        Expr* pe = malloc(sizeof(Expr));
-        assert(pe != NULL);
-        *pe = e;
         *ret = (Expr) { EXPR_LOOP, {.size=0}, .Loop=pe };
 
     // EXPR_CALL
@@ -776,16 +759,18 @@ int parser_expr_one (Expr* ret) {
         if (!is_line) {
             return err_unexpected("`call`");    // use `call` only starting line
         }
-        Expr func, arg;
-        if (!parser_expr_one(&func) || !parser_expr(&arg)) {
+        Expr func;
+        if (!parser_expr_one(&func)) {
             return 0;
         }
-        Expr* p1 = malloc(sizeof(Expr));
-        Expr* p2 = malloc(sizeof(Expr));
-        assert(p1!=NULL && p2!=NULL);
-        *p1 = func;
-        *p2 = arg;
-        *ret = (Expr) { EXPR_CALL, {.size=0}, .Call={p1,p2} };
+        Expr* arg  = expr_new();
+        if (arg == NULL) {
+            return 0;
+        }
+        Expr* p = malloc(sizeof(Expr));
+        assert(p != NULL);
+        *p = func;
+        *ret = (Expr) { EXPR_CALL, {.size=0}, .Call={p,arg} };
     } else {
         return err_expected("expression");
     }
@@ -834,17 +819,15 @@ int parser_expr (Expr* ret) {
         if (!pr_check('(',1)) {
             break;
         }
-        Expr arg;
-        if (!parser_expr(&arg)) {
+        Expr* arg = expr_new();
+        if (arg == NULL) {
             return 0;
         }
 
-        Expr* pe1 = malloc(sizeof(Expr));
-        Expr* pe2 = malloc(sizeof(Expr));
-        assert(pe1!=NULL && pe2!=NULL);
-        *pe1 = *ret;
-        *pe2 = arg;
-        *ret = (Expr) { EXPR_CALL, {.size=0}, .Call={pe1,pe2} };
+        Expr* func = malloc(sizeof(Expr));
+        assert(func != NULL);
+        *func = *ret;
+        *ret = (Expr) { EXPR_CALL, {.size=0}, .Call={func,arg} };
     }
 
     return 1;
