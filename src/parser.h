@@ -35,6 +35,8 @@ typedef enum {
     EXPR_IF,
     EXPR_MATCH,
     EXPR_CASES,
+    EXPR_LOOP,
+    EXPR_BREAK,
     ////
     EXPR_TUPLE_IDX,
     EXPR_CONS_SUB
@@ -81,6 +83,8 @@ typedef enum {
  *               { Patt [`::` Type] [`->`] Expr [Where] }
  *        |  let Decl [`->`] Expr               // EXPR_LET
  *        |  `if` Expr [`->`] Expr [`->`] Expr  // EXPR_IF
+ *        |  `loop` Expr                        // EXPR_LOOP
+ *        |  `break`                            // EXPR_BREAK
  *        |  Expr `~` Expr                      // EXPR_MATCH
  */
 
@@ -157,6 +161,8 @@ typedef struct Expr {
         Tk Var;
         Tk Cons;
         struct Expr* New;
+        struct Expr* Loop;  // EXPR_LOOP
+        struct Expr* Break; // EXPR_BREAK
         struct {        // EXPR_TUPLE
             int size;
             struct Expr* vec;

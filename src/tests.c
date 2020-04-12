@@ -770,6 +770,20 @@ void t_all (void) {
         "    Cons(x,_) :: Nat -> x\n"
         "call {show_Nat}(n)"
     ));
+
+    // LOOP
+
+    assert(all(
+        "()\n",
+        "val n :: () = loop break ()\n"
+        "call {show_Unit}(n)"
+    ));
+
+    assert(all(
+        "()\n",
+        "loop break\n"
+        "call {show_Unit}(())"
+    ));
 }
 
 int main (void) {

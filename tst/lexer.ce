@@ -7,17 +7,21 @@ data Tk: -- ({int},{Tk_s}):     -- TODO: inheritance
 
 mut inp :: {FILE*}
 
-set stropen = func :: (({char*}, {size_t}, {char*}) -> {FILE*}): -- TODO: (mode::char*, ...)
+func lexer :: (Tk -> ()):
+    loop:
+}
+
+func stropen :: (({char*}, {size_t}, {char*}) -> {FILE*}): -- TODO: (mode::char*, ...)
     let (mode,size,str) :: ({char*}, {size_t}, {char*}) = ...:
         set size = case size:
             {0}  -> {strlen} (str)
             else -> size
-        { fmemopen(str,size,mode) }
+        { fmemopen (str,size,mode) }
 
-set t_lexer = func :: (() -> ()):           -- TODO: func t_lexer ::
+func t_lexer :: (() -> ()):
     :
         set inp = stropen ({"r"}, {0}, {"-- foobar"})
-        let tk :: Tk = lexer():             -- TODO: optional [tk :: Tk =] (assume it)
-            call {assert} (if tk ~ TK_COMMENT(_) -> {1} -> {0})
+        let tk :: Tk = lexer():             -- TODO: it // optional [tk :: Tk =] (assume it)
+            call {assert} (tk ~ Tk_COMMENT (_))
 
 call t_lexer ()

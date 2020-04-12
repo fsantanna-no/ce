@@ -749,6 +749,28 @@ int parser_expr_one (Expr* ret) {
 
         *ret = (Expr) { EXPR_CASES, {.size=0}, .Cases={pe,lst.size,lst.vec} };
 
+    // EXPR_BREAK
+    } else if (pr_accept(TK_BREAK,1)) {
+        Expr* pe = NULL;
+        Expr e;
+        if (parser_expr(&e)) {      // optional expr
+            pe = malloc(sizeof(Expr));
+            assert(pe != NULL);
+            *pe = e;
+        }
+        *ret = (Expr) { EXPR_BREAK, {.size=0}, .Break=pe };
+
+    // EXPR_LOOP
+    } else if (pr_accept(TK_LOOP,1)) {
+        Expr e;
+        if (!parser_expr(&e)) {
+            return 0;
+        }
+        Expr* pe = malloc(sizeof(Expr));
+        assert(pe != NULL);
+        *pe = e;
+        *ret = (Expr) { EXPR_LOOP, {.size=0}, .Loop=pe };
+
     // EXPR_CALL
     } else if (pr_accept(TK_CALL,1)) {
         if (!is_line) {

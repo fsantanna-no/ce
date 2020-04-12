@@ -507,6 +507,20 @@ void code_expr (Expr e, tce_ret* ret) {
             out(")");
             break;
         }
+        case EXPR_LOOP: {
+            out("while (1) {\n");
+            code_expr(*e.Loop, ret);
+            out("}\n");
+            break;
+        }
+        case EXPR_BREAK: {
+            if (e.Break != NULL) {
+                code_expr(*e.Break, ret);
+                out(";\n");
+            }
+            out("break;\n");
+            break;
+        }
         case EXPR_MATCH:
             code_ret(ret);
             code_case_tst(*e.Match.expr, *e.Match.patt);
