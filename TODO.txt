@@ -1,3 +1,7 @@
+- lexer
+    - \ to continue line
+    - accept ' etc only at the end of id
+        - also subst by _ on code gen
 - where at same level
 - separar stmts de exprs
     - stmts sao exprs que nao podem aparecer em alguns contextos

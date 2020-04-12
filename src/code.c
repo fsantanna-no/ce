@@ -361,7 +361,8 @@ void code_case_vars (Patt patt, Type type) {
         out(" ");
         out(vars[0].val.s);
         out(";\n");
-    } else {
+    } else if (vars_i > 0) {
+        assert(type.Tuple.size == vars_i);
         for (int i=0; i<vars_i; i++) {
             code_type(type.Tuple.vec[i]);
             out(" ");
