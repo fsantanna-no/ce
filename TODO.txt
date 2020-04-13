@@ -1,16 +1,14 @@
-- TK_INDENT
-- match in terms of if/~
 - outs
-    - oute, outd, outt
+    - oute, outd, outg
+- match in terms of if/~
 - lexer
-    - comments / extra new lines
     - \ to continue line
         - or indent to continue
     - accept ' etc only at the end of id
         - also subst by _ on code gen
-- where at same level
 - separar stmts de exprs
     - stmts sao exprs que nao podem aparecer em alguns contextos
+    - nao eh necessario com oute/outd/outg
 - if optional else
 - case -> match
     - match posicao errada na lista

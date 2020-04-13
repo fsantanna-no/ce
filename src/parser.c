@@ -238,7 +238,17 @@ int parser_list_line (int doind, List* ret, List_F f, size_t unit) {
             return err_expected(s);
         }
 
+        // COMMENT
         if (pr_accept(TK_COMMENT,1)) {
+            continue;
+        }
+
+        // WHERE
+        // TODO: check if Expr, check if after Expr
+        if (pr_accept(TK_WHERE,1)) {
+            if (!parser_decls(&((((Expr*)vec)[i-1]).decls))) {
+                return 0;
+            }
             continue;
         }
 
