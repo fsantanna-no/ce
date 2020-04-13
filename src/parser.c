@@ -124,27 +124,29 @@ void pr_read (long* off, Tk* tk) {
     }
 }
 
+void pr_lincol (void) {
+    if (TOK1.tk.sym == '\n') {
+        TOK2.lin = TOK1.lin + 1;
+        TOK2.col = (TOK2.off - TOK1.off);
+    } else {
+        TOK2.col = TOK1.col + (TOK2.off - TOK1.off);
+    }
+}
+
 void pr_init () {
     TOK0 = (State_Tok) { -1,0,0,{} };
     TOK1 = (State_Tok) { -1,1,1,{} };
-    TOK2 = (State_Tok) { -1,0,0,{} };
+    TOK2 = (State_Tok) { -1,1,1,{} };
     pr_read(&TOK1.off, &TOK1.tk);
-    //pr_read(&TOK2.off, &TOK2.tk);
+    pr_read(&TOK2.off, &TOK2.tk);
+    pr_lincol();
 }
 
 void pr_next () {
     TOK0 = TOK1;
-    //TOK1 = TOK2;
-
-    pr_read(&TOK1.off, &TOK1.tk);
-
-    if (TOK0.tk.sym == '\n') {
-        TOK1.lin = TOK0.lin + 1;
-        TOK1.col = (TOK1.off - TOK0.off);
-    } else {
-        TOK1.col = TOK0.col + (TOK1.off - TOK0.off);
-    }
-    //printf("TOK1: ln=%ld cl=%ld off=%ld tk=%s\n", TOK1.lin, TOK1.col, TOK1.off, lexer_tk2str(&TOK1.tk));
+    TOK1 = TOK2;
+    pr_read(&TOK2.off, &TOK2.tk);
+    pr_lincol();
 }
 
 int pr_accept1 (TK tk, int ok) {
