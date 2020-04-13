@@ -35,7 +35,7 @@ const char* lexer_tk2str (Tk* tk) {
             sprintf(str, "end of file");
             break;
         case '\n':
-            sprintf(str, "new line");
+            sprintf(str, "end of line");
             break;
         case TK_RAW:
             sprintf(str, "`{...}`");
@@ -86,9 +86,6 @@ TK lexer_ (TK_val* val) {
             int i = 0;
             while (1) {
                 c = fgetc(ALL.inp);
-                if (c == EOF) {         // consider \nEOF as EOF
-                    return EOF;
-                }
                 if (c != ' ') {
                     ungetc(c, ALL.inp);
                     break;
@@ -187,8 +184,13 @@ TK lexer_ (TK_val* val) {
 }
 
 Tk lexer () {
+    static TK prv = '\n';
     Tk ret;
     TK tk = lexer_(&ret.val);
+    if (tk==EOF && prv!='\n') {
+        tk = '\n';
+    }
+    prv = tk;
     while (1) {
         int c = fgetc(ALL.inp);
         if (c != ' ') {

@@ -64,6 +64,7 @@ void t_lexer (void) {
     {
         ALL.inp = stropen("r", 0, "-- foobar");
         assert(lexer().sym == TK_COMMENT);
+        assert(lexer().sym == '\n');
         assert(lexer().sym == EOF);
         fclose(ALL.inp);
     }
@@ -73,12 +74,14 @@ void t_lexer (void) {
         assert(lexer().sym == '\n');
         assert(lexer().sym == TK_COMMENT);
         assert(lexer().sym == '\n');
+        assert(lexer().sym == '\n');
         assert(lexer().sym == EOF);
         fclose(ALL.inp);
     }
     {
         ALL.inp = stropen("r", 0, "\n  \n");
         assert(lexer().sym == TK_ERR);
+        assert(lexer().sym == '\n');
         assert(lexer().sym == EOF);
         fclose(ALL.inp);
     }
@@ -91,6 +94,7 @@ void t_lexer (void) {
         assert(lexer().sym == '\n');
         assert(lexer().sym == '\n');
         Tk tk5 = lexer(); assert(tk5.sym == TK_IDVAR); assert(!strcmp(tk5.val.s, "c4"));
+        assert(lexer().sym == '\n');
         assert(lexer().sym == EOF);
         fclose(ALL.inp);
     }
@@ -101,6 +105,7 @@ void t_lexer (void) {
         Tk tk3 = lexer(); assert(tk3.sym == TK_IDDATA); assert(!strcmp(tk3.val.s, "C'a"));
         Tk tk4 = lexer(); assert(tk4.sym == TK_IDVAR);  assert(!strcmp(tk4.val.s, "a'?"));
         Tk tk5 = lexer(); assert(tk5.sym == TK_IDDATA); assert(!strcmp(tk5.val.s, "C!!"));
+        assert(lexer().sym == '\n');
         assert(lexer().sym == EOF);
         fclose(ALL.inp);
     }
@@ -109,6 +114,7 @@ void t_lexer (void) {
         assert(lexer().sym == TK_LET);
         Tk tk1 = lexer(); assert(tk1.sym == TK_IDVAR); assert(!strcmp(tk1.val.s, "xlet"));
         Tk tk2 = lexer(); assert(tk2.sym == TK_IDVAR); assert(!strcmp(tk2.val.s, "letx"));
+        assert(lexer().sym == '\n');
         assert(lexer().sym == EOF);
         fclose(ALL.inp);
     }
@@ -199,21 +205,21 @@ void t_parser_expr (void) {
         init(NULL, stropen("r", 0, "("));
         Expr e;
         assert(!parser_expr(&e));
-        assert(!strcmp(ALL.err, "(ln 1, col 2): expected expression : have end of file"));
+        assert(!strcmp(ALL.err, "(ln 1, col 2): expected expression : have end of line"));
         fclose(ALL.inp);
     }
     {
         init(NULL, stropen("r", 0, "(("));
         Expr e;
         assert(!parser_expr(&e));
-        assert(!strcmp(ALL.err, "(ln 1, col 3): expected expression : have end of file"));
+        assert(!strcmp(ALL.err, "(ln 1, col 3): expected expression : have end of line"));
         fclose(ALL.inp);
     }
     {
         init(NULL, stropen("r", 0, "(\n( \n"));
         Expr e;
         assert(!parser_expr(&e));
-        assert(!strcmp(ALL.err, "(ln 1, col 2): expected expression : have new line"));
+        assert(!strcmp(ALL.err, "(ln 1, col 2): expected expression : have end of line"));
         fclose(ALL.inp);
     }
     // EXPR_VAR
@@ -228,7 +234,7 @@ void t_parser_expr (void) {
         init(NULL, stropen("r", 0, "x("));
         Expr e;
         assert(!parser_expr(&e));
-        assert(!strcmp(ALL.err, "(ln 1, col 3): expected expression : have end of file"));
+        assert(!strcmp(ALL.err, "(ln 1, col 3): expected expression : have end of line"));
         fclose(ALL.inp);
     }
     // EXPR_SET
@@ -243,7 +249,7 @@ void t_parser_expr (void) {
         init(NULL, stropen("r", 0, "set a = (x"));
         Expr e;
         assert(!parser_expr(&e));
-        assert(!strcmp(ALL.err, "(ln 1, col 11): expected `)` : have end of file"));
+        assert(!strcmp(ALL.err, "(ln 1, col 11): expected `)` : have end of line"));
         fclose(ALL.inp);
     }
     {
@@ -308,14 +314,14 @@ void t_parser_expr (void) {
         init(NULL, stropen("r", 0, ":\n    x\n    y ("));
         Expr e;
         assert(!parser_expr(&e));
-        assert(!strcmp(ALL.err, "(ln 3, col 8): expected expression : have end of file"));
+        assert(!strcmp(ALL.err, "(ln 3, col 8): expected expression : have end of line"));
         fclose(ALL.inp);
     }
     {
         init(NULL, stropen("r", 0, ":\n    x\n    y ("));
         Expr e;
         assert(!parser_expr(&e));
-        assert(!strcmp(ALL.err, "(ln 3, col 8): expected expression : have end of file"));
+        assert(!strcmp(ALL.err, "(ln 3, col 8): expected expression : have end of line"));
         fclose(ALL.inp);
     }
     {
@@ -353,7 +359,7 @@ void t_parser_decls (void) {
         init(NULL, stropen("r", 0, ":\n    val a"));
         Decls ds;
         assert(!parser_decls(&ds));
-        assert(!strcmp(ALL.err, "(ln 2, col 10): expected `::` : have end of file"));
+        assert(!strcmp(ALL.err, "(ln 2, col 10): expected `::` : have end of line"));
         fclose(ALL.inp);
     }
     {
