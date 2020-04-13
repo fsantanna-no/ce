@@ -51,7 +51,7 @@ typedef struct {
 } State_Tok;
 
 extern State_All ALL;
-extern State_Tok TOK0, TOK1;
+extern State_Tok TOK0, TOK1, TOK2;
 
 const char* lexer_tk2str (Tk* tk);
 int lexer_tk2len (Tk* tk);

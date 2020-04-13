@@ -113,31 +113,37 @@ Expr* expr_new (void) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void pr_next () {
-    TOK0 = TOK1;
-
-    long off = ftell(ALL.inp);
-    Tk   tk  = lexer();
+void pr_read (long* off, Tk* tk) {
+    *off = ftell(ALL.inp);
+    *tk  = lexer();
 
     // skip comment
-    if (tk.sym == TK_COMMENT) {
-        off = ftell(ALL.inp);
-        tk  = lexer();
+    if (tk->sym == TK_COMMENT) {
+        *off = ftell(ALL.inp);
+        *tk  = lexer();
     }
+}
 
-    if (TOK0.off == -1) {
-        TOK1.lin = 1;
-        TOK1.col = 1;
+void pr_init () {
+    TOK0 = (State_Tok) { -1,0,0,{} };
+    TOK1 = (State_Tok) { -1,1,1,{} };
+    TOK2 = (State_Tok) { -1,0,0,{} };
+    pr_read(&TOK1.off, &TOK1.tk);
+    //pr_read(&TOK2.off, &TOK2.tk);
+}
+
+void pr_next () {
+    TOK0 = TOK1;
+    //TOK1 = TOK2;
+
+    pr_read(&TOK1.off, &TOK1.tk);
+
+    if (TOK0.tk.sym == '\n') {
+        TOK1.lin = TOK0.lin + 1;
+        TOK1.col = (TOK1.off - TOK0.off);
     } else {
-        if (TOK0.tk.sym == '\n') {
-            TOK1.lin = TOK0.lin + 1;
-            TOK1.col = (off - TOK0.off);
-        } else {
-            TOK1.col = TOK0.col + (off - TOK0.off);
-        }
+        TOK1.col = TOK0.col + (TOK1.off - TOK0.off);
     }
-    TOK1.tk  = tk;
-    TOK1.off = off;
     //printf("TOK1: ln=%ld cl=%ld off=%ld tk=%s\n", TOK1.lin, TOK1.col, TOK1.off, lexer_tk2str(&TOK1.tk));
 }
 
@@ -158,6 +164,10 @@ int pr_check1 (TK tk, int ok) {
     return (TOK1.tk.sym==tk && ok);
 }
 
+int pr_check2 (TK tk, int ok) {
+    return (TOK2.tk.sym==tk && ok);
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 
 int err_expected (const char* v) {
@@ -175,9 +185,8 @@ int err_unexpected (const char* v) {
 
 void init (FILE* out, FILE* inp) {
     ALL = (State_All) { out,inp,{},0,{0,{}} };
-    TOK1 = (State_Tok) { -1,0,0,{} };
     if (inp != NULL) {
-        pr_next();
+        pr_init();
     }
 }
 
