@@ -1,7 +1,11 @@
+- TK_INDENT
 - match in terms of if/~
+- outs
+    - oute, outd, outt
 - lexer
     - comments / extra new lines
     - \ to continue line
+        - or indent to continue
     - accept ' etc only at the end of id
         - also subst by _ on code gen
 - where at same level

@@ -252,6 +252,5 @@ int parser_type  (Type*  ret);
 int parser_data  (Data*  ret);
 int parser_decls (Decls* ret);
 int parser_patt  (Patt*  ret, int is_match);
-int parser_where (Decls* ds);
 int parser_expr  (Expr*  ret);
 int parser_prog  (Prog*  prog);

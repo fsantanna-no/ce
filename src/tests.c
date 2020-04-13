@@ -430,7 +430,6 @@ void t_parser_block (void) {
         Expr e;
         assert(parser_expr(&e));
         assert(e.sub == EXPR_VAR);
-        assert(parser_where(&e.decls));
         assert(e.decls.size == 2);
         fclose(ALL.inp);
     }
@@ -718,6 +717,16 @@ void t_all (void) {
         "match i:\n"
         "    (x,_) :: () -> {show_Unit}(x)"
     ));
+#if 0
+    // TODO: \n where
+    assert(all(
+        "()\n",
+        "match i:\n"
+        "    (x,_) :: () -> {show_Unit}(x)\n"
+        "where:\n"
+        "    val i :: ((),()) = ((),())\n"
+    ));
+#endif
     assert(all(
         "()\n",
         "val i :: ((),((),())) = ((),((),()))\n"

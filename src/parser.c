@@ -506,9 +506,6 @@ int parser_decl_nopre (Decl* decl) {
         if (!parser_expr(&init)) {
             return is_func;
         }
-        if (!parser_where(&init.decls)) {
-            return 0;
-        }
         decl->init = malloc(sizeof(*decl->init));
         assert(decl->init != NULL);
         *decl->init = init;
@@ -564,18 +561,8 @@ void* parser_expr__ (void) {
         return NULL;
     }
     Expr e = *pe;
-    if (!parser_where(&e.decls)) {
-        return 0;
-    }
     e_ = e;
     return &e_;
-}
-
-int parser_where (Decls* ds) {
-    if (!pr_accept(TK_WHERE,1)) {
-        return 1;
-    }
-    return parser_decls(ds);
 }
 
 void* parser_case_ (void) {
@@ -606,9 +593,6 @@ void* parser_case_ (void) {
     if (pe == NULL) {
         return NULL;
     }
-    if (!parser_where(&pe->decls)) {
-        return NULL;
-    }
 
     c.expr = pe;
     c_ = c;
@@ -636,9 +620,6 @@ void* parser_if_ (void) {
     // expr
     c.ret = expr_new();
     if (c.ret == NULL) {
-        return NULL;
-    }
-    if (!parser_where(&c.ret->decls)) {
         return NULL;
     }
 
@@ -722,9 +703,6 @@ int parser_expr_one (Expr* ret) {
             return 0;
         }
         *ret = (Expr) { EXPR_FUNC, {.size=0}, .Func={tp,pe} };
-        if (!parser_where(&ret->decls)) {
-            return 0;
-        }
 
     // EXPR_PASS
     } else if (pr_accept(TK_PASS,1)) {
@@ -822,6 +800,11 @@ int parser_expr_one (Expr* ret) {
     }
 
     assert(ret->decls.size == 0);
+
+    if (pr_accept(TK_WHERE,1)) {
+        return parser_decls(&ret->decls);
+    }
+
     return 1;
 }
 
