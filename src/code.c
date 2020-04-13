@@ -244,7 +244,7 @@ void code_data (Data data) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void code_case_tst (Expr tst, Patt p) {
+void code_match (Expr tst, Patt p) {
     switch (p.sub) {
         case PATT_RAW:
             code_expr(tst, NULL);
@@ -271,7 +271,7 @@ void code_case_tst (Expr tst, Patt p) {
             out(p.Cons.data.val.s);
             if (p.Cons.arg != NULL) {
                 out(" && ");
-                code_case_tst (
+                code_match (
                     (Expr) { EXPR_CONS_SUB, .Cons_Sub={&tst,p.Cons.data.val.s} },
                     *p.Cons.arg
                 );
@@ -282,7 +282,7 @@ void code_case_tst (Expr tst, Patt p) {
                 if (i > 0) {
                     out(" && ");
                 }
-                code_case_tst (
+                code_match (
                     (Expr) { EXPR_TUPLE_IDX, .Tuple_Idx={&tst,i} },
                     p.Tuple.vec[i]
                 );
@@ -380,7 +380,7 @@ void code_case (Expr tst, Case c, tce_ret* ret) {
     }
 
     out("if (");
-    code_case_tst(tst, c.patt);
+    code_match(tst, c.patt);
     out(") {\n");
     code_case_vars(c.patt, c.type);
     code_case_set(c.patt, tst);
@@ -526,10 +526,10 @@ void code_expr (Expr e, tce_ret* ret) {
         }
         case EXPR_MATCH:
             code_ret(ret);
-            code_case_tst(*e.Match.expr, *e.Match.patt);
+            code_match(*e.Match.expr, *e.Match.patt);
             break;
         case EXPR_CASES: {  // tst,size,vec
-            out("{");
+            out("{\n");
             Expr tst = *e.Cases.tst;
             if (tst.sub != EXPR_TUPLE) {
                 out("typeof(");
@@ -546,7 +546,7 @@ void code_expr (Expr e, tce_ret* ret) {
             out("{\n");
             out("assert(0 && \"match failed\");\n");
             out("}\n");
-            out("}");
+            out("}\n");
             break;
         }
         case EXPR_IFS:    // tst,size,vec

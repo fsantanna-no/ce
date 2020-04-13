@@ -1,4 +1,6 @@
+- match in terms of if/~
 - lexer
+    - comments / extra new lines
     - \ to continue line
     - accept ' etc only at the end of id
         - also subst by _ on code gen
