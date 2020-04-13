@@ -80,10 +80,11 @@ TK lexer_ (TK_val* val) {
         case '?':
         case '=':
         case EOF:
+        case '\n':
             return c;
 
-        case '\n': {
-            int i = 0;
+        case ' ': {
+            int i = 1;
             while (1) {
                 c = fgetc(ALL.inp);
                 if (c != ' ') {
@@ -92,11 +93,8 @@ TK lexer_ (TK_val* val) {
                 }
                 i++;
             }
-            if (i%4 != 0) {
-                return TK_ERR;
-            }
-            val->n = i/4;
-            return '\n';
+            val->n = i;
+            return ' ';
         }
 
         case '{': {
@@ -187,17 +185,20 @@ Tk lexer () {
     static TK prv = '\n';
     Tk ret;
     TK tk = lexer_(&ret.val);
-    if (tk==EOF && prv!='\n') {
+    if (tk==EOF && prv!=EOF && prv!='\n') {
         tk = '\n';
     }
     prv = tk;
-    while (1) {
-        int c = fgetc(ALL.inp);
-        if (c != ' ') {
-            ungetc(c, ALL.inp);
-            break;
+    if (tk != '\n') {   // ignore spaces not starting lines
+        while (1) {
+            int c = fgetc(ALL.inp);
+            if (c != ' ') {
+                ungetc(c, ALL.inp);
+                break;
+            }
         }
     }
     ret.sym = tk;
+//printf(": %d %c\n", ret.sym, ret.sym);
     return ret;
 }

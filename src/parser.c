@@ -119,32 +119,18 @@ void pr_next () {
     long off = ftell(ALL.inp);
     Tk   tk  = lexer();
 
-    int lns = 0;
-    int ok  = 0;
-    while (!ok) {
-        ok = 1;
-
-        // skip comments
-        if (tk.sym == TK_COMMENT) {
-            off = ftell(ALL.inp);
-            tk  = lexer();
-            ok  = 0;
-        }
-
-        // skip empty line
-        if (PRV.tk.sym=='\n' && tk.sym=='\n' && tk.val.n==0) {
-            tk = lexer();
-            lns++;  // but count it
-            ok  = 0;
-        }
+    // skip comment
+    if (tk.sym == TK_COMMENT) {
+        off = ftell(ALL.inp);
+        tk  = lexer();
     }
 
     if (PRV.off == -1) {
-        NXT.lin = lns + 1;
+        NXT.lin = 1;
         NXT.col = 1;
     } else {
         if (PRV.tk.sym == '\n') {
-            NXT.lin = PRV.lin + lns + 1;
+            NXT.lin = PRV.lin + 1;
             NXT.col = (off - PRV.off);
         } else {
             NXT.col = PRV.col + (off - PRV.off);
@@ -231,38 +217,40 @@ int parser_list_line (int doind, List* ret, List_F f, size_t unit) {
         if (!pr_accept(':',1)) {
             return err_expected("`:`");
         }
-        ALL.ind++;
-
-        if (!pr_accept('\n', NXT.tk.val.n==ALL.ind)) {
-            return err_unexpected("indentation level");
+        if (!pr_check('\n',1)) {
+            return err_expected("new line");
         }
+        ALL.ind += 4;
     }
 
     void* vec = NULL;
     int i = 0;
     while (1) {
-        void* item = f();;
-        if (item == NULL) {
-            return 0;
+        while (pr_accept('\n',1));    // skip line + empty lines
+
+        if (ALL.ind==0 && !pr_check(' ',1) && !pr_check(EOF,1)) {
+            // ok
+        } else if (i>0 && PRV.tk.sym=='\n' && (!pr_check(' ',1) || pr_check(' ',NXT.tk.val.n<ALL.ind))) {
+            break;  // unnest
+        } else if (!pr_accept(' ', NXT.tk.val.n==ALL.ind)) {
+            char s[256];
+            sprintf(s, "indentation of %d spaces", ALL.ind);
+            return err_expected(s);
         }
-        vec = realloc(vec, (i+1)*unit);
-        memcpy(vec+i*unit, item, unit);
-        i++;
-        if (pr_check('\n', NXT.tk.val.n<ALL.ind)) {
-            //pr_accept('\n', NXT.tk.val.n==ALL.ind-1);
-            break;
-        }
-        if (!pr_accept('\n', NXT.tk.val.n==ALL.ind)) {
-            if (pr_accept('\n', NXT.tk.val.n>ALL.ind)) {
-                return err_unexpected("indentation level");
-            } else {
-                return err_expected("new line");
+
+        if (!pr_accept(TK_COMMENT,1)) {
+            void* item = f();;
+            if (item == NULL) {
+                return 0;
             }
+            vec = realloc(vec, (i+1)*unit);
+            memcpy(vec+i*unit, item, unit);
+            i++;
         }
     }
 
     if (doind) {
-        ALL.ind--;
+        ALL.ind -= 4;
     }
     ret->size = i;
     ret->vec  = vec;

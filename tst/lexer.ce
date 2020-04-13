@@ -48,7 +48,7 @@ mut inp :: {FILE*}
 func lexer_ :: (() -> Tk):
     match {fgetc} (inp):
         {EOF}  -> Tk_EOF
-        {'\n'} -> let i :: {int} = {0}:         -- TODO: loop i
+        {'\n'} -> :
             loop:
                 match {fgetc} (inp):
                     {EOF} -> return Tk_EOF      -- consider \nEOF as EOF
@@ -56,6 +56,8 @@ func lexer_ :: (() -> Tk):
                     c :: {int}:
                         {ungetc} (c,inp)
                         break
+            where:
+                i :: {int} = {0}         -- TODO: loop i
             if:
                 {i%4 == 0} -> return Tk_LINE ({i/4})
                 else       -> return Tk_ERR

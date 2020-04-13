@@ -80,7 +80,8 @@ void t_lexer (void) {
     }
     {
         ALL.inp = stropen("r", 0, "\n  \n");
-        assert(lexer().sym == TK_ERR);
+        assert(lexer().sym == '\n');
+        Tk spc = lexer(); assert(spc.sym==' '); assert(spc.val.n == 2);
         assert(lexer().sym == '\n');
         assert(lexer().sym == EOF);
         fclose(ALL.inp);
@@ -92,6 +93,7 @@ void t_lexer (void) {
         Tk tk3 = lexer(); assert(tk3.sym == TK_IDVAR); assert(!strcmp(tk3.val.s, "c2"));
         Tk tk4 = lexer(); assert(tk4.sym == TK_IDVAR); assert(!strcmp(tk4.val.s, "c3'"));
         assert(lexer().sym == '\n');
+        assert(lexer().sym == ' ');
         assert(lexer().sym == '\n');
         Tk tk5 = lexer(); assert(tk5.sym == TK_IDVAR); assert(!strcmp(tk5.val.s, "c4"));
         assert(lexer().sym == '\n');
@@ -160,6 +162,7 @@ void t_parser_datas (void) {
         init(NULL, stropen("r", 0, "data Bool:\n    False ()\n    True ()"));
         Data dts;
         parser_data(&dts);
+        assert(lexer().sym == EOF);
         assert(dts.size == 2);
         assert(dts.vec[0].idx == 0);
         assert(dts.vec[1].idx == 1);
@@ -285,14 +288,14 @@ void t_parser_expr (void) {
         init(NULL, stropen("r", 0, ": x"));
         Expr e;
         assert(!parser_expr(&e));
-        assert(!strcmp(ALL.err, "(ln 1, col 3): unexpected indentation level"));
+        assert(!strcmp(ALL.err, "(ln 1, col 3): expected new line : have `x`"));
         fclose(ALL.inp);
     }
     {
         init(NULL, stropen("r", 0, ":\nx"));
         Expr e;
         assert(!parser_expr(&e));
-        assert(!strcmp(ALL.err, "(ln 1, col 2): unexpected indentation level"));
+        assert(!strcmp(ALL.err, "(ln 2, col 1): expected indentation of 4 spaces : have `x`"));
         fclose(ALL.inp);
     }
     {
@@ -307,7 +310,7 @@ void t_parser_expr (void) {
         init(NULL, stropen("r", 0, ":\n    x x"));
         Expr e;
         assert(!parser_expr(&e));
-        assert(!strcmp(ALL.err, "(ln 2, col 7): expected new line : have `x`"));
+        assert(!strcmp(ALL.err, "(ln 2, col 7): expected indentation of 4 spaces : have `x`"));
         fclose(ALL.inp);
     }
     {
@@ -328,7 +331,22 @@ void t_parser_expr (void) {
         init(NULL, stropen("r", 0, ":\n    x\n    y y"));
         Expr e;
         assert(!parser_expr(&e));
-        assert(!strcmp(ALL.err, "(ln 3, col 7): expected new line : have `y`"));
+        assert(!strcmp(ALL.err, "(ln 3, col 7): expected indentation of 4 spaces : have `y`"));
+        fclose(ALL.inp);
+    }
+    {
+        init(NULL, stropen("r", 0,
+            ":\n"
+            "    x\n"
+            "    :\n"
+            "        y\n"
+            "    z\n"
+        ));
+        Expr e;
+        assert(parser_expr(&e));
+        assert(e.sub == EXPR_SEQ);
+        assert(e.Seq.size == 3);
+        assert(!strcmp(e.Seq.vec[1].Seq.vec[0].Var.val.s, "y"));
         fclose(ALL.inp);
     }
     {
