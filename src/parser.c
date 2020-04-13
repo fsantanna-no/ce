@@ -248,7 +248,7 @@ int parser_list_line (int doind, List* ret, List_F f, size_t unit) {
         vec = realloc(vec, (i+1)*unit);
         memcpy(vec+i*unit, item, unit);
         i++;
-        if (pr_check(TK_EOF,1) || pr_check('\n', NXT.tk.val.n<ALL.ind)) {
+        if (pr_check(EOF,1) || pr_check('\n', NXT.tk.val.n<ALL.ind)) {
             //pr_accept('\n', NXT.tk.val.n==ALL.ind-1);
             break;
         }
@@ -897,7 +897,7 @@ int parser_prog (Prog* ret) {
     }
     *ret = (Prog) { lst.size, lst.vec };
 
-    if (!pr_accept(TK_EOF,1)) {
+    if (!pr_accept(EOF,1)) {
         return err_expected("end of file");
     }
     return 1;

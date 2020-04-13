@@ -31,7 +31,7 @@ const char* lexer_tk2str (Tk* tk) {
         case TK_ERR:
             sprintf(str, "`%c`", tk->val.n);
             break;
-        case TK_EOF:
+        case EOF:
             sprintf(str, "end of file");
             break;
         case '\n':
@@ -79,17 +79,15 @@ TK lexer_ (TK_val* val) {
         case '~':
         case '?':
         case '=':
-            return c;
-
         case EOF:
-            return TK_EOF;
+            return c;
 
         case '\n': {
             int i = 0;
             while (1) {
                 c = fgetc(ALL.inp);
                 if (c == EOF) {         // consider \nEOF as EOF
-                    return TK_EOF;
+                    return EOF;
                 }
                 if (c != ' ') {
                     ungetc(c, ALL.inp);

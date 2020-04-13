@@ -64,7 +64,7 @@ void t_lexer (void) {
     {
         ALL.inp = stropen("r", 0, "-- foobar");
         assert(lexer().sym == TK_COMMENT);
-        assert(lexer().sym == TK_EOF);
+        assert(lexer().sym == EOF);
         fclose(ALL.inp);
     }
     {
@@ -73,13 +73,13 @@ void t_lexer (void) {
         assert(lexer().sym == '\n');
         assert(lexer().sym == TK_COMMENT);
         assert(lexer().sym == '\n');
-        assert(lexer().sym == TK_EOF);
+        assert(lexer().sym == EOF);
         fclose(ALL.inp);
     }
     {
         ALL.inp = stropen("r", 0, "\n  \n");
         assert(lexer().sym == TK_ERR);
-        assert(lexer().sym == TK_EOF);
+        assert(lexer().sym == EOF);
         fclose(ALL.inp);
     }
     {
@@ -91,7 +91,7 @@ void t_lexer (void) {
         assert(lexer().sym == '\n');
         assert(lexer().sym == '\n');
         Tk tk5 = lexer(); assert(tk5.sym == TK_IDVAR); assert(!strcmp(tk5.val.s, "c4"));
-        assert(lexer().sym == TK_EOF);
+        assert(lexer().sym == EOF);
         fclose(ALL.inp);
     }
     {
@@ -101,7 +101,7 @@ void t_lexer (void) {
         Tk tk3 = lexer(); assert(tk3.sym == TK_IDDATA); assert(!strcmp(tk3.val.s, "C'a"));
         Tk tk4 = lexer(); assert(tk4.sym == TK_IDVAR);  assert(!strcmp(tk4.val.s, "a'?"));
         Tk tk5 = lexer(); assert(tk5.sym == TK_IDDATA); assert(!strcmp(tk5.val.s, "C!!"));
-        assert(lexer().sym == TK_EOF);
+        assert(lexer().sym == EOF);
         fclose(ALL.inp);
     }
     {
@@ -109,7 +109,7 @@ void t_lexer (void) {
         assert(lexer().sym == TK_LET);
         Tk tk1 = lexer(); assert(tk1.sym == TK_IDVAR); assert(!strcmp(tk1.val.s, "xlet"));
         Tk tk2 = lexer(); assert(tk2.sym == TK_IDVAR); assert(!strcmp(tk2.val.s, "letx"));
-        assert(lexer().sym == TK_EOF);
+        assert(lexer().sym == EOF);
         fclose(ALL.inp);
     }
     {
