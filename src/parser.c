@@ -158,6 +158,16 @@ int pr_accept1 (TK tk, int ok) {
     }
 }
 
+int pr_accept2 (TK tk, int ok) {
+    if (TOK2.tk.sym==tk && ok) {
+        pr_next();
+        pr_next();
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
 int pr_check0 (TK tk, int ok) {
     return (TOK0.tk.sym==tk && ok);
 }
@@ -808,7 +818,13 @@ int parser_expr_one (Expr* ret) {
 
     assert(ret->decls.size == 0);
 
-    if (pr_accept1(TK_WHERE,1)) {
+    if (
+        (pr_check0('\n',1) && pr_check1(' ',ALL.ind) && pr_accept2(TK_WHERE,1))
+    ||
+        (pr_check0('\n',1) && ALL.ind==0 && pr_accept1(TK_WHERE,1))
+    ||
+        (!pr_check0('\n',1) && pr_accept1(TK_WHERE,1))
+    ) {
         return parser_decls(&ret->decls);
     }
 
