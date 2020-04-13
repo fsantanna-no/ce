@@ -132,7 +132,7 @@ void pr_next () {
         }
 
         // skip empty line
-        if (PRV.tk.sym==TK_LINE && tk.sym==TK_LINE && tk.val.n==0) {
+        if (PRV.tk.sym=='\n' && tk.sym=='\n' && tk.val.n==0) {
             tk = lexer();
             lns++;  // but count it
             ok  = 0;
@@ -143,7 +143,7 @@ void pr_next () {
         NXT.lin = lns + 1;
         NXT.col = 1;
     } else {
-        if (PRV.tk.sym == TK_LINE) {
+        if (PRV.tk.sym == '\n') {
             NXT.lin = PRV.lin + lns + 1;
             NXT.col = (off - PRV.off);
         } else {
@@ -233,7 +233,7 @@ int parser_list_line (int doind, List* ret, List_F f, size_t unit) {
         }
         ALL.ind++;
 
-        if (!pr_accept(TK_LINE, NXT.tk.val.n==ALL.ind)) {
+        if (!pr_accept('\n', NXT.tk.val.n==ALL.ind)) {
             return err_unexpected("indentation level");
         }
     }
@@ -248,12 +248,12 @@ int parser_list_line (int doind, List* ret, List_F f, size_t unit) {
         vec = realloc(vec, (i+1)*unit);
         memcpy(vec+i*unit, item, unit);
         i++;
-        if (pr_check(TK_EOF,1) || pr_check(TK_LINE, NXT.tk.val.n<ALL.ind)) {
-            //pr_accept(TK_LINE, NXT.tk.val.n==ALL.ind-1);
+        if (pr_check(TK_EOF,1) || pr_check('\n', NXT.tk.val.n<ALL.ind)) {
+            //pr_accept('\n', NXT.tk.val.n==ALL.ind-1);
             break;
         }
-        if (!pr_accept(TK_LINE, NXT.tk.val.n==ALL.ind)) {
-            if (pr_accept(TK_LINE, NXT.tk.val.n>ALL.ind)) {
+        if (!pr_accept('\n', NXT.tk.val.n==ALL.ind)) {
+            if (pr_accept('\n', NXT.tk.val.n>ALL.ind)) {
                 return err_unexpected("indentation level");
             } else {
                 return err_expected("new line");

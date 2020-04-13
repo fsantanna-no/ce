@@ -8,7 +8,6 @@ typedef enum {
 
     TK_EOF,
     TK_COMMENT,
-    TK_LINE,
     TK_RAW,
 
     TK_DECL,

@@ -34,7 +34,7 @@ const char* lexer_tk2str (Tk* tk) {
         case TK_EOF:
             sprintf(str, "end of file");
             break;
-        case TK_LINE:
+        case '\n':
             sprintf(str, "new line");
             break;
         case TK_RAW:
@@ -101,7 +101,7 @@ TK lexer_ (TK_val* val) {
                 return TK_ERR;
             }
             val->n = i/4;
-            return TK_LINE;
+            return '\n';
         }
 
         case '{': {
