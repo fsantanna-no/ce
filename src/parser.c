@@ -238,15 +238,18 @@ int parser_list_line (int doind, List* ret, List_F f, size_t unit) {
             return err_expected(s);
         }
 
-        if (!pr_accept(TK_COMMENT,1)) {
-            void* item = f();;
-            if (item == NULL) {
-                return 0;
-            }
-            vec = realloc(vec, (i+1)*unit);
-            memcpy(vec+i*unit, item, unit);
-            i++;
+        if (pr_accept(TK_COMMENT,1)) {
+            continue;
         }
+
+        // ITEM
+        void* item = f();;
+        if (item == NULL) {
+            return 0;
+        }
+        vec = realloc(vec, (i+1)*unit);
+        memcpy(vec+i*unit, item, unit);
+        i++;
     }
 
     if (doind) {

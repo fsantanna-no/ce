@@ -741,8 +741,6 @@ void t_all (void) {
         "match i:\n"
         "    (x,_) :: () -> {show_Unit}(x)"
     ));
-#if 0
-    // TODO: \n where
     assert(all(
         "()\n",
         "match i:\n"
@@ -750,7 +748,14 @@ void t_all (void) {
         "where:\n"
         "    val i :: ((),()) = ((),())\n"
     ));
-#endif
+    assert(all(
+        "()\n",
+        ":\n"
+        "    match i:\n"
+        "        (x,_) :: () -> {show_Unit}(x)\n"
+        "    where:\n"
+        "        val i :: ((),()) = ((),())\n"
+    ));
     assert(all(
         "()\n",
         "val i :: ((),((),())) = ((),((),()))\n"
