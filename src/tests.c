@@ -750,7 +750,27 @@ void t_all (void) {
     ));
     assert(all(
         "()\n",
+        "match i:\n"
+        "    (x,_) :: ():\n"
+        "        {show_Unit}(x)\n"
+        "where:\n"
+        "    val i :: ((),()) = ((),())\n"
+    ));
+    assert(all(
+        "()\n",
         ":\n"
+        "    match i:\n"
+        "        (x,_) :: () -> {show_Unit}(x)\n"
+        "    where:\n"
+        "        val i :: ((),()) = ((),())\n"
+    ));
+    assert(all(
+        "()\n",
+        ":\n"
+        "    match i:\n"
+        "        () -> ()\n"
+        "    where:\n"
+        "        val i :: () = ()\n"
         "    match i:\n"
         "        (x,_) :: () -> {show_Unit}(x)\n"
         "    where:\n"

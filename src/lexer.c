@@ -7,8 +7,8 @@
 #include "parser.h"
 
 State_All ALL = { NULL,NULL,{},0 };
-State_Tok NXT = { -1,0,0,{} };
-State_Tok PRV = { -1,0,0,{} };
+State_Tok TOK0 = { -1,0,0,{} };
+State_Tok TOK1 = { -1,0,0,{} };
 
 static char* reserved[] = {
     "break", "match", "data", "else",   "func", "if",  "let", "loop",

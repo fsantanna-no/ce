@@ -114,7 +114,7 @@ Expr* expr_new (void) {
 ///////////////////////////////////////////////////////////////////////////////
 
 void pr_next () {
-    PRV = NXT;
+    TOK0 = TOK1;
 
     long off = ftell(ALL.inp);
     Tk   tk  = lexer();
@@ -125,24 +125,24 @@ void pr_next () {
         tk  = lexer();
     }
 
-    if (PRV.off == -1) {
-        NXT.lin = 1;
-        NXT.col = 1;
+    if (TOK0.off == -1) {
+        TOK1.lin = 1;
+        TOK1.col = 1;
     } else {
-        if (PRV.tk.sym == '\n') {
-            NXT.lin = PRV.lin + 1;
-            NXT.col = (off - PRV.off);
+        if (TOK0.tk.sym == '\n') {
+            TOK1.lin = TOK0.lin + 1;
+            TOK1.col = (off - TOK0.off);
         } else {
-            NXT.col = PRV.col + (off - PRV.off);
+            TOK1.col = TOK0.col + (off - TOK0.off);
         }
     }
-    NXT.tk  = tk;
-    NXT.off = off;
-    //printf("NXT: ln=%ld cl=%ld off=%ld tk=%s\n", NXT.lin, NXT.col, NXT.off, lexer_tk2str(&NXT.tk));
+    TOK1.tk  = tk;
+    TOK1.off = off;
+    //printf("TOK1: ln=%ld cl=%ld off=%ld tk=%s\n", TOK1.lin, TOK1.col, TOK1.off, lexer_tk2str(&TOK1.tk));
 }
 
 int pr_accept (TK tk, int ok) {
-    if (NXT.tk.sym==tk && ok) {
+    if (TOK1.tk.sym==tk && ok) {
         pr_next();
         return 1;
     } else {
@@ -151,19 +151,19 @@ int pr_accept (TK tk, int ok) {
 }
 
 int pr_check (TK tk, int ok) {
-    return (NXT.tk.sym==tk && ok);
+    return (TOK1.tk.sym==tk && ok);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
 int err_expected (const char* v) {
     sprintf(ALL.err, "(ln %ld, col %ld): expected %s : have %s",
-        NXT.lin, NXT.col, v, lexer_tk2str(&NXT.tk));
+        TOK1.lin, TOK1.col, v, lexer_tk2str(&TOK1.tk));
     return 0;
 }
 
 int err_unexpected (const char* v) {
-    sprintf(ALL.err, "(ln %ld, col %ld): unexpected %s", NXT.lin, NXT.col, v);
+    sprintf(ALL.err, "(ln %ld, col %ld): unexpected %s", TOK1.lin, TOK1.col, v);
     return 0;
 }
 
@@ -171,7 +171,7 @@ int err_unexpected (const char* v) {
 
 void init (FILE* out, FILE* inp) {
     ALL = (State_All) { out,inp,{},0,{0,{}} };
-    NXT = (State_Tok) { -1,0,0,{} };
+    TOK1 = (State_Tok) { -1,0,0,{} };
     if (inp != NULL) {
         pr_next();
     }
@@ -230,9 +230,9 @@ int parser_list_line (int doind, List* ret, List_F f, size_t unit) {
 
         if (ALL.ind==0 && !pr_check(' ',1) && !pr_check(EOF,1)) {
             // ok
-        } else if (i>0 && PRV.tk.sym=='\n' && (!pr_check(' ',1) || pr_check(' ',NXT.tk.val.n<ALL.ind))) {
+        } else if (i>0 && TOK0.tk.sym=='\n' && (!pr_check(' ',1) || pr_check(' ',TOK1.tk.val.n<ALL.ind))) {
             break;  // unnest
-        } else if (!pr_accept(' ', NXT.tk.val.n==ALL.ind)) {
+        } else if (!pr_accept(' ', TOK1.tk.val.n==ALL.ind)) {
             char s[256];
             sprintf(s, "indentation of %d spaces", ALL.ind);
             return err_expected(s);
@@ -240,15 +240,6 @@ int parser_list_line (int doind, List* ret, List_F f, size_t unit) {
 
         // COMMENT
         if (pr_accept(TK_COMMENT,1)) {
-            continue;
-        }
-
-        // WHERE
-        // TODO: check if Expr, check if after Expr
-        if (pr_accept(TK_WHERE,1)) {
-            if (!parser_decls(&((((Expr*)vec)[i-1]).decls))) {
-                return 0;
-            }
             continue;
         }
 
@@ -285,7 +276,7 @@ void* parser_type_ (void) {
 int parser_type (Type* ret) {
     // TYPE_RAW
     if (pr_accept(TK_RAW,1)) {
-        *ret = (Type) { TYPE_RAW, .Raw=PRV.tk };
+        *ret = (Type) { TYPE_RAW, .Raw=TOK0.tk };
 
     // TYPE_UNIT
     } else if (pr_accept('(',1)) {
@@ -325,7 +316,7 @@ int parser_type (Type* ret) {
         }
     // TYPE_DATA
     } else if (pr_accept(TK_IDDATA,1)) {
-        *ret = (Type) { TYPE_DATA, .Data=PRV.tk };
+        *ret = (Type) { TYPE_DATA, .Data=TOK0.tk };
     } else {
         return err_expected("type");
     }
@@ -347,7 +338,7 @@ void* parser_patt_ (void) {
 int parser_patt (Patt* ret, int is_match) {
     // PATT_RAW
     if (pr_accept(TK_RAW,1)) {
-        *ret = (Patt) { PATT_RAW, .Raw=PRV.tk };
+        *ret = (Patt) { PATT_RAW, .Raw=TOK0.tk };
     // PATT_UNIT
     } else if (pr_accept('(',1)) {
         if (pr_accept(')',1)) {
@@ -374,7 +365,7 @@ int parser_patt (Patt* ret, int is_match) {
         *ret = (Patt) { PATT_ANY };
     // PATT_CONS
     } else if (pr_accept(TK_IDDATA,1)) {
-        *ret = (Patt) { PATT_CONS, .Cons={PRV.tk,NULL} };
+        *ret = (Patt) { PATT_CONS, .Cons={TOK0.tk,NULL} };
         if (pr_check('(',1)) {
     // PATT_CONS(...)
             Patt arg;
@@ -389,13 +380,13 @@ int parser_patt (Patt* ret, int is_match) {
     // PATT_SET
     } else if (pr_accept(TK_IDVAR,1)) {
         if (is_match) {
-            Expr e = (Expr) { EXPR_VAR, {.size=0}, .Var=PRV.tk };
+            Expr e = (Expr) { EXPR_VAR, {.size=0}, .Var=TOK0.tk };
             Expr* pe = malloc(sizeof(Expr));
             assert(pe != NULL);
             *pe = e;
             *ret = (Patt) { PATT_EXPR, .Expr=pe };
         } else {
-            *ret = (Patt) { PATT_SET, .Set=PRV.tk };
+            *ret = (Patt) { PATT_SET, .Set=TOK0.tk };
         }
     } else if (pr_accept('~',1)) {
         Expr* pe = expr_new();
@@ -419,7 +410,7 @@ void* parser_cons_ (void) {
         err_expected("data identifier");
         return NULL;
     }
-    c.tk = PRV.tk;
+    c.tk = TOK0.tk;
 
     if (!parser_type(&c.type)) {
         c.type = (Type) { TYPE_UNIT, {} };
@@ -436,7 +427,7 @@ int parser_data (Data* ret) {
     if (!pr_accept(TK_IDDATA,1)) {
         return err_expected("data identifier");
     }
-    Tk id = PRV.tk;
+    Tk id = TOK0.tk;
 
     Type tp;
     int tp_ok = parser_type(&tp);
@@ -489,7 +480,7 @@ int parser_data (Data* ret) {
 ///////////////////////////////////////////////////////////////////////////////
 
 int parser_decl_nopre (Decl* decl) {
-    int is_func = (PRV.tk.sym == TK_FUNC);
+    int is_func = (TOK0.tk.sym == TK_FUNC);
     if (!parser_patt(&decl->patt,0)) {
         return 0;
     }
@@ -631,7 +622,7 @@ void* parser_if_ (void) {
 int parser_expr_one (Expr* ret) {
     // EXPR_RAW
     if (pr_accept(TK_RAW,1)) {
-        *ret = (Expr) { EXPR_RAW, {.size=0}, .Raw=PRV.tk };
+        *ret = (Expr) { EXPR_RAW, {.size=0}, .Raw=TOK0.tk };
 
     // EXPR_UNIT
     } else if (pr_accept('(',1)) {
@@ -661,11 +652,11 @@ int parser_expr_one (Expr* ret) {
 
     // EXPR_VAR
     } else if (pr_accept(TK_IDVAR,1)) {
-        *ret = (Expr) { EXPR_VAR, {.size=0}, .Var=PRV.tk };
+        *ret = (Expr) { EXPR_VAR, {.size=0}, .Var=TOK0.tk };
 
     // EXPR_CONS
     } else if (pr_accept(TK_IDDATA,1)) {
-        *ret = (Expr) { EXPR_CONS, {.size=0}, .Cons=PRV.tk };
+        *ret = (Expr) { EXPR_CONS, {.size=0}, .Cons=TOK0.tk };
 
     // EXPR_NEW
     } else if (pr_accept(TK_NEW,1)) {
@@ -680,7 +671,7 @@ int parser_expr_one (Expr* ret) {
         if (!pr_accept(TK_IDVAR,1) && !pr_accept(TK_RAW,1)) {
             return err_expected("variable");
         }
-        Tk var = PRV.tk;
+        Tk var = TOK0.tk;
         if (!pr_accept('=',1)) {
             return err_expected("`=`");
         }
