@@ -9,9 +9,6 @@
     - val mut optional `=`
     - data as Expr ?
         - would remove Glob
-- IMPL
-    - match in terms of if/~
-    - join val let match case
 - LEXER
     - \ to continue line
         - or indent to continue
