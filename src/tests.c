@@ -764,8 +764,8 @@ void t_all (void) {
         "    True  ()\n"
         "func inv :: (Bool -> Bool):\n"
         "    match ...:\n"
-        "        False -> return (True)\n"
-        "        True  -> return (False)\n"
+        "        False -> return True\n"
+        "        True  -> return False\n"
         "{show_Bool}(inv(True))"
     ));
     assert(all(
@@ -960,12 +960,12 @@ void t_all (void) {
     ));
     assert(all(
         "()\n",
-        "loop break\n"
+        "loop break ()\n"
         "{show_Unit}(())"
     ));
     assert(all(
         "()\n",
-        "loop break if {1}\n"
+        "loop break () if {1}\n"
         "{show_Unit}(())"
     ));
 }
