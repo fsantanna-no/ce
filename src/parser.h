@@ -247,15 +247,12 @@ typedef struct {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-// TODO: remove
-
-    typedef struct {
-        int   size;
-        Decl* vec;
-    } Decls;
-    int parser_decls (Decls* ret);
-
-///////////////////////////////////////////////////////////////////////////////
+typedef struct {
+    int size;
+    void* vec;
+} List;
+typedef void* (*List_F) (void);
+int parser_list_line (int global, List* ret, List_F f, size_t unit);
 
 int is_rec (const char* v);
 void dump_expr (Expr e);

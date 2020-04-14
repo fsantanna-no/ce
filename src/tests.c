@@ -366,6 +366,37 @@ void t_parser_expr (void) {
 }
 
 void t_parser_decls (void) {
+    int pr_accept1 (TK tk, int ok);
+    int err_expected (const char* v);
+    int parser_decl_nopre (Decl* decl);
+    typedef struct {
+        int   size;
+        Decl* vec;
+    } Decls;
+    int parser_decl (Decl* decl) {
+        if (!pr_accept1(TK_MUT,1) && !pr_accept1(TK_VAL,1) && !pr_accept1(TK_FUNC,1)) {
+            return err_expected("`mut` or `val` or `func`");
+        }
+        return parser_decl_nopre(decl);
+    }
+    void* parser_decl_ (void) {
+        static Decl d_;
+        Decl d;
+        if (!parser_decl(&d)) {
+            return NULL;
+        }
+        d_ = d;
+        return &d_;
+    }
+    int parser_decls (Decls* ret) {
+        List lst;
+        if (!parser_list_line(1, &lst, &parser_decl_, sizeof(Decl))) {
+            return 0;
+        }
+        *ret = (Decls) { lst.size, lst.vec };
+        return 1;
+    }
+
     {
         init(NULL, stropen("r", 0, "a"));
         Decls ds;
