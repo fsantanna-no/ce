@@ -529,8 +529,10 @@ void code_expr (Expr e, tce_ret* ret) {
             }
             break;
         case EXPR_LET: {    // patt,type,init,body
+            out("{\n");
             Case c  = (Case) { e.Let.patt, e.Let.type, e.Let.body };
             code_case(1, *e.Let.init, c, ret);
+            out("}\n");
             break;
         }
         case EXPR_DECL:
