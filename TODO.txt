@@ -1,38 +1,36 @@
+- remove Decls // parser_*
 - outs
     - oute, outd, outg
-- val mut as expr w/ :
-- match in terms of if/~
-- lexer
+- SYNTAX
+    - if optional else
+    - ifs/if join?
+    - match w/o nested cases
+        - is it a `set` ?
+        match (=x,...) =
+    - val mut optional `=`
+    - data as Expr ?
+        - would remove Glob
+- IMPL
+    - match in terms of if/~
+- LEXER
     - \ to continue line
         - or indent to continue
     - accept ' etc only at the end of id
         - also subst by _ on code gen
-- separar stmts de exprs
-    - stmts sao exprs que nao podem aparecer em alguns contextos
-    - nao eh necessario com oute/outd/outg
-- if optional else
-- case -> match
-    - match posicao errada na lista
-    - Cases -> Match (Case mantem)
-- False/True -> 0/1 (enums)
-- ~ be structural not referential
-- show fields
+- NEED TYPES
+    - ~ be structural not referential
+- TODO
+    - show fields
+    - False/True -> 0/1 (enums)
+
 - valgrind --tool=memcheck --leak-check=full --track-origins=yes ./tests
 - val[], new
-
-- case:
-    - match sem case
-        match (=x,...) =
 
 - list type
     data List:
         Nil  = ()
         Cons = ((), List)
 - data/funcoes recursivas
-- let no mesmo esquema do where
-- case
-    - no tst // substitutes if
-- loop
 - data
     data Tree:
         Leaf = Int

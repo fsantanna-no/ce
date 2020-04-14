@@ -373,10 +373,10 @@ void code_case_vars (Patt patt, Type type) {
 }
 
 void code_case (Expr tst, Case c, tce_ret* ret) {
-    Expr star = (Expr) { EXPR_RAW, {.size=0}, .Raw={TK_RAW,{.s="*"}} };
+    Expr star = (Expr) { EXPR_RAW, NULL, .Raw={TK_RAW,{.s="*"}} };
     Expr old  = tst;
     if (c.patt.sub==PATT_CONS && is_rec(c.patt.Cons.data.val.s)) {
-        tst = (Expr) { EXPR_CALL, {.size=0}, .Call={&star,&old} };
+        tst = (Expr) { EXPR_CALL, NULL, .Call={&star,&old} };
     }
 
     out("if (");
@@ -393,9 +393,9 @@ void code_case (Expr tst, Case c, tce_ret* ret) {
 ///////////////////////////////////////////////////////////////////////////////
 
 void code_expr (Expr e, tce_ret* ret) {
-    if (e.decls.size > 0) {
+    if (e.nested != NULL) {
         out("{\n");
-        code_decls(e.decls);
+        code_expr(*e.nested, NULL);
     }
     switch (e.sub) {
         case EXPR_RAW:
@@ -537,7 +537,7 @@ void code_expr (Expr e, tce_ret* ret) {
                 out(") ce_tst = ");
                 code_expr(*e.Cases.tst, NULL);
                 out(";\n");
-                tst = (Expr) { EXPR_VAR, {.size=0}, {.Var={TK_IDVAR,{.s="ce_tst"}}} };
+                tst = (Expr) { EXPR_VAR, NULL, {.Var={TK_IDVAR,{.s="ce_tst"}}} };
             }
 
             for (int i=0; i<e.Cases.size; i++) {
@@ -579,7 +579,7 @@ void code_expr (Expr e, tce_ret* ret) {
 //printf("%d\n", e.sub);
             assert(0 && "TODO");
     }
-    if (e.decls.size > 0) {
+    if (e.nested != NULL) {
         out(";\n");
         out("}\n");
     }
@@ -644,9 +644,6 @@ void code_prog (Prog prog) {
         switch (g.sub) {
             case GLOB_DATA:
                 code_data(g.data);
-                break;
-            case GLOB_DECL:
-                code_decl(g.decl);
                 break;
             case GLOB_EXPR:
                 code_expr(g.expr, NULL);

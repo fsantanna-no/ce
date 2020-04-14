@@ -1,6 +1,6 @@
 /*
  *
- * Prog  ::= { Data | Decl | Expr }
+ * Prog  ::= { Data | Expr }
  *
  * Data  ::= data <Id> [`=` Type] [`:` { Cons }]
  * Cons  ::= <Id> `=` Type
@@ -10,30 +10,35 @@
  *        | `(` Type { `,` Type } `)`
  *        | `(` Type `)`
  *
- * Decl  ::= (val | mut) Patt `::` Type [`=` Expr [Where]]
- * Where ::= where `:` { Decl }
- *
  * Patt  ::=  `(` `)` | `_` | <id>
  *        |   `~` Expr
  *        |   <Id> [ `(` Patt `)` ]
  *        |   `(` Patt { `,` Patt } `)`
  *
- * Expr  ::= `(` `)` | `...` | <id>             // EXPR_UNIT | EXPR_ARG | EXPR_VAR
+ * Expr  ::= Expr' [ where `:` { Expr } ]
+ * Expr' ::= `(` `)` | `...` | <id>             // EXPR_UNIT | EXPR_ARG | EXPR_VAR
  *        |  <Id> [`(` Expr `)`]                // EXPR_CONS
  *        | `{` <...> `}`                       // EXPR_RAW
  *        | `(` Expr { `,` Expr } `)`           // EXPR_TUPLE
- *        |  func `::` Type Expr [Where]        // EXPR_FUNC
+ *        |  func `::` Type Expr                // EXPR_FUNC
  *        |  Expr `(` Expr `)`                  // EXPR_CALL
  *        | `(` Expr `)`
  *        |  set <id> `=` Expr                  // EXPR_SET
- *        |  `:` { Expr [Where] }               // EXPR_SEQ
+ *        |  `:` { Expr }                       // EXPR_SEQ
  *        |  case Expr `:`                      // EXPR_CASE
- *               { Patt [`::` Type] [`->`] Expr [Where] }
- *        |  let Decl [`->`] Expr               // EXPR_LET
+ *               { Patt [`::` Type] [`->`] Expr }
+ *               [ `else` [`->`] Expr ]
  *        |  `if` Expr [`->`] Expr [`->`] Expr  // EXPR_IF
+ *        |  `if` `:`                           // EXPR_IFS
+ *               { Expr [`->`] Expr }
+ *               [ `else` [`->`] Expr ]
  *        |  `loop` Expr                        // EXPR_LOOP
  *        |  `break`                            // EXPR_BREAK
  *        |  Expr `~` Expr                      // EXPR_MATCH
+ *        |  let Patt `::` Type [`->`] Expr     // EXPR_LET
+ *        |  (val | mut) Patt `::` Type         // EXPR_DECL
+ *               [`=` Expr]
+ *
  */
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -73,6 +78,7 @@ typedef enum {
     EXPR_CALL,
     EXPR_BLOCK,
     EXPR_LET,
+    EXPR_DECL,
     EXPR_IF,
     EXPR_IFS,
     EXPR_MATCH,
@@ -147,11 +153,6 @@ typedef struct {
 } Decl;
 
 typedef struct {
-    int   size;
-    Decl* vec;
-} Decls;
-
-typedef struct {
     Patt patt;
     Type type;
     struct Expr* expr;
@@ -164,12 +165,13 @@ typedef struct {
 
 typedef struct Expr {
     EXPR  sub;
-    Decls decls;
+    struct Expr* nested;
     union {
         Tk Raw;
         Tk Unit;
         Tk Var;
         Tk Cons;
+        Decl Decl;              // EXPR_DECL
         struct Expr* New;       // EXPR_NEW
         struct Expr* Loop;      // EXPR_LOOP
         struct Expr* Break;     // EXPR_BREAK
@@ -234,7 +236,6 @@ typedef struct {
     int sub;
     union {
         Data data;
-        Decl decl;
         Expr expr;
     };
 } Glob;
@@ -246,14 +247,23 @@ typedef struct {
 
 ///////////////////////////////////////////////////////////////////////////////
 
+// TODO: remove
+
+    typedef struct {
+        int   size;
+        Decl* vec;
+    } Decls;
+    int parser_decls (Decls* ret);
+
+///////////////////////////////////////////////////////////////////////////////
+
 int is_rec (const char* v);
 void dump_expr (Expr e);
 void init (FILE* out, FILE* inp);
 FILE* stropen (const char* mode, size_t size, char* str);
 
-int parser_type  (Type*  ret);
-int parser_data  (Data*  ret);
-int parser_decls (Decls* ret);
-int parser_patt  (Patt*  ret, int is_match);
-int parser_expr  (Expr*  ret);
-int parser_prog  (Prog*  prog);
+int parser_type (Type*  ret);
+int parser_data (Data*  ret);
+int parser_patt (Patt*  ret, int is_match);
+int parser_expr (Expr*  ret);
+int parser_prog (Prog*  prog);

@@ -431,10 +431,10 @@ void t_parser_block (void) {
         assert(parser_expr(&e));
         assert(e.sub == EXPR_SEQ);
         assert(e.Seq.size == 2);
-        assert(e.Seq.vec[0].decls.size > 0);
-        assert(e.Seq.vec[1].decls.size > 0);
-        assert(e.Seq.vec[0].decls.size == 1);
-        assert(e.Seq.vec[1].decls.size == 1);
+        assert(e.Seq.vec[0].nested != NULL);
+        assert(e.Seq.vec[1].nested != NULL);
+        assert(e.Seq.vec[0].nested->Seq.vec[0].sub == EXPR_DECL);
+        assert(e.Seq.vec[1].nested->Seq.vec[0].sub == EXPR_DECL);
         fclose(ALL.inp);
     }
     {
@@ -447,7 +447,8 @@ void t_parser_block (void) {
         Expr e;
         assert(parser_expr(&e));
         assert(e.sub == EXPR_VAR);
-        assert(e.decls.size == 2);
+        assert(e.nested != NULL);
+        assert(e.nested->sub == EXPR_SEQ);
         fclose(ALL.inp);
     }
 }
@@ -464,7 +465,7 @@ void t_code (void) {
     {
         char out[256];
         init(stropen("w",sizeof(out),out), NULL);
-        Expr e = { EXPR_VAR, {.size=0}, {} };
+        Expr e = { EXPR_VAR, NULL, {} };
             e.Var.sym = TK_IDVAR;
             strcpy(e.Var.val.s, "xxx");
         code_expr(e, NULL);
@@ -474,7 +475,7 @@ void t_code (void) {
     {
         char out[256] = "";
         init(stropen("w",sizeof(out),out), NULL);
-        Expr e = { EXPR_VAR, {.size=0}, {} };
+        Expr e = { EXPR_VAR, NULL, {} };
             e.Var.sym = TK_IDVAR;
             strcpy(e.Var.val.s, "xxx");
         Decl d;
@@ -483,7 +484,8 @@ void t_code (void) {
             d.patt.Set.sym = TK_IDVAR;
             strcpy(d.patt.Set.val.s, "xxx");
             d.type.sub = TYPE_UNIT;
-        e.decls = (Decls) { 1, &d };
+        Expr n = { EXPR_DECL, NULL, .Decl=d };
+        e.nested = &n;
         // xxx: xxx::()
         Patt pt = (Patt){PATT_SET,.Set={TK_IDVAR,{.s="ret"}}};
         tce_ret ret = { &pt, NULL };
