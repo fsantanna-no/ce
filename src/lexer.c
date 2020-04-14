@@ -193,6 +193,6 @@ Tk lexer () {
     }
 
     ret.sym = tk;
-printf(": n=%d %d %c\n", ret.val.n, ret.sym, ret.sym);
+//printf(": n=%d %d %c\n", ret.val.n, ret.sym, ret.sym);
     return ret;
 }

@@ -251,19 +251,22 @@ int parser_list_line (int global, List* ret, List_F f, size_t unit) {
     void* vec = NULL;
     int i = 0;
     while (1) {
-        while (pr_check0('\n',1) && pr_accept1('\n',1));    // skip line + empty lines
+        while (pr_accept1('\n',1));    // skip line + empty lines
 
-        if (TOK1.lin==1 && TOK1.col==1) {
-            // ok
-        } else if (i>0 && pr_check1('\n',TOK1.tk.val.n<ALL.ind)) {
+//printf("[%d] (%d/%d/%d ==> %d/%d)\n", i, TOK0.tk.sym, TOK1.tk.sym, TOK2.tk.sym, ALL.ind, TOK0.tk.val.n);
+        if (pr_accept1(EOF,1)) {
             break;  // unnest
-        } else if (!pr_accept1('\n', TOK1.tk.val.n==ALL.ind)) {
+        } else if (TOK1.lin==1 && TOK1.col==1) {
+            // ok
+        } else if (pr_check0('\n', TOK0.tk.val.n==ALL.ind)) {
+            // ok
+        } else if (i>0 && pr_check0('\n',TOK0.tk.val.n<ALL.ind)) {
+            break;  // unnest
+        } else {
             char s[256];
             pr_accept1('\n',1);
             sprintf(s, "indentation of %d spaces", ALL.ind);
             return err_expected(s);
-        } else if (pr_accept1(EOF,1)) {
-            break;  // unnest
         }
 
         // COMMENT
@@ -838,6 +841,10 @@ int parser_expr (Expr* ret) {
         return 0;
     }
     *ret = e;
+
+    if (pr_check0('\n',1)) {
+        return 1;   // cannot separate exprs with \n
+    }
 
     // EXPR_CALL'S
     while (1) {

@@ -739,7 +739,6 @@ void t_all (void) {
         "match i:\n"
         "    (x,_) :: () -> {show_Unit}(x)"
     ));
-puts("=======");
     assert(all(
         "()\n",
         "match i:\n"
@@ -767,7 +766,7 @@ puts("=======");
         "()\n",
         ":\n"
         "    ()\n"
-        "()\n"
+        "({show_Unit})()\n"
     ));
     assert(all(
         "()\n",

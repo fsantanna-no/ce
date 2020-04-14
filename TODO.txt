@@ -1,4 +1,4 @@
-    TOK0 = (State_Tok) { -1,1,1,{'\n',.val={.n=0}} };
+- val mut as expr w/ :
 - rever pr_check(,?)
 - outs
     - oute, outd, outg
