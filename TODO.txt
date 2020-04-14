@@ -1,3 +1,5 @@
+    TOK0 = (State_Tok) { -1,1,1,{'\n',.val={.n=0}} };
+- rever pr_check(,?)
 - outs
     - oute, outd, outg
 - match in terms of if/~

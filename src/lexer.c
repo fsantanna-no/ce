@@ -82,20 +82,6 @@ TK lexer_ (TK_val* val) {
         case '\n':
             return c;
 
-        case ' ': {
-            int i = 1;
-            while (1) {
-                c = fgetc(ALL.inp);
-                if (c != ' ') {
-                    ungetc(c, ALL.inp);
-                    break;
-                }
-                i++;
-            }
-            val->n = i;
-            return ' ';
-        }
-
         case '{': {
             int i = 0;
             int n = 1;
@@ -181,23 +167,32 @@ TK lexer_ (TK_val* val) {
 }
 
 Tk lexer () {
-    static TK prv = '\n';
     Tk ret;
     TK tk = lexer_(&ret.val);
+//printf("? %d %c\n", ret.sym, ret.sym);
+
+    // generate \n before EOF
+    static TK prv = '\n';
     if (tk==EOF && prv!=EOF && prv!='\n') {
         tk = '\n';
     }
     prv = tk;
-    if (tk != '\n') {   // ignore spaces not starting lines
-        while (1) {
-            int c = fgetc(ALL.inp);
-            if (c != ' ') {
-                ungetc(c, ALL.inp);
-                break;
-            }
+
+    // ignore spaces, but count it for \n
+    int i = 0;
+    while (1) {
+        int c = fgetc(ALL.inp);
+        if (c != ' ') {
+            ungetc(c, ALL.inp);
+            break;
         }
+        i++;
     }
+    if (tk == '\n') {
+        ret.val.n = i;
+    }
+
     ret.sym = tk;
-//printf(": %d %c\n", ret.sym, ret.sym);
+printf(": n=%d %d %c\n", ret.val.n, ret.sym, ret.sym);
     return ret;
 }

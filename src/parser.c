@@ -237,8 +237,8 @@ int parser_list_comma (List* ret, void* fst, List_F f, size_t unit) {
     return 1;
 }
 
-int parser_list_line (int doind, List* ret, List_F f, size_t unit) {
-    if (doind) {
+int parser_list_line (int global, List* ret, List_F f, size_t unit) {
+    if (global) {
         if (!pr_accept1(':',1)) {
             return err_expected("`:`");
         }
@@ -251,16 +251,19 @@ int parser_list_line (int doind, List* ret, List_F f, size_t unit) {
     void* vec = NULL;
     int i = 0;
     while (1) {
-        while (pr_accept1('\n',1));    // skip line + empty lines
+        while (pr_check0('\n',1) && pr_accept1('\n',1));    // skip line + empty lines
 
-        if (ALL.ind==0 && !pr_check1(' ',1) && !pr_check1(EOF,1)) {
+        if (TOK1.lin==1 && TOK1.col==1) {
             // ok
-        } else if (i>0 && pr_check0('\n',1) && (!pr_check1(' ',1) || pr_check1(' ',TOK1.tk.val.n<ALL.ind))) {
+        } else if (i>0 && pr_check1('\n',TOK1.tk.val.n<ALL.ind)) {
             break;  // unnest
-        } else if (!pr_accept1(' ', TOK1.tk.val.n==ALL.ind)) {
+        } else if (!pr_accept1('\n', TOK1.tk.val.n==ALL.ind)) {
             char s[256];
+            pr_accept1('\n',1);
             sprintf(s, "indentation of %d spaces", ALL.ind);
             return err_expected(s);
+        } else if (pr_accept1(EOF,1)) {
+            break;  // unnest
         }
 
         // COMMENT
@@ -278,7 +281,7 @@ int parser_list_line (int doind, List* ret, List_F f, size_t unit) {
         i++;
     }
 
-    if (doind) {
+    if (global) {
         ALL.ind -= 4;
     }
     ret->size = i;
@@ -819,9 +822,7 @@ int parser_expr_one (Expr* ret) {
     assert(ret->decls.size == 0);
 
     if (
-        (pr_check0('\n',1) && pr_check1(' ',ALL.ind) && pr_accept2(TK_WHERE,1))
-    ||
-        (pr_check0('\n',1) && ALL.ind==0 && pr_accept1(TK_WHERE,1))
+        (pr_check0('\n',TOK0.tk.val.n==ALL.ind) && pr_accept1(TK_WHERE,1))
     ||
         (!pr_check0('\n',1) && pr_accept1(TK_WHERE,1))
     ) {
