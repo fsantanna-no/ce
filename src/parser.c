@@ -726,7 +726,14 @@ int parser_expr_one (Expr* ret) {
 
     // EXPR_RETURN
     } else if (pr_accept1(TK_RETURN,1)) {
-        *ret = (Expr) { EXPR_RETURN, NULL, .Return=expr_new() };
+        Expr* e = NULL;
+        if (pr_check1('(')) {
+            e = expr_new();
+            if (e == NULL) {
+                return 0;
+            }
+        }
+        *ret = (Expr) { EXPR_RETURN, NULL, .Return=e };
 
     // EXPR_SEQ
     } else if (pr_check1(':')) {
@@ -800,7 +807,14 @@ int parser_expr_one (Expr* ret) {
 
     // EXPR_BREAK
     } else if (pr_accept1(TK_BREAK,1)) {
-        *ret = (Expr) { EXPR_BREAK, NULL, .Break=expr_new() };
+        Expr* e = NULL;
+        if (pr_check1('(')) {
+            e = expr_new();
+            if (e == NULL) {
+                return 0;
+            }
+        }
+        *ret = (Expr) { EXPR_BREAK, NULL, .Break=e };
 
     // EXPR_LOOP
     } else if (pr_accept1(TK_LOOP,1)) {
@@ -819,7 +833,59 @@ int parser_expr_one (Expr* ret) {
     return 1;
 }
 
-int parser_where (Expr* ret) {
+int parser_expr (Expr* ret) {
+    Expr e;
+    if (!parser_expr_one(&e)) {
+        return 0;
+    }
+    *ret = e;
+
+    // cannot separate exprs with \n
+    if (pr_check0('\n')) {
+        goto _WHERE_;
+    }
+
+    // EXPR_CALL
+    if (pr_check1('(')) {
+        Expr* arg = expr_new();
+        if (arg == NULL) {
+            return 0;
+        }
+        Expr* func = malloc(sizeof(Expr));
+        assert(func != NULL);
+        *func = *ret;
+        *ret  = (Expr) { EXPR_CALL, NULL, .Call={func,arg} };
+    }
+
+    // EXPR_MATCH
+    if (pr_accept1('~',1)) {
+        Patt patt;
+        if (!parser_patt(&patt,1)) {
+            return 0;
+        }
+        Expr* pe = malloc(sizeof(Expr));
+        Patt* pp = malloc(sizeof(Patt));
+        assert(pe!=NULL && pp!=NULL);
+        *pe = *ret;
+        *pp = patt;
+        *ret = (Expr) { EXPR_MATCH, NULL, .Match={pe,pp} };
+    }
+
+    // EXPR_IF
+    if (pr_accept1(TK_IF,1)) {
+        Expr* tst = expr_new();
+        if (tst == NULL) {
+            return 0;
+        }
+        Expr* ifs = malloc(sizeof(Expr));
+        If*   if_ = malloc(sizeof(If));
+        assert(ifs!=NULL && if_!=NULL);
+        if_->tst = tst;
+        if_->ret = ret;
+        *ifs = (Expr) { EXPR_IFS, NULL, .Ifs={1,if_} };
+    }
+
+_WHERE_:
     assert(ret->nested == NULL);
     if (
         (pr_check0('\n') && TOK0.tk.val.n==ALL.ind && pr_accept1(TK_WHERE,1))
@@ -830,56 +896,6 @@ int parser_where (Expr* ret) {
         return (ret->nested != NULL);
     }
     return 1;
-}
-
-int parser_expr (Expr* ret) {
-    Expr e;
-    if (!parser_expr_one(&e)) {
-        return 0;
-    }
-    *ret = e;
-
-    // cannot separate exprs with \n
-    if (pr_check0('\n')) {
-        return parser_where(ret);
-    }
-
-    // EXPR_CALL'S
-    while (1) {
-        if (!pr_check1('(')) {
-            break;
-        }
-        Expr e;
-        if (!parser_expr_one(&e)) {
-            return 0;
-        }
-        Expr* func = malloc(sizeof(Expr));
-        Expr* arg  = malloc(sizeof(Expr));
-        assert(func!=NULL && arg!=NULL);
-        *func = *ret;
-        *arg  = e;
-        *ret  = (Expr) { EXPR_CALL, NULL, .Call={func,arg} };
-    }
-
-    // EXPR_MATCH'S
-    while (1) {
-        if (!pr_accept1('~',1)) {
-            break;
-        }
-        Patt patt;
-        if (!parser_patt(&patt,1)) {
-            return 0;
-        }
-
-        Expr* pe = malloc(sizeof(Expr));
-        Patt* pp = malloc(sizeof(Patt));
-        assert(pe!=NULL && pp!=NULL);
-        *pe = *ret;
-        *pp = patt;
-        *ret = (Expr) { EXPR_MATCH, NULL, .Match={pe,pp} };
-    }
-
-    return parser_where(ret);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

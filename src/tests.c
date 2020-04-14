@@ -573,7 +573,6 @@ void t_code (void) {
             ";\n"
             "1;\n"
             "} else {\n"
-            "assert(0 && \"match failed\");\n"
             "}\n"
             "}\n"
             ";\n"
@@ -765,8 +764,8 @@ void t_all (void) {
         "    True  ()\n"
         "func inv :: (Bool -> Bool):\n"
         "    match ...:\n"
-        "        False -> return True\n"
-        "        True  -> return False\n"
+        "        False -> return (True)\n"
+        "        True  -> return (False)\n"
         "{show_Bool}(inv(True))"
     ));
     assert(all(
@@ -959,10 +958,14 @@ void t_all (void) {
         "val n :: () = loop break ()\n"
         "{show_Unit}(n)"
     ));
-
     assert(all(
         "()\n",
         "loop break\n"
+        "{show_Unit}(())"
+    ));
+    assert(all(
+        "()\n",
+        "loop break if {1}\n"
         "{show_Unit}(())"
     ));
 }

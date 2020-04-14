@@ -582,7 +582,7 @@ void code_expr (Expr e, tce_ret* ret) {
                 out("} else ");
             }
             out("{\n");
-            out("assert(0 && \"match failed\");\n");
+            //out("assert(0 && \"match failed\");\n");
             out("}\n");
             out("}\n");
             break;
@@ -596,7 +596,7 @@ void code_expr (Expr e, tce_ret* ret) {
                 out(";\n} else \n");
             }
             out("{\n");
-            out("assert(0 && \"if failed\");\n");
+            //out("assert(0 && \"if failed\");\n");
             out("}\n");
             break;
         case EXPR_TUPLE_IDX:

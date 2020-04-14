@@ -1,20 +1,30 @@
+- fix order ~ ()
+- return/break w/ ()
+    - move leading exp out to parser_expr
+- remove pr_accept arg // comment pr_*2
 - outs
     - oute, outd, outg
 - SYNTAX
-    - if optional else
     - xxx if yyy
-    - ifs/if join?
     - match w/o nested cases
         - is it a `set` ?
         match (=x,...) =
     - val mut optional `=`
     - data as Expr ?
         - would remove Glob
+- IF
+    - if optional else
+    - ifs/if join?
+        - use if stmt passing ret
 - LEXER
     - \ to continue line
         - or indent to continue
     - accept ' etc only at the end of id
         - also subst by _ on code gen
+- MISSING CASES
+    - match, ifs, if, >if
+        - allow if ret is unit
+        - otherwise TS must check for completness
 - NEED TYPES
     - ~ be structural not referential
 - TODO
