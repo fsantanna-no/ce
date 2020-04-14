@@ -168,16 +168,16 @@ int pr_accept2 (TK tk, int ok) {
     }
 }
 
-int pr_check0 (TK tk, int ok) {
-    return (TOK0.tk.sym==tk && ok);
+int pr_check0 (TK tk) {
+    return (TOK0.tk.sym == tk);
 }
 
-int pr_check1 (TK tk, int ok) {
-    return (TOK1.tk.sym==tk && ok);
+int pr_check1 (TK tk) {
+    return (TOK1.tk.sym == tk);
 }
 
-int pr_check2 (TK tk, int ok) {
-    return (TOK2.tk.sym==tk && ok);
+int pr_check2 (TK tk) {
+    return (TOK2.tk.sym == tk);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -242,7 +242,7 @@ int parser_list_line (int global, List* ret, List_F f, size_t unit) {
         if (!pr_accept1(':',1)) {
             return err_expected("`:`");
         }
-        if (!pr_check1('\n',1)) {
+        if (!pr_check1('\n')) {
             return err_expected("new line");
         }
         ALL.ind += 4;
@@ -258,9 +258,9 @@ int parser_list_line (int global, List* ret, List_F f, size_t unit) {
             break;  // unnest
         } else if (TOK1.lin==1 && TOK1.col==1) {
             // ok
-        } else if (pr_check0('\n', TOK0.tk.val.n==ALL.ind)) {
+        } else if (pr_check0('\n') && TOK0.tk.val.n==ALL.ind) {
             // ok
-        } else if (i>0 && pr_check0('\n',TOK0.tk.val.n<ALL.ind)) {
+        } else if (i>0 && pr_check0('\n') && TOK0.tk.val.n<ALL.ind) {
             break;  // unnest
         } else {
             char s[256];
@@ -333,7 +333,7 @@ int parser_type (Type* ret) {
             }
 
     // TYPE_TUPLE
-            if (pr_check1(',',1)) {
+            if (pr_check1(',')) {
                 List lst = { 0, NULL };
                 if (!parser_list_comma(&lst, ret, parser_type_, sizeof(Type))) {
                     return 0;
@@ -379,7 +379,7 @@ int parser_patt (Patt* ret, int is_match) {
                 return 0;
             }
     // PATT_TUPLE
-            if (pr_check1(',',1)) {
+            if (pr_check1(',')) {
                 List lst = { 0, NULL };
                 if (!parser_list_comma(&lst, ret, parser_patt_, sizeof(Patt))) {
                     return 0;
@@ -397,7 +397,7 @@ int parser_patt (Patt* ret, int is_match) {
     // PATT_CONS
     } else if (pr_accept1(TK_IDDATA,1)) {
         *ret = (Patt) { PATT_CONS, .Cons={TOK0.tk,NULL} };
-        if (pr_check1('(',1)) {
+        if (pr_check1('(')) {
     // PATT_CONS(...)
             Patt arg;
             if (!parser_patt(&arg,is_match)) {
@@ -464,7 +464,7 @@ int parser_data (Data* ret) {
     int tp_ok = parser_type(&tp);
 
     List lst = { 0, NULL };
-    int lst_ok = pr_check1(':', 1);
+    int lst_ok = pr_check1(':');
     if (lst_ok) {
         if (!parser_list_line(1, &lst, &parser_cons_, sizeof(Cons))) {
             return 0;
@@ -511,7 +511,7 @@ int parser_data (Data* ret) {
 ///////////////////////////////////////////////////////////////////////////////
 
 int parser_decl_nopre (Decl* decl) {
-    int is_func = pr_check0(TK_FUNC,1);
+    int is_func = pr_check0(TK_FUNC);
     if (!parser_patt(&decl->patt,0)) {
         return 0;
     }
@@ -664,7 +664,7 @@ int parser_expr_one (Expr* ret) {
                 return 0;
             }
     // EXPR_TUPLE
-            if (pr_check1(',',1)) {
+            if (pr_check1(',')) {
                 List lst = { 0, NULL };
                 if (!parser_list_comma(&lst, ret, parser_expr_, sizeof(Expr))) {
                     return 0;
@@ -736,7 +736,7 @@ int parser_expr_one (Expr* ret) {
         *ret = (Expr) { EXPR_RETURN, {.size=0}, .Return=expr_new() };
 
     // EXPR_SEQ
-    } else if (pr_check1(':',1)) {
+    } else if (pr_check1(':')) {
         List lst;
         if (!parser_list_line(1, &lst, &parser_expr__, sizeof(Expr))) {
             return 0;
@@ -764,7 +764,7 @@ int parser_expr_one (Expr* ret) {
 
     } else if (pr_accept1(TK_IF,1)) {
     // EXPR_IFS
-        if (pr_check1(':',1)) {
+        if (pr_check1(':')) {
             List lst;
             if (!parser_list_line(1, &lst, &parser_if_, sizeof(If))) {
                 return 0;
@@ -825,9 +825,9 @@ int parser_expr_one (Expr* ret) {
     assert(ret->decls.size == 0);
 
     if (
-        (pr_check0('\n',TOK0.tk.val.n==ALL.ind) && pr_accept1(TK_WHERE,1))
+        (pr_check0('\n') && TOK0.tk.val.n==ALL.ind && pr_accept1(TK_WHERE,1))
     ||
-        (!pr_check0('\n',1) && pr_accept1(TK_WHERE,1))
+        (!pr_check0('\n') && pr_accept1(TK_WHERE,1))
     ) {
         return parser_decls(&ret->decls);
     }
@@ -842,13 +842,13 @@ int parser_expr (Expr* ret) {
     }
     *ret = e;
 
-    if (pr_check0('\n',1)) {
+    if (pr_check0('\n')) {
         return 1;   // cannot separate exprs with \n
     }
 
     // EXPR_CALL'S
     while (1) {
-        if (!pr_check1('(',1)) {
+        if (!pr_check1('(')) {
             break;
         }
         Expr e;
@@ -893,7 +893,7 @@ void* parser_glob_ (void) {
     static Glob g_;
     Glob g;
 
-    if (pr_check1(TK_DATA,1)) {
+    if (pr_check1(TK_DATA)) {
         if (!parser_data(&g.data)) {
             return NULL;
         }
@@ -902,7 +902,7 @@ void* parser_glob_ (void) {
         return &g_;
     }
 
-    if (pr_check1(TK_MUT,1) || pr_check1(TK_VAL,1) || pr_check1(TK_FUNC,1)) {
+    if (pr_check1(TK_MUT) || pr_check1(TK_VAL) || pr_check1(TK_FUNC)) {
         if (!parser_decl(&g.decl)) {
             return NULL;
         }

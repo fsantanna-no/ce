@@ -57,7 +57,7 @@ func lexer_ :: (() -> Tk):
                         {ungetc} (c,inp)
                         break
             where:
-                i :: {int} = {0}         -- TODO: loop i
+                val i :: {int} = {0}         -- TODO: loop i
             if:
                 {i%4 == 0} -> return Tk_LINE ({i/4})
                 else       -> return Tk_ERR
