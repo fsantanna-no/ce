@@ -833,6 +833,10 @@ int parser_expr_one (Expr* ret) {
 
     assert(ret->decls.size == 0);
 
+    return 1;
+}
+
+int parser_where (Expr* ret) {
     if (
         (pr_check0('\n') && TOK0.tk.val.n==ALL.ind && pr_accept1(TK_WHERE,1))
     ||
@@ -840,7 +844,6 @@ int parser_expr_one (Expr* ret) {
     ) {
         return parser_decls(&ret->decls);
     }
-
     return 1;
 }
 
@@ -851,8 +854,9 @@ int parser_expr (Expr* ret) {
     }
     *ret = e;
 
+    // cannot separate exprs with \n
     if (pr_check0('\n')) {
-        return 1;   // cannot separate exprs with \n
+        return parser_where(ret);
     }
 
     // EXPR_CALL'S
@@ -890,7 +894,7 @@ int parser_expr (Expr* ret) {
         *ret = (Expr) { EXPR_MATCH, {.size=0}, .Match={pe,pp} };
     }
 
-    return 1;
+    return parser_where(ret);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

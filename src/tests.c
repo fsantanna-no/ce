@@ -860,6 +860,8 @@ void t_all (void) {
         "    ()\n"
         "{show_Unit}(x)\n"
     ));
+#if 0
+    // TODO: decl as expr
     assert(all(
         "()\n",
         "val x :: () = :\n"
@@ -868,7 +870,6 @@ void t_all (void) {
         "    z\n"
         "{show_Unit}(x)\n"
     ));
-#if 0
     // TODO: nested Cons pattern
     assert(all(
         "()\n",
