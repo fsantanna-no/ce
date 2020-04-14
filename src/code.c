@@ -566,17 +566,18 @@ void code_expr (Expr e, tce_ret* ret) {
             }
 
             for (int i=0; i<e.Cases.size; i++) {
+                Expr tst_ = tst;
                 Case c = e.Cases.vec[i];
                 Expr star = (Expr) { EXPR_RAW, NULL, .Raw={TK_RAW,{.s="*"}} };
-                Expr old  = tst;
+                Expr old  = tst_;
                 if (c.patt.sub==PATT_CONS && is_rec(c.patt.Cons.data.val.s)) {
-                    tst = (Expr) { EXPR_CALL, NULL, .Call={&star,&old} };
+                    tst_ = (Expr) { EXPR_CALL, NULL, .Call={&star,&old} };
                 }
                 out("if (");
-                code_patt_match(c.patt, tst);
+                code_patt_match(c.patt, tst_);
                 out(") {\n");
                 code_patt_decls(c.patt, c.type);
-                code_patt_set(c.patt, tst);
+                code_patt_set(c.patt, tst_);
                 out(";\n");
                 code_expr(*c.expr, ret);
                 out(";\n");

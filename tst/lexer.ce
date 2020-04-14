@@ -35,13 +35,13 @@ data Maybe_Key:
 val keys :: Keywords = new Key_CNS ({(String){"let"}},Tk_LET,new Key_NIL)
 
 func reserved_ :: ((Keywords,{String}) -> Maybe_Key):
-    let (keys,key) :: (Keywords,{String}) = ...:
-        match keys:
-            Key_NIL -> Key_Nothing
-            Key_CNS (str,tk,l) :: ({String},Tk,Keywords):
-                if:
-                    {!strcmp(key.v,str.v)} -> Key_Just(tk)
-                    else -> reserved_ (l,key)
+    val (keys,key) :: (Keywords,{String}) = ...
+    match keys:
+        Key_NIL -> Key_Nothing
+        Key_CNS (str,tk,l) :: ({String},Tk,Keywords):
+            if:
+                {!strcmp(key.v,str.v)} -> Key_Just(tk)
+                else -> reserved_ (l,key)
 
 mut inp :: {FILE*}
 
