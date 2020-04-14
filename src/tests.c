@@ -303,7 +303,7 @@ void t_parser_expr (void) {
         init(NULL, stropen("r", 0, ":\n    x x"));
         Expr e;
         assert(!parser_expr(&e));
-        assert(!strcmp(ALL.err, "(ln 2, col 7): expected indentation of 4 spaces : have `x`"));
+        assert(!strcmp(ALL.err, "(ln 2, col 7): expected new line : have `x`"));
         fclose(ALL.inp);
     }
     {
@@ -324,7 +324,7 @@ void t_parser_expr (void) {
         init(NULL, stropen("r", 0, ":\n    x\n    y y"));
         Expr e;
         assert(!parser_expr(&e));
-        assert(!strcmp(ALL.err, "(ln 3, col 7): expected indentation of 4 spaces : have `y`"));
+        assert(!strcmp(ALL.err, "(ln 3, col 7): expected new line : have `y`"));
         fclose(ALL.inp);
     }
     {

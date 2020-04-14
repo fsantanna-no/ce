@@ -2,6 +2,7 @@
     - oute, outd, outg
 - SYNTAX
     - if optional else
+    - xxx if yyy
     - ifs/if join?
     - match w/o nested cases
         - is it a `set` ?

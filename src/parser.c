@@ -264,11 +264,15 @@ int parser_list_line (int global, List* ret, List_F f, size_t unit) {
             // ok
         } else if (i>0 && pr_check0('\n') && TOK0.tk.val.n<ALL.ind) {
             break;  // unnest
-        } else {
+        } else if (pr_check0('\n')) {
             char s[256];
             pr_accept1('\n',1);
             sprintf(s, "indentation of %d spaces", ALL.ind);
             return err_expected(s);
+        } else {
+            sprintf(ALL.err, "(ln %ld, col %ld): expected new line : have %s",
+                TOK1.lin, TOK1.col, lexer_tk2str(&TOK1.tk));
+            return 0;
         }
 
         // COMMENT

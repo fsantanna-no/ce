@@ -33,6 +33,8 @@ data Maybe_Key:
     Key_Just Tk
 
 val keys :: Keywords = new Key_CNS ({(String){"let"}},Tk_LET,new Key_NIL)
+mut out :: {FILE*}
+mut inp :: {FILE*}
 
 func reserved_ :: ((Keywords,{String}) -> Maybe_Key):
     val (keys,key) :: (Keywords,{String}) = ...
@@ -42,8 +44,6 @@ func reserved_ :: ((Keywords,{String}) -> Maybe_Key):
             if:
                 {!strcmp(key.v,str.v)} -> Key_Just(tk)
                 else -> reserved_ (l,key)
-
-mut inp :: {FILE*}
 
 func lexer_ :: (() -> Tk):
     match {fgetc} (inp):
@@ -115,6 +115,10 @@ func stropen :: (({char*}, {size_t}, {char*}) -> {FILE*}): -- TODO: (mode::char*
         else -> size
     { fmemopen (str,size,mode) }
 
+func init :: (({FILE*},{FILE*}) -> ()):
+    set (out,inp) = ...
+    if (inp != NULL) -> pr_init() -> pass
+
 func t_lexer :: (() -> ()):
     :
         set inp = stropen ({"r"}, {0}, {"-- foobar"})
@@ -175,6 +179,13 @@ func t_lexer :: (() -> ()):
             {assert} (tk ~ Tk_CHAR({':'}))
         {fclose} (inp)
 
-t_lexer ()
+func t_type :: (() -> ()):
+    {init} ({NULL}, stropen({"r"}, {0}, {"()"}))
+    {assert} (parser_type() ~ TYPE_UNIT)
+    {fclose} (inp)
+
+:
+    t_lexer ()
+    t_type  ()
 
 { puts("OK") }
