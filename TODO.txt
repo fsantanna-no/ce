@@ -1,7 +1,6 @@
-- val mut as expr w/ :
-- rever pr_check(,?)
 - outs
     - oute, outd, outg
+- val mut as expr w/ :
 - match in terms of if/~
 - lexer
     - \ to continue line

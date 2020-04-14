@@ -32,9 +32,10 @@ typedef struct {
     TK_val val;
 } Tk;
 
+enum { OGLOB, ODECL, OEXPR };
 typedef struct {
-    FILE* out;
     FILE* inp;
+    FILE* out[3];
     char  err[256];
     int   ind;
     struct {

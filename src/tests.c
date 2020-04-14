@@ -6,11 +6,6 @@
 #include "parser.h"
 #include "code.h"
 
-FILE* stropen (const char* mode, size_t size, char* str) {
-    size = (size != 0) ? size : strlen(str);
-    return fmemopen(str, size, mode);
-}
-
 int all (const char* xp, char* src) {
     static char out[65000];
     init (
@@ -23,7 +18,7 @@ int all (const char* xp, char* src) {
         return !strcmp(ALL.err, xp);
     }
     code(prog);
-    fclose(ALL.out);
+    fclose(ALL.out[OGLOB]);
 puts(out);
     remove("a.out");
 
@@ -473,7 +468,7 @@ void t_code (void) {
             e.Var.sym = TK_IDVAR;
             strcpy(e.Var.val.s, "xxx");
         code_expr(e, NULL);
-        fclose(ALL.out);
+        fclose(ALL.out[OGLOB]);
         assert(!strcmp(out,"xxx"));
     }
     {
@@ -493,7 +488,7 @@ void t_code (void) {
         Patt pt = (Patt){PATT_SET,.Set={TK_IDVAR,{.s="ret"}}};
         tce_ret ret = { &pt, NULL };
         code_expr(e, &ret);
-        fclose(ALL.out);
+        fclose(ALL.out[OGLOB]);
         assert(!strcmp(out,"{\nint xxx;\nret = xxx;\n}\n"));
     }
     {
@@ -505,7 +500,7 @@ void t_code (void) {
         Prog p;
         parser_prog(&p);
         code(p);
-        fclose(ALL.out);
+        fclose(ALL.out[OGLOB]);
         char* ret =
             "#include \"inc/ce.c\"\n"
             "int main (void) {\n"
@@ -525,7 +520,7 @@ void t_code (void) {
         Prog p;
         parser_prog(&p);
         code(p);
-        fclose(ALL.out);
+        fclose(ALL.out[OGLOB]);
         char* ret =
             "#include \"inc/ce.c\"\n"
             "int main (void) {\n"
@@ -556,7 +551,7 @@ void t_code (void) {
         Data d;
         parser_data(&d);
         code_data(d);
-        fclose(ALL.out);
+        fclose(ALL.out[OGLOB]);
         char* xp =
             "#define SUP_False Bool_False\n"
             "#define False ((Bool) { Bool_False })\n"

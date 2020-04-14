@@ -6,7 +6,7 @@
 #include "lexer.h"
 #include "parser.h"
 
-State_All ALL = { NULL,NULL,{},0 };
+State_All ALL = { NULL,{NULL,NULL,NULL},{},0 };
 State_Tok TOK0, TOK1, TOK2;
 
 static char* reserved[] = {

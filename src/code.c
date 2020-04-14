@@ -7,7 +7,7 @@
 #include "code.h"
 
 void out (const char* v) {
-    fputs(v, ALL.out);
+    fputs(v, ALL.out[OGLOB]);
 }
 
 void code_ret (tce_ret* ret) {
@@ -141,7 +141,7 @@ void code_data (Data data) {
 
     // only pre declaration
     if (data.size == 0) {
-        fprintf(ALL.out, "struct %s;\n", sup);
+        fprintf(ALL.out[OGLOB], "struct %s;\n", sup);
         return;
     }
 
@@ -209,7 +209,7 @@ void code_data (Data data) {
     }
 
     out(out1);
-    fprintf(ALL.out,
+    fprintf(ALL.out[OGLOB],
         "typedef struct %s {\n"
         "    %s sub;\n"
         "    union {\n"
@@ -220,21 +220,21 @@ void code_data (Data data) {
     );
 
     int is = is_rec(sup);
-    fprintf(ALL.out,
+    fprintf(ALL.out[OGLOB],
         "void show_%s (%s%s v) {\n"
         "    switch (v%ssub) {\n",
         sup, sup, (is ? "*" : ""), (is ? "->" : ".")
     );
     for (int i=0; i<data.size; i++) {
         char* v = data.vec[i].tk.val.s;
-        fprintf(ALL.out,
+        fprintf(ALL.out[OGLOB],
             "        case %s_%s:\n"
             "            puts(\"%s\");\n"
             "            break;\n",
             sup, v, v
         );
     }
-    fprintf(ALL.out,
+    fprintf(ALL.out[OGLOB],
         "        default:\n"
         "            assert(0 && \"bug found\");\n"
         "    }\n"
@@ -469,7 +469,7 @@ void code_expr (Expr e, tce_ret* ret) {
             }
             out("{ ");
             for (int i=0; i<e.Tuple.size; i++) {
-                //fprintf (ALL.out, "%c _%d=", ((i==0) ? ' ' : ','), i);
+                //fprintf (ALL.out[OGLOB], "%c _%d=", ((i==0) ? ' ' : ','), i);
                 if (i != 0) {
                     out(",");
                 }
@@ -566,7 +566,7 @@ void code_expr (Expr e, tce_ret* ret) {
                 code_expr(e.Tuple_Idx.tuple->Tuple.vec[e.Tuple_Idx.idx], ret);
             } else {
                 code_expr(*e.Tuple_Idx.tuple, ret);
-                fprintf(ALL.out, "._%d", e.Tuple_Idx.idx);
+                fprintf(ALL.out[OGLOB], "._%d", e.Tuple_Idx.idx);
             }
             break;
         case EXPR_CONS_SUB:
@@ -663,6 +663,6 @@ void code (Prog prog) {
         "\n"
     );
     code_prog(prog);
-    fprintf(ALL.out, "\n");
+    fprintf(ALL.out[OGLOB], "\n");
     out("}\n");
 }

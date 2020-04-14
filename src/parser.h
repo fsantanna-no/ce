@@ -247,6 +247,7 @@ typedef struct {
 int is_rec (const char* v);
 void dump_expr (Expr e);
 void init (FILE* out, FILE* inp);
+FILE* stropen (const char* mode, size_t size, char* str);
 
 int parser_type  (Type*  ret);
 int parser_data  (Data*  ret);
