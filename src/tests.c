@@ -238,7 +238,8 @@ void t_parser_expr (void) {
         init(NULL, stropen("r", 0, "set () = (x"));
         Expr e;
         assert(!parser_expr(&e));
-        assert(!strcmp(ALL.err, "(ln 1, col 5): expected variable : have `(`"));
+        assert(!strcmp(ALL.err, "(ln 1, col 12): expected `)` : have end of line"));
+        //assert(!strcmp(ALL.err, "(ln 1, col 5): expected variable : have `(`"));
         fclose(ALL.inp);
     }
     {
@@ -253,8 +254,8 @@ void t_parser_expr (void) {
         Expr e;
         assert(parser_expr(&e));
         assert(e.sub == EXPR_SET);
-        assert(!strcmp(e.Set.var.val.s, "a"));
-        assert(!strcmp(e.Set.val->Var.val.s, "x"));
+        assert(!strcmp(e.Set.patt.Set.val.s, "a"));
+        assert(!strcmp(e.Set.expr->Var.val.s, "x"));
         fclose(ALL.inp);
     }
     // EXPR_FUNC

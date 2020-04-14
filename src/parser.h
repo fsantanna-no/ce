@@ -185,8 +185,8 @@ typedef struct Expr {
             struct Expr* vec;
         } Seq;
         struct {        // EXPR_SET
-            Tk var;
-            struct Expr* val;
+            Patt patt;
+            struct Expr* expr;
         } Set;
         struct {        // EXPR_CALL
             struct Expr* func;

@@ -447,12 +447,10 @@ void code_expr (Expr e, tce_ret* ret) {
             code_expr(*e.New, NULL);
             out("; ptr; })");
             break;
-        case EXPR_SET: {
-            Patt pt = (Patt) { PATT_SET, .Set=e.Set.var };
-            tce_ret r = { &pt, ret };
-            code_expr(*e.Set.val, &r);
+        case EXPR_SET:
+            code_patt_set(e.Set.patt, *e.Set.expr);
+            out(";\n");
             break;
-        }
         case EXPR_CALL:
             code_ret(ret);
             code_expr(*e.Call.func, NULL);

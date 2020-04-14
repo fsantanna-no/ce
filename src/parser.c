@@ -24,9 +24,10 @@ void dump_expr_ (Expr e, int spc) {
             fputs(e.Var.val.s, stdout);
             break;
         case EXPR_SET:
-            fputs(e.Set.var.val.s, stdout);
-            fputs(" = ", stdout);
-            dump_expr_(*e.Set.val, 0);
+            puts("set");
+            //fputs(e.Set.var.val.s, stdout);
+            //fputs(" = ", stdout);
+            //dump_expr_(*e.Set.val, 0);
             break;
         case EXPR_FUNC:
             fputs("func (...)", stdout);
@@ -679,18 +680,18 @@ int parser_expr_one (Expr* ret) {
 
     // EXPR_SET
     } else if (pr_accept1(TK_SET,1)) {
-        if (!pr_accept1(TK_IDVAR,1) && !pr_accept1(TK_RAW,1)) {
-            return err_expected("variable");
+        Patt p;
+        if (!parser_patt(&p,0)) {
+            return 0;
         }
-        Tk var = TOK0.tk;
         if (!pr_accept1('=',1)) {
             return err_expected("`=`");
         }
-        Expr* pe = expr_new();
-        if (pe == NULL) {
+        Expr* e = expr_new();
+        if (e == NULL) {
             return 0;
         }
-        *ret = (Expr) { EXPR_SET, NULL, .Set={var,pe} };
+        *ret = (Expr) { EXPR_SET, NULL, .Set={p,e} };
 
     // EXPR_DECL
     } else if (pr_accept1(TK_MUT,1) || pr_accept1(TK_VAL,1)) {
