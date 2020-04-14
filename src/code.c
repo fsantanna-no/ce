@@ -16,16 +16,6 @@ void code_ret (tce_ret* ret) {
         out(ret->patt->Set.val.s);
         out(" = ");
         ret = ret->nxt;
-#if 0
-        if (ret->patt->sub == PATT_SET) {
-        } else {
-            for (int i=0; i<ret->patt->Tuple.size; i++) {
-                out(ret->patt->Tuple->vec[i].val.s);
-                out(" = ");
-                ret = ret->nxt;
-            }
-        }
-#endif
     }
 }
 
@@ -300,12 +290,12 @@ void code_case_set (Patt p, Expr tst) {
         case PATT_UNIT:
         case PATT_EXPR:
             break;
-        case PATT_SET:          // x = ce_tst
-            out(p.Set.val.s);
-            out(" = ");
-            code_expr(tst, NULL);
+        case PATT_SET: {        // x = ce_tst
+            tce_ret r = { &p, NULL };
+            code_expr(tst, &r);
             out(";\n");
             break;
+        }
         case PATT_CONS:
             if (p.Cons.arg != NULL) {
                 code_case_set (
@@ -372,27 +362,36 @@ void code_case_vars (Patt patt, Type type) {
     }
 }
 
-void code_case (Expr tst, Case c, tce_ret* ret) {
+void code_case (int asr, Expr tst, Case c, tce_ret* ret) {
     Expr star = (Expr) { EXPR_RAW, NULL, .Raw={TK_RAW,{.s="*"}} };
     Expr old  = tst;
     if (c.patt.sub==PATT_CONS && is_rec(c.patt.Cons.data.val.s)) {
         tst = (Expr) { EXPR_CALL, NULL, .Call={&star,&old} };
     }
 
-    out("if (");
-    code_match(tst, c.patt);
-    out(") {\n");
+    if (asr) {
+        out("assert(");
+        code_match(tst, c.patt);
+        out(");\n");
+    } else {
+        out("if (");
+        code_match(tst, c.patt);
+        out(") {\n");
+    }
     code_case_vars(c.patt, c.type);
     code_case_set(c.patt, tst);
+    out(";\n");
     code_expr(*c.expr, ret);
-    out(";");
-    out("\n");
-    out("} else ");
+    out(";\n");
+    if (asr) {
+    } else {
+        out("} else ");
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void code_decl (Decl d) {
+void code_decl (Decl d, tce_ret* ret) {
     if (d.type.sub == TYPE_FUNC) {
         assert(d.init != NULL);
         assert(d.patt.sub == PATT_SET);
@@ -426,12 +425,13 @@ void code_decl (Decl d) {
             }
         out("}\n\n");
     } else {
-        code_case_vars(d.patt, d.type);
-        if (d.init != NULL) {
-            tce_ret r = { &d.patt, NULL };
-            code_expr(*d.init, &r);
-            out(";\n");
-         }
+        if (d.init == NULL) {
+            code_case_vars(d.patt, d.type);
+        } else {
+            Expr e  = { EXPR_PASS, NULL };
+            Case c  = { d.patt, d.type, &e };
+            code_case(1, *d.init, c, ret);
+        }
     }
 }
 
@@ -530,12 +530,11 @@ void code_expr (Expr e, tce_ret* ret) {
             break;
         case EXPR_LET: {    // patt,type,init,body
             Case c  = (Case) { e.Let.patt, e.Let.type, e.Let.body };
-            Expr cs = (Expr) { EXPR_CASES, .Cases={e.Let.init,1,&c} };
-            code_expr(cs, ret);
+            code_case(1, *e.Let.init, c, ret);
             break;
         }
         case EXPR_DECL:
-            code_decl(e.Decl);
+            code_decl(e.Decl, ret);
             break;
         case EXPR_IF: {   // tst,true,false
             code_ret(ret);
@@ -577,9 +576,9 @@ void code_expr (Expr e, tce_ret* ret) {
             code_match(*e.Match.expr, *e.Match.patt);
             break;
         case EXPR_CASES: {  // tst,size,vec
-            out("{\n");
             Expr tst = *e.Cases.tst;
-            if (tst.sub != EXPR_TUPLE) {
+            out("{\n");
+            if (tst.sub != EXPR_TUPLE) {   // prevents multiple evaluation of tst
                 out("typeof(");
                 code_expr(*e.Cases.tst, NULL);
                 out(") ce_tst = ");
@@ -589,7 +588,7 @@ void code_expr (Expr e, tce_ret* ret) {
             }
 
             for (int i=0; i<e.Cases.size; i++) {
-                code_case(tst, e.Cases.vec[i], ret);
+                code_case(0, tst, e.Cases.vec[i], ret);
             }
             out("{\n");
             out("assert(0 && \"match failed\");\n");
@@ -618,8 +617,9 @@ void code_expr (Expr e, tce_ret* ret) {
             }
             break;
         case EXPR_CONS_SUB:
+            code_ret(ret);
             out("(");
-            code_expr(*e.Cons_Sub.cons, ret);
+            code_expr(*e.Cons_Sub.cons, NULL);
             out(")._");
             out(e.Cons_Sub.sub);
             break;

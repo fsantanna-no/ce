@@ -569,6 +569,7 @@ void t_code (void) {
             "{\n"
             "typeof(fgetc(inp)) ce_tst = fgetc(inp);\n"
             "if (ce_tst == '\\n') {\n"
+            ";\n"
             "1;\n"
             "} else {\n"
             "assert(0 && \"match failed\");\n"

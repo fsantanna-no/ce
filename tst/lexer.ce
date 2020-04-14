@@ -49,15 +49,14 @@ func lexer_ :: (() -> Tk):
     match {fgetc} (inp):
         {EOF}  -> Tk_EOF
         {'\n'} -> :
-            loop:
+            val i :: {int} = {0}
+            loop:                               -- TODO: loop i
                 match {fgetc} (inp):
                     {EOF} -> return Tk_EOF      -- consider \nEOF as EOF
                     {' '} -> set i = {i+1}
                     c :: {int}:
                         {ungetc} (c,inp)
                         break
-            where:
-                val i :: {int} = {0}         -- TODO: loop i
             if:
                 {i%4 == 0} -> return Tk_LINE ({i/4})
                 else       -> return Tk_ERR
@@ -100,21 +99,21 @@ func lexer_ :: (() -> Tk):
                 Key_Just(tk) :: Tk -> tk
 
 func lexer :: (() -> Tk):
-    let tk :: Tk = lexer_():
-        loop:
-            match {fgetc} (inp):
-                {' '} -> pass
-                c :: {int}:
-                    {ungetc} (c,inp)
-                    break
-        return tk
+    val tk :: Tk = lexer_()
+    loop:
+        match {fgetc} (inp):
+            {' '} -> pass
+            c :: {int}:
+                {ungetc} (c,inp)
+                break
+    return tk
 
 func stropen :: (({char*}, {size_t}, {char*}) -> {FILE*}): -- TODO: (mode::char*, ...)
-    let (mode,size,str) :: ({char*}, {size_t}, {char*}) = ...:
-        set size = match size:
-            {0}  -> {strlen} (str)
-            else -> size
-        { fmemopen (str,size,mode) }
+    val (mode,size,str) :: ({char*}, {size_t}, {char*}) = ...
+    set size = match size:
+        {0}  -> {strlen} (str)
+        else -> size
+    { fmemopen (str,size,mode) }
 
 func t_lexer :: (() -> ()):
     :
