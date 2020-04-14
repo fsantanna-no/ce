@@ -328,6 +328,13 @@ void t_parser_expr (void) {
         fclose(ALL.inp);
     }
     {
+        init(NULL, stropen("r", 0, "val ::"));
+        Expr e;
+        assert(!parser_expr(&e));
+        assert(!strcmp(ALL.err, "(ln 1, col 5): expected variable identifier : have `::`"));
+        fclose(ALL.inp);
+    }
+    {
         init(NULL, stropen("r", 0,
             ":\n"
             "    x\n"
@@ -508,6 +515,7 @@ void t_code (void) {
             "int main (void) {\n"
             "\n"
             "int a;\n"
+            ";\n"
             "show_Bool(a);\n"
             "\n"
             "}\n";

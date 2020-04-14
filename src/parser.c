@@ -435,7 +435,7 @@ int parser_patt (Patt* ret, int is_match) {
         }
         *ret = (Patt) { PATT_EXPR, .Expr=pe };
     } else {
-        assert(0 && "TODO");
+        return err_expected("variable identifier");
     }
     return 1;
 }
@@ -695,20 +695,32 @@ int parser_expr_one (Expr* ret) {
         }
         *ret = (Expr) { EXPR_SET, NULL, .Set={var,pe} };
 
-    // EXPR_FUNC
+    // EXPR_DECL
+    } else if (pr_accept1(TK_MUT,1) || pr_accept1(TK_VAL,1)) {
+        Decl d;
+        if (!parser_decl_nopre(&d)) {
+            return 0;
+        }
+        *ret = (Expr) { EXPR_DECL, NULL, .Decl=d };
+
+    // EXPR_FUNC // EXPR_DECL_FUNC
     } else if (pr_accept1(TK_FUNC,1)) {
-        if (!pr_accept1(TK_DECL,1)) {
-            return err_expected("`::`");
+        Decl d;
+        if (parser_decl_nopre(&d)) {
+            *ret = (Expr) { EXPR_DECL, NULL, .Decl=d };
+        } else if (pr_accept1(TK_DECL,1)) {
+            Type tp;
+            if (!parser_type(&tp)) {
+                return 0;
+            }
+            Expr* pe = expr_new();
+            if (pe == NULL) {
+                return 0;
+            }
+            *ret = (Expr) { EXPR_FUNC, NULL, .Func={tp,pe} };
+        } else {
+            return err_expected("`::` or variable identifier");
         }
-        Type tp;
-        if (!parser_type(&tp)) {
-            return 0;
-        }
-        Expr* pe = expr_new();
-        if (pe == NULL) {
-            return 0;
-        }
-        *ret = (Expr) { EXPR_FUNC, NULL, .Func={tp,pe} };
 
     // EXPR_PASS
     } else if (pr_accept1(TK_PASS,1)) {
@@ -743,14 +755,6 @@ int parser_expr_one (Expr* ret) {
         }
 
         *ret = (Expr) { EXPR_LET, NULL, .Let={d.patt,d.type,d.init,pe} };
-
-    // EXPR_DECL
-    } else if (pr_accept1(TK_MUT,1) || pr_accept1(TK_VAL,1) || pr_accept1(TK_FUNC,1)) {
-        Decl d;
-        if (!parser_decl_nopre(&d)) {
-            return 0;
-        }
-        *ret = (Expr) { EXPR_DECL, NULL, .Decl=d };
 
     } else if (pr_accept1(TK_IF,1)) {
     // EXPR_IFS
