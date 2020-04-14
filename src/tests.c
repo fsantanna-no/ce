@@ -853,6 +853,21 @@ void t_all (void) {
         "func f :: (((),()) -> ()) ()\n"
         "{show_Unit}(f((),()))"
     ));
+    assert(all(
+        "()\n",
+        "val x :: () = :\n"
+        "    ()\n"
+        "    ()\n"
+        "{show_Unit}(x)\n"
+    ));
+    assert(all(
+        "()\n",
+        "val x :: () = :\n"
+        "    val y :: () = ()\n"
+        "    val z :: () = ()\n"
+        "    z\n"
+        "{show_Unit}(x)\n"
+    ));
 #if 0
     // TODO: nested Cons pattern
     assert(all(

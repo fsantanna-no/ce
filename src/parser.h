@@ -1,3 +1,43 @@
+/*
+ *
+ * Prog  ::= { Data | Decl | Expr }
+ *
+ * Data  ::= data <Id> [`=` Type] [`:` { Cons }]
+ * Cons  ::= <Id> `=` Type
+ *
+ * Type  ::= `(` `)` | <Id>
+ *        |  Type `->` Type
+ *        | `(` Type { `,` Type } `)`
+ *        | `(` Type `)`
+ *
+ * Decl  ::= (val | mut) Patt `::` Type [`=` Expr [Where]]
+ * Where ::= where `:` { Decl }
+ *
+ * Patt  ::=  `(` `)` | `_` | <id>
+ *        |   `~` Expr
+ *        |   <Id> [ `(` Patt `)` ]
+ *        |   `(` Patt { `,` Patt } `)`
+ *
+ * Expr  ::= `(` `)` | `...` | <id>             // EXPR_UNIT | EXPR_ARG | EXPR_VAR
+ *        |  <Id> [`(` Expr `)`]                // EXPR_CONS
+ *        | `{` <...> `}`                       // EXPR_RAW
+ *        | `(` Expr { `,` Expr } `)`           // EXPR_TUPLE
+ *        |  func `::` Type Expr [Where]        // EXPR_FUNC
+ *        |  Expr `(` Expr `)`                  // EXPR_CALL
+ *        | `(` Expr `)`
+ *        |  set <id> `=` Expr                  // EXPR_SET
+ *        |  `:` { Expr [Where] }               // EXPR_SEQ
+ *        |  case Expr `:`                      // EXPR_CASE
+ *               { Patt [`::` Type] [`->`] Expr [Where] }
+ *        |  let Decl [`->`] Expr               // EXPR_LET
+ *        |  `if` Expr [`->`] Expr [`->`] Expr  // EXPR_IF
+ *        |  `loop` Expr                        // EXPR_LOOP
+ *        |  `break`                            // EXPR_BREAK
+ *        |  Expr `~` Expr                      // EXPR_MATCH
+ */
+
+///////////////////////////////////////////////////////////////////////////////
+
 typedef enum {
     TYPE_NONE,
     TYPE_RAW,
@@ -52,44 +92,6 @@ typedef enum {
 } GLOB;
 
 ///////////////////////////////////////////////////////////////////////////////
-
-/*
- *
- * Prog  ::= { Data | Decl | Expr }
- *
- * Data  ::= data <Id> [`=` Type] [`:` { Cons }]
- * Cons  ::= <Id> `=` Type
- *
- * Type  ::= `(` `)` | <Id>
- *        |  Type `->` Type
- *        | `(` Type { `,` Type } `)`
- *        | `(` Type `)`
- *
- * Decl  ::= (val | mut) Patt `::` Type [`=` Expr [Where]]
- * Where ::= where `:` { Decl }
- *
- * Patt  ::=  `(` `)` | `_` | <id>
- *        |   `~` Expr
- *        |   <Id> [ `(` Patt `)` ]
- *        |   `(` Patt { `,` Patt } `)`
- *
- * Expr  ::= `(` `)` | `...` | <id>             // EXPR_UNIT | EXPR_ARG | EXPR_VAR
- *        |  <Id> [`(` Expr `)`]                // EXPR_CONS
- *        | `{` <...> `}`                       // EXPR_RAW
- *        | `(` Expr { `,` Expr } `)`           // EXPR_TUPLE
- *        |  func `::` Type Expr [Where]        // EXPR_FUNC
- *        |  Expr `(` Expr `)`                  // EXPR_CALL
- *        | `(` Expr `)`
- *        |  set <id> `=` Expr                  // EXPR_SET
- *        |  `:` { Expr [Where] }               // EXPR_SEQ
- *        |  case Expr `:`                      // EXPR_CASE
- *               { Patt [`::` Type] [`->`] Expr [Where] }
- *        |  let Decl [`->`] Expr               // EXPR_LET
- *        |  `if` Expr [`->`] Expr [`->`] Expr  // EXPR_IF
- *        |  `loop` Expr                        // EXPR_LOOP
- *        |  `break`                            // EXPR_BREAK
- *        |  Expr `~` Expr                      // EXPR_MATCH
- */
 
 struct Expr;
 
