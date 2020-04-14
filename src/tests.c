@@ -685,6 +685,16 @@ void t_all (void) {
         "{show_Bool}(True)\n"
     ));
     assert(all(
+        "True\n",
+        "data List\n"
+        "data Bool:\n"
+        "    False ()\n"
+        "    True  ()\n"
+        "mut x :: Bool = False\n"
+        "{x = True}\n"
+        "{show_Bool}(x)\n"
+    ));
+    assert(all(
         "()\n",
         "val v :: () = match ():\n"
         "    ~() -> ()\n"
