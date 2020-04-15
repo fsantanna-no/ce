@@ -3,7 +3,10 @@
     - oute, outd, outg
 - SYNTAX
     - `;` for SEQ
-    - val mut optional `=` (use `:`)
+    - `val` optional
+        - requires `:=` for `set`
+        - also `set` optional
+    - optional `=` (use `:`) val mut
         - see all places that can use `:` and make previous tk optional
     - data struct / tuple
         - tuple indexes
@@ -12,6 +15,7 @@
         - would remove Glob
 - IF
     - if optional else
+        - test together with if
     - ifs/if join?
         - use if stmt passing ret
 - LEXER

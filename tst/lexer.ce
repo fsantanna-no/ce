@@ -17,7 +17,7 @@ data Tk:        -- TODO: inheritance // optional | \n
     Tk_EOF
     Tk_LINE     {int}
     Tk_COMMENT
-    Tk_RAW
+    Tk_RAW      {String}
     Tk_DECL
     Tk_ARROW
     Tk_IDVAR    {String}
@@ -34,8 +34,9 @@ data Maybe_Key:
     Key_Just Tk
 
 data Type:
-    TRaw    Tk
     TUnit
+    TRaw    Tk
+    TData   Tk
 
 data Maybe_Type:
     Type_Nothing
@@ -65,7 +66,7 @@ func lexer_ :: (() -> Tk):
         {EOF}  -> Tk_EOF
         {'('}  -> Tk_CHAR ({'('})
         {')'}  -> Tk_CHAR ({')'})
-        {'\n'} -> :
+        {'\n'}:
             val i :: {int} = {0}
             loop:                               -- TODO: loop i
                 match {fgetc} (inp):
@@ -77,6 +78,25 @@ func lexer_ :: (() -> Tk):
             if:
                 {i%4 == 0} -> return Tk_LINE ({i/4})
                 else       -> return Tk_ERR
+        {'{'/*}*/}:
+            val s :: {String} = {(String){""}}
+            val i :: {int} = {0}
+            val n :: {int} = {1}
+            loop:
+                val c :: {int} = {fgetc}(inp)
+                match c:
+                    {'{'/*}*/}:
+                        set n = {n+1}
+                    {/*{*/'}'}:
+                        set n = {n-1}
+                        if:
+                            {n == 0}:
+                                {s.v[i] = '\0'}
+                                return Tk_RAW(s)
+                    {'\n'}:
+                        return Tk_ERR
+                {s.v[i++] = c}
+                pass                            -- TODO: prevents assigning loop value
         {'-'}:
             match {fgetc} (inp):
                 {'>'} -> return Tk_ARROW
@@ -134,7 +154,7 @@ func stropen :: (({char*},{size_t},{char*}) -> {FILE*}): -- TODO: (mode::char*, 
 func pr_read :: (State_Tok -> State_Tok):
     mut off :: {long} = {ftell}(inp)
     mut tk  :: Tk     = lexer()
-    {printf("pr_read %d\n", tk.sub)}
+    --{printf("pr_read %d\n", tk.sub)}
 
     -- skip comment
     match tk:
@@ -160,7 +180,6 @@ func pr_init :: (() -> ()):
     set tok1 = pr_read(tok1)
     set tok2 = pr_read(tok2)
     pr_lincol()
-    {puts("init")}
 
 func pr_next :: (() -> ()):
     set tok0 = tok1
@@ -169,17 +188,16 @@ func pr_next :: (() -> ()):
     pr_lincol()
 
 func pr_accept1 :: (Tk -> {int}):
-    {printf("pr_accept %d\n", tok1._State_Tok._3.sub)}
+    --{printf("pr_accept %d\n", tok1._State_Tok._3.sub)}
     val tk :: Tk = ...
     val ok :: {int} = match ({tok1._State_Tok._3},...):
-        (Tk_CHAR(c1), Tk_CHAR(c2)) :: ({char},{char}) -> {puts("ok") ; c1 == c2}
+        (Tk_CHAR(c1), Tk_CHAR(c2)) :: ({char},{char}) -> {c1 == c2}
         else -> {tok1._State_Tok._3.sub == tk.sub}
     if:
         {ok}:
             pr_next()
             return {1}
         else:
-            {puts("okokok")}
             return {0}
 
 func init :: (({FILE*},{FILE*}) -> ()):
@@ -189,7 +207,7 @@ func init :: (({FILE*},{FILE*}) -> ()):
 func parser_type :: (() -> Maybe_Type):
     if:
     -- TRaw
-        pr_accept1(Tk_RAW) -> Type_Just (TRaw ({tok0._State_Tok._3}))
+        pr_accept1(Tk_RAW({(String){""}})) -> Type_Just (TRaw ({tok0._State_Tok._3}))
     -- TUnit
         pr_accept1(Tk_CHAR({'('})) -> if:
             pr_accept1(Tk_CHAR({')'})) -> Type_Just (TUnit)
@@ -259,12 +277,21 @@ func t_lexer :: (() -> ()):
         {fclose} (inp)
 
 func t_type :: (() -> ()):
-    init ({NULL}, stropen({"r"}, {0}, {"()"}))
-    {assert} (parser_type() ~ TUnit)
-    {fclose} (inp)
+    :
+        init ({NULL}, stropen({"r"}, {0}, {"()"}))
+        {assert} (parser_type() ~ Type_Just(TUnit))
+        {fclose} (inp)
+    :
+        init ({NULL}, stropen({"r"}, {0}, {"{int}"}))
+        {assert(raw && !strcmp(s.v,"int"))} where:
+            val Type_Just(tp) :: Type = parser_type()      -- TODO tp@(...)
+            val raw :: {int} = tp ~ TRaw
+            val TRaw(Tk_RAW(s)) :: {String} = tp
+            {puts(s.v)}
+        {fclose} (inp)
 
 :
-    --t_lexer ()
+    t_lexer ()
     t_type  ()
 
 { puts("OK") }

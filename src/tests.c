@@ -968,6 +968,24 @@ void t_all (void) {
         "loop break () if {1}\n"
         "{show_Unit}(())"
     ));
+#if 0
+    // TODO: last stmt assigns to loop
+    assert(all(
+        "()\n",
+        "val x :: {int*} = loop:\n"
+        "    break {NULL} if {1}\n"
+        "    {1.1}\n"
+        "{show_Unit}(())"
+    ));
+    assert(all(
+        "()\n",
+        "func f :: (()->{int*}):\n"
+        "    loop:\n"
+        "        break {NULL} if {1}\n"
+        "        {1.1}\n"
+        "{show_Unit}(())"
+    ));
+#endif
 }
 
 int main (void) {
