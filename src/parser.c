@@ -114,14 +114,14 @@ Expr* expr_new (void) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void pr_read (long* off, Tk* tk) {
-    *off = ftell(ALL.inp);
-    *tk  = lexer();
+void pr_read (State_Tok* tok) {
+    tok->off = ftell(ALL.inp);
+    tok->tk  = lexer();
 
     // skip comment
-    if (tk->sym == TK_COMMENT) {
-        *off = ftell(ALL.inp);
-        *tk  = lexer();
+    if (tok->tk.sym == TK_COMMENT) {
+        tok->off = ftell(ALL.inp);
+        tok->tk  = lexer();
     }
 }
 
@@ -138,15 +138,15 @@ void pr_init () {
     TOK0 = (State_Tok) { -1,0,0,{} };
     TOK1 = (State_Tok) { -1,1,1,{} };
     TOK2 = (State_Tok) { -1,1,1,{} };
-    pr_read(&TOK1.off, &TOK1.tk);
-    pr_read(&TOK2.off, &TOK2.tk);
+    pr_read(&TOK1);
+    pr_read(&TOK2);
     pr_lincol();
 }
 
 void pr_next () {
     TOK0 = TOK1;
     TOK1 = TOK2;
-    pr_read(&TOK2.off, &TOK2.tk);
+    pr_read(&TOK2);
     pr_lincol();
 }
 

@@ -2,11 +2,12 @@
 - outs
     - oute, outd, outg
 - SYNTAX
-    - xxx if yyy
-    - match w/o nested cases
-        - is it a `set` ?
-        match (=x,...) =
-    - val mut optional `=`
+    - `;` for SEQ
+    - val mut optional `=` (use `:`)
+        - see all places that can use `:` and make previous tk optional
+    - data struct / tuple
+        - tuple indexes
+        - data names
     - data as Expr ?
         - would remove Glob
 - IF
