@@ -212,6 +212,8 @@ func parser_type :: (() -> Maybe_Type):
         pr_accept1(Tk_CHAR({'('})) -> if:
             pr_accept1(Tk_CHAR({')'})) -> Type_Just (TUnit)
             else                       -> parser_type ()
+    -- TData
+        pr_accept1(Tk_IDDATA({(String){""}})) -> Type_Just (TData ({tok0._State_Tok._3}))
     -- ERROR
         else -> Type_Nothing
 
@@ -287,6 +289,14 @@ func t_type :: (() -> ()):
             val Type_Just(tp) :: Type = parser_type()      -- TODO tp@(...)
             val raw :: {int} = tp ~ TRaw
             val TRaw(Tk_RAW(s)) :: {String} = tp
+            {puts(s.v)}
+        {fclose} (inp)
+    :
+        init ({NULL}, stropen({"r"}, {0}, {"T"}))
+        {assert(dat && !strcmp(s.v,"T"))} where:
+            val Type_Just(tp) :: Type = parser_type()
+            val dat :: {int} = tp ~ TData
+            val TData(Tk_IDDATA(s)) :: {String} = tp
             {puts(s.v)}
         {fclose} (inp)
 
