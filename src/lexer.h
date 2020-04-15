@@ -13,7 +13,7 @@ typedef enum {
     TK_ARROW,
     TK_ARG,
 
-    TK_IDVAR,
+    TK_IDVAR,   // 262
     TK_IDDATA,
 
     // all reserved keywords

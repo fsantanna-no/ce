@@ -260,7 +260,6 @@ int parser_list_line (int global, List* ret, List_F f, size_t unit) {
     while (1) {
         while (pr_accept1('\n'));    // skip line + empty lines
 
-//printf("[%d] (%d/%d/%d ==> %d/%d)\n", i, TOK0.tk.sym, TOK1.tk.sym, TOK2.tk.sym, ALL.ind, TOK0.tk.val.n);
         if (pr_accept1(EOF)) {
             break;  // unnest
         } else if (TOK1.lin==1 && TOK1.col==1) {
@@ -832,6 +831,9 @@ int parser_expr_one (Expr* ret) {
 }
 
 int parser_expr (Expr* ret) {
+    int is_first = TOK0.off==-1 || pr_check0('\n') || pr_check0(TK_ARROW);
+//printf(">>> (%d/%d/%d ==> %d/%d)\n", TOK0.tk.sym, TOK1.tk.sym, TOK2.tk.sym, ALL.ind, TOK0.tk.val.n);
+
     Expr e;
     if (!parser_expr_one(&e)) {
         return 0;
@@ -845,14 +847,16 @@ int parser_expr (Expr* ret) {
 
     // EXPR_CALL
     if (pr_check1('(')) {
-        Expr* arg = expr_new();
-        if (arg == NULL) {
+        Expr arg;
+        if (!parser_expr_one(&arg)) {
             return 0;
         }
+        Expr* parg = malloc(sizeof(Expr));
         Expr* func = malloc(sizeof(Expr));
-        assert(func != NULL);
+        assert(parg!=NULL && func!=NULL);
+        *parg = arg;
         *func = *ret;
-        *ret  = (Expr) { EXPR_CALL, NULL, .Call={func,arg} };
+        *ret  = (Expr) { EXPR_CALL, NULL, .Call={func,parg} };
     }
 
     // EXPR_MATCH
@@ -869,18 +873,23 @@ int parser_expr (Expr* ret) {
         *ret = (Expr) { EXPR_MATCH, NULL, .Match={pe,pp} };
     }
 
+    if (!is_first) {
+        return 1;
+    }
+
     // EXPR_IF
     if (pr_accept1(TK_IF)) {
         Expr* tst = expr_new();
         if (tst == NULL) {
             return 0;
         }
-        Expr* ifs = malloc(sizeof(Expr));
         If*   if_ = malloc(sizeof(If));
-        assert(ifs!=NULL && if_!=NULL);
+        Expr* xxx = malloc(sizeof(Expr));
+        assert(if_!=NULL && xxx!=NULL);
         if_->tst = tst;
-        if_->ret = ret;
-        *ifs = (Expr) { EXPR_IFS, NULL, .Ifs={1,if_} };
+        if_->ret = xxx;
+        *xxx = *ret;
+        *ret = (Expr) { EXPR_IFS, NULL, .Ifs={1,if_} };
     }
 
 _WHERE_:

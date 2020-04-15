@@ -137,45 +137,45 @@ func t_lexer :: (() -> ()):
         {fclose} (inp)
     :
         set inp = stropen({"r"}, {0}, {"c1\nc2 c3'  \n    \nc4"})
-        -- TODO: assert ... where
-        match lexer():
-            Tk_IDVAR (s) :: {String} -> {assert (! strcmp (s.v,"c1"))}
+        {assert (! strcmp (s.v,"c1"))} where:
+            val Tk_IDVAR (s) :: {String} = lexer()
         {assert} (lexer() ~ Tk_LINE)
-        match lexer():
-            Tk_IDVAR (s) :: {String} -> {assert (! strcmp (s.v,"c2"))}
-        match lexer():
-            Tk_IDVAR (s) :: {String} -> {assert (! strcmp (s.v,"c3'"))}
+        {assert (! strcmp (s.v,"c2"))} where:
+            val Tk_IDVAR (s) :: {String} = lexer()
+        {assert (! strcmp (s.v,"c3'"))} where:
+            val Tk_IDVAR (s) :: {String} = lexer()
         {fclose} (inp)
     :
         set inp = stropen({"r"}, {0}, {"c1 C1 C'a a'? C!!"})
-        match lexer():
-            Tk_IDVAR  (s) :: {String} -> {assert (! strcmp (s.v,"c1"))}
-        match lexer():
-            Tk_IDDATA (s) :: {String} -> {assert (! strcmp (s.v,"C1"))}
-        match lexer():
-            Tk_IDDATA (s) :: {String} -> {assert (! strcmp (s.v,"C'a"))}
-        match lexer():
-            Tk_IDVAR  (s) :: {String} -> {assert (! strcmp (s.v,"a'?"))}
-        match lexer():
-            Tk_IDDATA (s) :: {String} -> {assert (! strcmp (s.v,"C!!"))}
+        {assert (! strcmp (s.v,"c1"))} where:
+            val Tk_IDVAR  (s) :: {String} = lexer()
+        {assert (! strcmp (s.v,"C1"))} where:
+            val Tk_IDDATA (s) :: {String} = lexer()
+        {assert (! strcmp (s.v,"C'a"))} where:
+            val Tk_IDDATA (s) :: {String} = lexer()
+        {assert (! strcmp (s.v,"a'?"))} where:
+            val Tk_IDVAR  (s) :: {String} = lexer()
+        {assert (! strcmp (s.v,"C!!"))} where:
+            val Tk_IDDATA (s) :: {String} = lexer()
         {assert} (lexer() ~ Tk_EOF)
         {fclose} (inp)
     :
         set inp = stropen({"r"}, {0}, {"let xlet letx"})
         {assert} (lexer() ~ Tk_LET)
-        match lexer():
-            Tk_IDVAR (s) :: {String} -> {assert (! strcmp (s.v,"xlet"))}
-        match lexer():
-            Tk_IDVAR (s) :: {String} -> {assert (! strcmp (s.v,"letx"))}
+        {assert (! strcmp (s.v,"xlet"))} where:
+            val Tk_IDVAR (s) :: {String} = lexer()
+        {assert (! strcmp (s.v,"letx"))} where:
+            val Tk_IDVAR (s) :: {String} = lexer()
         {assert} (lexer() ~ Tk_EOF)
         {fclose} (inp)
     :
         set inp = stropen({"r"}, {0}, {": :: :"})
-        let tk :: Tk = lexer():
-            {assert} (tk ~ Tk_CHAR({':'}))
+        --{assert} (lexer() ~ Tk_CHAR({':'}))       -- TODO: lexer() twice
+        {assert} (tk ~ Tk_CHAR({':'})) where:
+            val tk :: Tk = lexer()
         {assert} (lexer() ~ Tk_DECL)
-        let tk :: Tk = lexer():
-            {assert} (tk ~ Tk_CHAR({':'}))
+        {assert} (tk ~ Tk_CHAR({':'})) where:
+            val tk :: Tk = lexer()
         {fclose} (inp)
 
 func t_type :: (() -> ()):

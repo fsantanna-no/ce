@@ -1,5 +1,4 @@
-- fix order ~ ()
-- remove pr_accept arg // comment pr_*2
+- out: include TK lin/col
 - outs
     - oute, outd, outg
 - SYNTAX
