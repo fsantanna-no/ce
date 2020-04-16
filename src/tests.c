@@ -383,6 +383,7 @@ void t_parser_decls (void) {
     void* parser_decl_ (void) {
         static Decl d_;
         Decl d;
+        d.size = -1;
         if (!parser_decl(&d)) {
             return NULL;
         }
@@ -518,6 +519,7 @@ void t_code (void) {
             e.Var.sym = TK_IDVAR;
             strcpy(e.Var.val.s, "xxx");
         Decl d;
+            d.size = -1;
             d.init = NULL;
             d.patt.sub = PATT_SET;
             d.patt.Set.sym = TK_IDVAR;

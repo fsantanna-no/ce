@@ -583,6 +583,7 @@ void* parser_expr__ (void) {
 void* parser_case_ (void) {
     static Let let_;
     Let let;
+    let.decl.size = -1;
 
     // patt
     if (pr_accept1(TK_ELSE)) {

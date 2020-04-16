@@ -347,13 +347,19 @@ void code_patt_decls (Decl decl) {
     int vars_i = 0;
     aux(vars, &vars_i, decl.patt);
     if (vars_i == 1) {
-        code_type(decl.type);
+        if (decl.size == -1) {
+            code_type(decl.type);
+        } else {
+assert(0);
+            out("Pool");
+        }
         out(" ");
         out(vars[0].val.s);
         out(";\n");
-    } else if (vars_i > 0) {
+    } else if (vars_i > 1) {
         assert(decl.type.Tuple.size == vars_i);
         for (int i=0; i<vars_i; i++) {
+            assert(decl.size == -1);
             code_type(decl.type.Tuple.vec[i]);
             out(" ");
             out(vars[i].val.s);
