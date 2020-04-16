@@ -1,8 +1,81 @@
-data List
+data Chars
+data Chars:
+    NilC  ()
+    ConsC ({char},Chars)
 
-data List:
-    Nil  = ()
-    Cons = ((), List)
+data Token:
+    KUnit
+    KChar {char}
+    KData Chars
+
+data Type
+data Type:
+    TUnit
+    TData Chars
+    TPair (Type,Type)
+
+data Tokens
+data Tokens:
+    NilK  ()
+    ConsK (Token,Tokens)
+
+data Types
+data Types:
+    NilT  ()
+    ConsT ({char},Types)
+
+-------------------------------------------------------------------------------
+
+func c2Chars :: ({char*} -> Chars):
+    val buf :: {char*} = ...
+    if:
+        {buf[0] == '\0'} -> new NilC
+        else             -> new ConsC({buf[0]}, c2Chars({buf+1}))
+
+{show_Chars}(c2Chars({"((),(Int,()))"}))
+
+-- ((),Int,(Int,()))
+val inp :: Chars = c2Chars({})
+
+
+func lexer :: (Chars -> Tokens):
+    lexer'(...,NilC) where:
+        func lexer' :: ((Chars,Chars) -> Tokens):
+            val (inp,out) :: (Chars,Chars) = ...
+            match inp:
+                NilC -> EOF
+                ConsC (c,l):
+                    match c:
+
+
+    match ...:
+        NilC -> NilT
+
+        {EOF}  -> Tk_EOF
+        {'('}  -> Tk_CHAR ({'('})
+        {')'}  -> Tk_CHAR ({')'})
+        {'\n'}:
+            val i :: {int} = {0}
+            loop:                               -- TODO: loop i
+                match {fgetc} (inp):
+                    {EOF} -> return Tk_EOF      -- consider \nEOF as EOF
+                    {' '} -> set i = {i+1}
+                    c :: {int}:
+                        {ungetc} (c,inp)
+                        break ()
+            if:
+                {i%4 == 0} -> return Tk_LINE ({i/4})
+                else       -> return Tk_ERR
+
+data L
+
+-- ((),Int,(Int,()))
+
+:
+    val lst :: List = new Cons(new Cons(new Cons(new Nil)))
+    call show (lst1.Cons._1, lst1.Cons._2 is Nil?)
+        -- 10, True
+    -- deallocs lst1
 
 -- fail memory
 :

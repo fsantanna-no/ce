@@ -38,11 +38,12 @@ val v :: Nat = ...
     -- must respect scoping rules on *sharing*
     -- only discards after scope
     -- (maybe also use ref count here?)
+    -- can return b/c local refs will disappear and someone up will catch it
 
 mut x :: Nat = ...
     -- can change nodes
     -- cannot mix pools
-    -- cannot hold pointers
+    -- cannot hold pointers (maybe can, see below)
     -- MOVE semantics, prevents GC, only one ref to a node
     -- need not to respect scoping rules on *copying*
     -- discards on NIL
@@ -56,6 +57,13 @@ mut x :: Nat = ...
 -- tabela comparativa: mut/val, rust regions/life/borrow, C pointers, functional
 -- no cycles (only C?)
 -- syntax noise
+
+-------------------------------------------------------------------------------
+
+-- If the function `c2Chars` returns Chars, the caller must pass a pool.
+-- local scope must keep list of pools to release on return
+
+-------------------------------------------------------------------------------
 
 mut add = func :: (ret::Nat,a::Nat,b::Nat) -> ():
     case (a,b):

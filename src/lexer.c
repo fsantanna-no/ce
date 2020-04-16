@@ -71,6 +71,8 @@ TK lexer_ (TK_val* val) {
 //printf("0> [%c] [%d]\n", c, c);
     switch (c)
     {
+        case '[':
+        case ']':
         case '(':
         case ')':
         case ',':

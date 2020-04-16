@@ -526,6 +526,14 @@ int parser_decl_nopre (Decl* decl) {
         return 0;
     }
 
+    decl->size = -1;
+    if (pr_accept1('[')) {
+        if (!pr_accept1(']')) {
+            return err_expected("`]`");
+        }
+        decl->size = 0;
+    }
+
     if (!pr_accept1(TK_DECL)) {
         return err_expected("`::`");
     }

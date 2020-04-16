@@ -148,6 +148,7 @@ typedef struct Patt {
 
 typedef struct {
     Patt patt;
+    int  size;  // -1 if not pool, 0 if unbounded, n if bounded
     Type type;
     struct Expr* init;
 } Decl;

@@ -1,3 +1,7 @@
+- pools
+    - alter functions that return (and allocate) rec to receive pool
+    - alter functions that declare pool to release on returns (and last stmt)
+    - pool declaration must delcare pool, not pointer
 - out: include TK lin/col
 - outs
     - oute, outd, outg
