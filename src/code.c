@@ -362,6 +362,9 @@ void code_patt_decls (Decl decl) {
         assert(decl.type.Tuple.size == vars_i);
         for (int i=0; i<vars_i; i++) {
             assert(decl.size == -1);
+            out("#define VAR_");
+            out(vars[i].val.s);
+            out("(v) v\n");
             code_type(decl.type.Tuple.vec[i]);
             out(" ");
             out(vars[i].val.s);
@@ -381,6 +384,9 @@ void code_decl (Decl d, tce_ret* ret) {
         char out2[4096] = "";    // TODO: asserts
         code_type_(out1, out2, *d.type.Func.inp);
         out(out1);
+        out("#define VAR_");
+            out(d.patt.Set.val.s);
+            out("(v) v\n");
         out("#define TYPE_");
             out(d.patt.Set.val.s);
             out(" ");
@@ -438,7 +444,11 @@ void code_expr (Expr e, tce_ret* ret) {
             break;
         case EXPR_VAR:
             code_ret(ret);
+            out("VAR_");
             out(e.Var.val.s);
+            out("(");
+            out(e.Var.val.s);
+            out(")");
             break;
         case EXPR_CONS:
             code_ret(ret);
@@ -477,8 +487,9 @@ void code_expr (Expr e, tce_ret* ret) {
             } else if (e.Call.func->sub == EXPR_CONS) {
                 code_expr(*e.Call.arg, NULL);
             } else {
+                assert(e.Call.func->sub == EXPR_VAR);
                 out("(typeof(TYPE_");
-                code_expr(*e.Call.func, NULL);
+                out(e.Call.func->Var.val.s);
                 out("))");
                 code_expr(*e.Call.arg, NULL);
             }
@@ -563,6 +574,7 @@ void code_expr (Expr e, tce_ret* ret) {
             Expr tst = *e.Cases.tst;
             out("{\n");
             if (tst.sub != EXPR_TUPLE) {   // prevents multiple evaluation of tst
+                out("#define VAR_ce_tst(v) v\n");
                 out("typeof(");
                 code_expr(*e.Cases.tst, NULL);
                 out(") ce_tst = ");
