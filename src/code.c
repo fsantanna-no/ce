@@ -13,8 +13,11 @@ void out (const char* v) {
 void code_ret (tce_ret* ret) {
     while (ret != NULL) {
         assert (ret->patt->sub == PATT_SET);
+        out("VAR_");
         out(ret->patt->Set.val.s);
-        out(" = ");
+        out("(");
+        out(ret->patt->Set.val.s);
+        out(") = ");
         ret = ret->nxt;
     }
 }
@@ -349,10 +352,12 @@ void code_patt_decls (Decl decl) {
     if (vars_i == 1) {
         out("#define VAR_");
         out(vars[0].val.s);
-        out("(v) v\n");
+        out("(v) ");
         if (decl.size == -1) {
+            out("v\n");
             code_type(decl.type);
         } else {
+            out("((v)->root)\n");
             out("Pool");
         }
         out(" ");
@@ -402,6 +407,7 @@ void code_decl (Decl d, tce_ret* ret) {
                 code_expr(*d.init, NULL);
                 out(";\n");
             } else {
+                out("#define VAR_ce_ret(v) v\n");
                 code_type(*d.type.Func.out);
                 out(" ce_ret;\n");
                 Patt pt = (Patt){PATT_SET,.Set={TK_IDVAR,{.s="ce_ret"}}};
