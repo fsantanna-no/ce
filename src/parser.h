@@ -154,10 +154,9 @@ typedef struct {
 } Decl;
 
 typedef struct {
-    Patt patt;
-    Type type;
-    struct Expr* expr;
-} Case;
+    Decl decl;
+    struct Expr* body;
+} Let;
 
 typedef struct {
     struct Expr* tst;
@@ -173,6 +172,7 @@ typedef struct Expr {
         Tk Var;
         Tk Cons;
         Decl Decl;              // EXPR_DECL
+        Let  Let;               // EXPR_LET
         struct Expr* New;       // EXPR_NEW
         struct Expr* Loop;      // EXPR_LOOP
         struct Expr* Break;     // EXPR_BREAK
@@ -193,12 +193,6 @@ typedef struct Expr {
             struct Expr* func;
             struct Expr* arg;
         } Call;
-        struct {        // EXPR_LET
-            Patt patt;
-            Type type;
-            struct Expr* init;
-            struct Expr* body;
-        } Let;
         struct {        // EXPR_IF
             struct Expr* tst;
             struct Expr* true;
@@ -210,8 +204,8 @@ typedef struct Expr {
         } Match;
         struct {        // EXPR_CASES
             struct Expr* tst;
-            int   size;
-            Case* vec;
+            int  size;
+            Let* vec;
         } Cases;
         struct {        // EXPR_CASES
             int size;

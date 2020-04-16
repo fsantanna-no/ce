@@ -317,7 +317,7 @@ void code_patt_set (Patt p, Expr tst) {
     }
 }
 
-void code_patt_decls (Patt patt, Type type) {
+void code_patt_decls (Decl decl) {
     void aux (Tk* vars, int* vars_i, Patt patt) {
         switch (patt.sub) {
             case PATT_RAW:
@@ -345,16 +345,16 @@ void code_patt_decls (Patt patt, Type type) {
     }
     Tk vars[16];
     int vars_i = 0;
-    aux(vars, &vars_i, patt);
+    aux(vars, &vars_i, decl.patt);
     if (vars_i == 1) {
-        code_type(type);
+        code_type(decl.type);
         out(" ");
         out(vars[0].val.s);
         out(";\n");
     } else if (vars_i > 0) {
-        assert(type.Tuple.size == vars_i);
+        assert(decl.type.Tuple.size == vars_i);
         for (int i=0; i<vars_i; i++) {
-            code_type(type.Tuple.vec[i]);
+            code_type(decl.type.Tuple.vec[i]);
             out(" ");
             out(vars[i].val.s);
             out(";\n");
@@ -399,9 +399,9 @@ void code_decl (Decl d, tce_ret* ret) {
         out("}\n\n");
     } else {
         if (d.init == NULL) {
-            code_patt_decls(d.patt, d.type);
+            code_patt_decls(d);
         } else {
-            code_patt_decls(d.patt, d.type);
+            code_patt_decls(d);
             code_patt_set(d.patt, *d.init);
             out(";\n");
         }
@@ -501,8 +501,8 @@ void code_expr (Expr e, tce_ret* ret) {
             break;
         case EXPR_LET: {    // patt,type,init,body
             out("{\n");
-            code_patt_decls(e.Let.patt, e.Let.type);
-            code_patt_set(e.Let.patt, *e.Let.init);
+            code_patt_decls(e.Let.decl);
+            code_patt_set(e.Let.decl.patt, *e.Let.decl.init);
             out(";\n");
             code_expr(*e.Let.body, ret);
             out(";\n");
@@ -565,19 +565,19 @@ void code_expr (Expr e, tce_ret* ret) {
 
             for (int i=0; i<e.Cases.size; i++) {
                 Expr tst_ = tst;
-                Case c = e.Cases.vec[i];
+                Let let = e.Cases.vec[i];
                 Expr star = (Expr) { EXPR_RAW, NULL, .Raw={TK_RAW,{.s="*"}} };
                 Expr old  = tst_;
-                if (c.patt.sub==PATT_CONS && is_rec(c.patt.Cons.data.val.s)) {
+                if (let.decl.patt.sub==PATT_CONS && is_rec(let.decl.patt.Cons.data.val.s)) {
                     tst_ = (Expr) { EXPR_CALL, NULL, .Call={&star,&old} };
                 }
                 out("if (");
-                code_patt_match(c.patt, tst_);
+                code_patt_match(let.decl.patt, tst_);
                 out(") {\n");
-                code_patt_decls(c.patt, c.type);
-                code_patt_set(c.patt, tst_);
+                code_patt_decls(let.decl);
+                code_patt_set(let.decl.patt, tst_);
                 out(";\n");
-                code_expr(*c.expr, ret);
+                code_expr(*let.body, ret);
                 out(";\n");
                 out("} else ");
             }

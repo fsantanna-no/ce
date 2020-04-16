@@ -581,23 +581,23 @@ void* parser_expr__ (void) {
 }
 
 void* parser_case_ (void) {
-    static Case c_;
-    Case c;
+    static Let let_;
+    Let let;
 
     // patt
     if (pr_accept1(TK_ELSE)) {
-        c.patt = (Patt) { PATT_ANY, {} };
-    } else if (!parser_patt(&c.patt,0)) {
+        let.decl.patt = (Patt) { PATT_ANY, {} };
+    } else if (!parser_patt(&let.decl.patt,0)) {
         return NULL;
     }
 
     // decls
     if (pr_accept1(TK_DECL)) {
-        if (!parser_type(&c.type)) {
+        if (!parser_type(&let.decl.type)) {
             return 0;
         }
     } else {
-        c.type.sub = TYPE_NONE;
+        let.decl.type.sub = TYPE_NONE;
     }
 
     // ->
@@ -609,9 +609,9 @@ void* parser_case_ (void) {
         return NULL;
     }
 
-    c.expr = pe;
-    c_ = c;
-    return &c_;
+    let.body = pe;
+    let_ = let;
+    return &let_;
 }
 
 void* parser_if_ (void) {
@@ -767,7 +767,7 @@ int parser_expr_one (Expr* ret) {
             return 0;
         }
 
-        *ret = (Expr) { EXPR_LET, NULL, .Let={d.patt,d.type,d.init,pe} };
+        *ret = (Expr) { EXPR_LET, NULL, .Let={d,pe} };
 
     } else if (pr_accept1(TK_IF)) {
     // EXPR_IFS
@@ -808,7 +808,7 @@ int parser_expr_one (Expr* ret) {
             return 0;
         }
         List lst;
-        if (!parser_list_line(1, &lst, &parser_case_, sizeof(Case))) {
+        if (!parser_list_line(1, &lst, &parser_case_, sizeof(Let))) {
             return 0;
         }
         *ret = (Expr) { EXPR_CASES, NULL, .Cases={pe,lst.size,lst.vec} };
