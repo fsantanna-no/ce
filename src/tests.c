@@ -881,15 +881,9 @@ void t_all (void) {
         "    Pair (x,_) :: Bool -> x\n"
         "{show_Bool}(n)"
     ));
-    assert(all(
-        "Nil\n",
-        "data List\n"
-        "data List:\n"
-        "    Nil  ()\n"
-        "    Cons ((), List)\n"
-        "val l :: List = new Nil\n"
-        "{show_List}(l)"
-    ));
+
+    // DATA - LIST - RECURSIVE
+
     assert(all(
         "Cons\n()\n",
         "data List\n"
@@ -991,9 +985,21 @@ void t_all (void) {
 }
 
 int main (void) {
+#if 0
+    assert(all(
+        "Nil\n",
+        "data List\n"
+        "data List:\n"
+        "    Nil  ()\n"
+        "    Cons ((), List)\n"
+        "val l[] :: List = new Nil\n"
+        "{show_List}(l)"
+    ));
+assert(0);
     t_lexer();
     t_parser();
     t_code();
+#endif
     t_all();
     puts("OK");
 }

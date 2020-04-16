@@ -347,10 +347,12 @@ void code_patt_decls (Decl decl) {
     int vars_i = 0;
     aux(vars, &vars_i, decl.patt);
     if (vars_i == 1) {
+        out("#define VAR_");
+        out(vars[0].val.s);
+        out("(v) v\n");
         if (decl.size == -1) {
             code_type(decl.type);
         } else {
-assert(0);
             out("Pool");
         }
         out(" ");

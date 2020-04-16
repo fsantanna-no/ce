@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-struct Pool {
+typedef struct Pool {
     void* root;         // pointer to actual value
     int n;              // number of allocated items
     struct Pool* nxt;   // next pool in the scope
