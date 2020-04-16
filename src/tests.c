@@ -510,7 +510,7 @@ void t_code (void) {
             strcpy(e.Var.val.s, "xxx");
         code_expr(e, NULL);
         fclose(ALL.out[OGLOB]);
-        assert(!strcmp(out,"xxx"));
+        assert(!strcmp(out,"VAR_xxx(xxx)"));
     }
     {
         char out[256] = "";
@@ -532,7 +532,7 @@ void t_code (void) {
         tce_ret ret = { &pt, NULL };
         code_expr(e, &ret);
         fclose(ALL.out[OGLOB]);
-        assert(!strcmp(out,"{\nint xxx;\nret = xxx;\n}\n"));
+        assert(!strcmp(out,"{\n#define VAR_xxx(v) v\nint xxx;\nVAR_ret(ret) = VAR_xxx(xxx);\n}\n"));
     }
     {
         char out[256] = "";
@@ -548,9 +548,10 @@ void t_code (void) {
             "#include \"inc/ce.c\"\n"
             "int main (void) {\n"
             "\n"
+            "#define VAR_a(v) v\n"
             "int a;\n"
             ";\n"
-            "show_Bool(a);\n"
+            "show_Bool(VAR_a(a));\n"
             "\n"
             "}\n";
         assert(!strcmp(out,ret));
@@ -570,8 +571,9 @@ void t_code (void) {
             "int main (void) {\n"
             "\n"
             "{\n"
-            "typeof(fgetc(inp)) ce_tst = fgetc(inp);\n"
-            "if (ce_tst == '\\n') {\n"
+            "#define VAR_ce_tst(v) v\n"
+            "typeof(fgetc(VAR_inp(inp))) ce_tst = fgetc(VAR_inp(inp));\n"
+            "if (VAR_ce_tst(ce_tst) == '\\n') {\n"
             ";\n"
             "1;\n"
             "} else {\n"
@@ -996,10 +998,10 @@ int main (void) {
         "{show_List}(l)"
     ));
 assert(0);
+#endif
     t_lexer();
     t_parser();
     t_code();
-#endif
     t_all();
     puts("OK");
 }
