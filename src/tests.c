@@ -505,7 +505,7 @@ void t_code (void) {
     {
         char out[256];
         init(stropen("w",sizeof(out),out), NULL);
-        Expr e = { EXPR_VAR, NULL, {} };
+        Expr e = { EXPR_VAR, {}, {}, NULL, {} };
             e.Var.sym = TK_IDVAR;
             strcpy(e.Var.val.s, "xxx");
         code_expr(e, NULL);
@@ -515,7 +515,7 @@ void t_code (void) {
     {
         char out[256] = "";
         init(stropen("w",sizeof(out),out), NULL);
-        Expr e = { EXPR_VAR, NULL, {} };
+        Expr e = { EXPR_VAR, {}, {}, NULL, {} };
             e.Var.sym = TK_IDVAR;
             strcpy(e.Var.val.s, "xxx");
         Decl d;
@@ -525,7 +525,7 @@ void t_code (void) {
             d.patt.Set.sym = TK_IDVAR;
             strcpy(d.patt.Set.val.s, "xxx");
             d.type.sub = TYPE_UNIT;
-        Expr n = { EXPR_DECL, NULL, .Decl=d };
+        Expr n = { EXPR_DECL, {}, {}, NULL, .Decl=d };
         e.nested = &n;
         // xxx: xxx::()
         Patt pt = (Patt){PATT_SET,.Set={TK_IDVAR,{.s="ret"}}};
@@ -548,9 +548,11 @@ void t_code (void) {
             "#include \"inc/ce.c\"\n"
             "int main (void) {\n"
             "\n"
+            "#line 1\n"
             "#define VAR_a(v) v\n"
             "int a;\n"
             ";\n"
+            "#line 2\n"
             "show_Bool(VAR_a(a));\n"
             "\n"
             "}\n";
@@ -570,6 +572,7 @@ void t_code (void) {
             "#include \"inc/ce.c\"\n"
             "int main (void) {\n"
             "\n"
+            "#line 1\n"
             "{\n"
             "#define VAR_ce_tst(v) v\n"
             "typeof(fgetc(VAR_inp(inp))) ce_tst = fgetc(VAR_inp(inp));\n"
@@ -995,6 +998,17 @@ int main (void) {
         "    Nil  ()\n"
         "    Cons ((), List)\n"
         "val l[] :: List = new Nil\n"
+        "{show_List}(l)"
+    ));
+    assert(all(
+        "Nil\n",
+        "data List\n"
+        "data List:\n"
+        "    Nil  ()\n"
+        "    Cons ((), List)\n"
+        "func fff :: (() -> List):\n"
+        "    new Nil\n"
+        "val l[] :: List = fff()\n"
         "{show_List}(l)"
     ));
 assert(0);

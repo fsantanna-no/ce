@@ -266,7 +266,7 @@ void code_patt_match (Patt p, Expr tst) {
                 out(" && ");
                 code_patt_match (
                     *p.Cons.arg,
-                    (Expr) { EXPR_CONS_SUB, .Cons_Sub={&tst,p.Cons.data.val.s} }
+                    (Expr) { EXPR_CONS_SUB, {}, {}, .Cons_Sub={&tst,p.Cons.data.val.s} }
                 );
             }
             break;
@@ -277,7 +277,7 @@ void code_patt_match (Patt p, Expr tst) {
                 }
                 code_patt_match (
                     p.Tuple.vec[i],
-                    (Expr) { EXPR_TUPLE_IDX, .Tuple_Idx={&tst,i} }
+                    (Expr) { EXPR_TUPLE_IDX, {}, {}, .Tuple_Idx={&tst,i} }
                 );
             }
             break;
@@ -303,7 +303,7 @@ void code_patt_set (Patt p, Expr tst) {
             if (p.Cons.arg != NULL) {
                 code_patt_set (
                     *p.Cons.arg,
-                    (Expr) { EXPR_CONS_SUB, .Cons_Sub={&tst,p.Cons.data.val.s} }
+                    (Expr) { EXPR_CONS_SUB, {}, {}, .Cons_Sub={&tst,p.Cons.data.val.s} }
                 );
             }
             break;
@@ -311,7 +311,7 @@ void code_patt_set (Patt p, Expr tst) {
             for (int i=0; i<p.Tuple.size; i++) {
                 code_patt_set (
                     p.Tuple.vec[i],
-                    (Expr) { EXPR_TUPLE_IDX, .Tuple_Idx={&tst,i} }
+                    (Expr) { EXPR_TUPLE_IDX, {}, {}, .Tuple_Idx={&tst,i} }
                 );
             }
             break;
@@ -357,11 +357,18 @@ void code_patt_decls (Decl decl) {
             out("v\n");
             code_type(decl.type);
         } else {
-            out("((v)->root)\n");
-            out("Pool");
+            out("(v->root)\n");
+            out("Pool _");
+            out(vars[0].val.s);
+            out(";\n");
+            out("Pool*");
         }
         out(" ");
         out(vars[0].val.s);
+        if (decl.size != -1) {
+            out(" = &_");
+            out(vars[0].val.s);
+        }
         out(";\n");
     } else if (vars_i > 1) {
         assert(decl.type.Tuple.size == vars_i);
@@ -382,6 +389,8 @@ void code_patt_decls (Decl decl) {
 
 void code_decl (Decl d, tce_ret* ret) {
     if (d.type.sub == TYPE_FUNC) {
+        int rec = (d.type.Func.out->sub == TYPE_DATA) &&
+                  is_rec(d.type.Func.out->Data.val.s);
         assert(d.init != NULL);
         assert(d.patt.sub == PATT_SET);
         out("\n");
@@ -397,19 +406,30 @@ void code_decl (Decl d, tce_ret* ret) {
             out(" ");
             out(out2);
             out("\n");
-        code_type(*d.type.Func.out);
+        if (rec) {
+            out("void");
+        } else {
+            code_type(*d.type.Func.out);
+        }
             out(" ");
-            out(d.patt.Set.val.s);
-            out(" (");
-            out(out2);
+        out(d.patt.Set.val.s);
+        out(" (");
+        if (rec) {
+            out("Pool* ce_ret,");
+        }
+        out(out2);
         out(" ce_arg) {\n");
             if (d.type.Func.out->sub == TYPE_UNIT) {
                 code_expr(*d.init, NULL);
                 out(";\n");
             } else {
-                out("#define VAR_ce_ret(v) v\n");
-                code_type(*d.type.Func.out);
-                out(" ce_ret;\n");
+                if (rec) {
+                    out("#define VAR_ce_ret(v) (v->root)\n");
+                } else {
+                    out("#define VAR_ce_ret(v) v\n");
+                    code_type(*d.type.Func.out);
+                    out(" ce_ret;\n");
+                }
                 Patt pt = (Patt){PATT_SET,.Set={TK_IDVAR,{.s="ce_ret"}}};
                 tce_ret r = { &pt, NULL };
                 code_expr(*d.init, &r);
@@ -463,6 +483,8 @@ void code_expr (Expr e, tce_ret* ret) {
         case EXPR_NEW:
             code_ret(ret);
             out("({");
+            out(ret->patt->Set.val.s);
+            out("->cur++; ");
             out("typeof(");
             code_expr(*e.New, NULL);
             out(")* ptr = malloc(sizeof(");
@@ -520,6 +542,7 @@ void code_expr (Expr e, tce_ret* ret) {
             break;
         case EXPR_SEQ:
             for (int i=0; i<e.Seq.size; i++) {
+                fprintf(ALL.out[OGLOB], "#line %ld\n", e.Seq.vec[i].tok.lin);
                 code_expr(e.Seq.vec[i], (i==e.Seq.size-1) ? ret : NULL);
                 out(";\n");
             }
@@ -586,16 +609,16 @@ void code_expr (Expr e, tce_ret* ret) {
                 out(") ce_tst = ");
                 code_expr(*e.Cases.tst, NULL);
                 out(";\n");
-                tst = (Expr) { EXPR_VAR, NULL, {.Var={TK_IDVAR,{.s="ce_tst"}}} };
+                tst = (Expr) { EXPR_VAR, {}, {}, NULL, {.Var={TK_IDVAR,{.s="ce_tst"}}} };
             }
 
             for (int i=0; i<e.Cases.size; i++) {
                 Expr tst_ = tst;
                 Let let = e.Cases.vec[i];
-                Expr star = (Expr) { EXPR_RAW, NULL, .Raw={TK_RAW,{.s="*"}} };
+                Expr star = (Expr) { EXPR_RAW, {}, {}, NULL, .Raw={TK_RAW,{.s="*"}} };
                 Expr old  = tst_;
                 if (let.decl.patt.sub==PATT_CONS && is_rec(let.decl.patt.Cons.data.val.s)) {
-                    tst_ = (Expr) { EXPR_CALL, NULL, .Call={&star,&old} };
+                    tst_ = (Expr) { EXPR_CALL, {}, {}, NULL, .Call={&star,&old} };
                 }
                 out("if (");
                 code_patt_match(let.decl.patt, tst_);
@@ -660,6 +683,7 @@ void code_prog (Prog prog) {
                 code_data(g.data);
                 break;
             case GLOB_EXPR:
+                fprintf(ALL.out[OGLOB], "#line %ld\n", g.expr.tok.lin);
                 code_expr(g.expr, NULL);
                 out(";\n");
                 break;

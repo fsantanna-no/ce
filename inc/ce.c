@@ -4,7 +4,8 @@
 
 typedef struct Pool {
     void* root;         // pointer to actual value
-    int n;              // number of allocated items
+    //int max;            // max number of allocated items
+    int cur;            // cur number of allocated items
     struct Pool* nxt;   // next pool in the scope
 } Pool;
 

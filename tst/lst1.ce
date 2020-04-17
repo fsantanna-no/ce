@@ -17,4 +17,5 @@ func showC :: (Chars -> ()):
             showC(l)
 
 val cs[] :: Chars = c2Chars({"abc"})
+{assert(cs.n == 3)}
 showC(c2Chars({"abc"}))

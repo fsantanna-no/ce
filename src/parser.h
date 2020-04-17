@@ -165,7 +165,9 @@ typedef struct {
 
 typedef struct Expr {
     EXPR  sub;
-    struct Expr* nested;
+    State_Tok tok;
+    Type  type;             // type of expression
+    struct Expr* nested;    // nested block inside expression
     union {
         Tk Raw;
         Tk Unit;
