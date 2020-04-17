@@ -840,7 +840,7 @@ int parser_expr_one (Decl** env, Expr* ret) {
         return err_expected("expression");
     }
 
-    assert(ret->nested == NULL);
+    assert(ret->where == NULL);
 
     return 1;
 }
@@ -908,14 +908,14 @@ int parser_expr (Decl** env, Expr* ret) {
     }
 
 _WHERE_:
-    assert(ret->nested == NULL);
+    assert(ret->where == NULL);
     if (
         (pr_check0('\n') && TOK0.tk.val.n==ALL.ind && pr_accept1(TK_WHERE))
     ||
         (!pr_check0('\n') && pr_accept1(TK_WHERE))
     ) {
-        ret->nested = expr_new(env);
-        return (ret->nested != NULL);
+        ret->where = expr_new(env);
+        return (ret->where != NULL);
     }
     return 1;
 }

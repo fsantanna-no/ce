@@ -175,7 +175,7 @@ typedef struct Expr {
     EXPR  sub;
     State_Tok tok;
     Decl* env;
-    struct Expr* nested;    // nested block inside expression
+    struct Expr* where;    // block that executes/declares before expression
     union {
         Tk Raw;
         Tk Unit;

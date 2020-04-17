@@ -473,10 +473,10 @@ void t_parser_block (void) {
         assert(parser_expr(&env,&e));
         assert(e.sub == EXPR_SEQ);
         assert(e.Seq.size == 2);
-        assert(e.Seq.vec[0].nested != NULL);
-        assert(e.Seq.vec[1].nested != NULL);
-        assert(e.Seq.vec[0].nested->Seq.vec[0].sub == EXPR_DECL);
-        assert(e.Seq.vec[1].nested->Seq.vec[0].sub == EXPR_DECL);
+        assert(e.Seq.vec[0].where != NULL);
+        assert(e.Seq.vec[1].where != NULL);
+        assert(e.Seq.vec[0].where->Seq.vec[0].sub == EXPR_DECL);
+        assert(e.Seq.vec[1].where->Seq.vec[0].sub == EXPR_DECL);
         fclose(ALL.inp);
     }
     {
@@ -489,8 +489,8 @@ void t_parser_block (void) {
         Expr e;
         assert(parser_expr(&env,&e));
         assert(e.sub == EXPR_VAR);
-        assert(e.nested != NULL);
-        assert(e.nested->sub == EXPR_SEQ);
+        assert(e.where != NULL);
+        assert(e.where->sub == EXPR_SEQ);
         fclose(ALL.inp);
     }
 }
@@ -528,7 +528,7 @@ void t_code (void) {
             strcpy(d.patt.Set.id.val.s, "xxx");
             d.type.sub = TYPE_UNIT;
         Expr n = { EXPR_DECL, {}, NULL, NULL, .Decl=d };
-        e.nested = &n;
+        e.where = &n;
         // xxx: xxx::()
         Patt pt = (Patt){PATT_SET,.Set={{TK_IDVAR,{.s="ret"}},-1}};
         tce_ret ret = { &pt, NULL };

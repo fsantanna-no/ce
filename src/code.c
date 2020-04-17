@@ -311,6 +311,7 @@ void code_patt_set (Patt p, Expr e) {
             int rec_call = 0;
             if (e.sub == EXPR_CALL) {     // val l[] = f()
                 Patt_Type pt;
+puts(p.Set.id.val.s);
                 assert(find(&pt, e.env, p.Set.id.val.s));
                 rec_call = (pt.type.sub == TYPE_DATA) && is_rec(pt.type.Data.val.s);
             }
@@ -476,9 +477,9 @@ rec = 0; // TODO
 ///////////////////////////////////////////////////////////////////////////////
 
 void code_expr (Expr e, tce_ret* ret) {
-    if (e.nested != NULL) {
+    if (e.where != NULL) {
         out("{\n");
-        code_expr(*e.nested, NULL);
+        code_expr(*e.where, NULL);
     }
     switch (e.sub) {
         case EXPR_RAW:
@@ -693,7 +694,7 @@ void code_expr (Expr e, tce_ret* ret) {
 //printf("%d\n", e.sub);
             assert(0 && "TODO");
     }
-    if (e.nested != NULL) {
+    if (e.where != NULL) {
         out(";\n");
         out("}\n");
     }
