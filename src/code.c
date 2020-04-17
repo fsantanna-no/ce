@@ -22,8 +22,6 @@ void code_ret (tce_ret* ret) {
     }
 }
 
-#define ENULL NULL
-
 ///////////////////////////////////////////////////////////////////////////////
 
 char* type2str (Type* tp) {
@@ -302,7 +300,7 @@ int find (Patt_Type* ret, Decl* cur, char* id) {
     }
 }
 
-void code_patt_set (Decl* env, Patt p, Expr e) {
+void code_patt_set (Patt p, Expr e) {
     switch (p.sub) {
         case PATT_RAW:
         case PATT_ANY:
@@ -313,7 +311,7 @@ void code_patt_set (Decl* env, Patt p, Expr e) {
             int rec_call = 0;
             if (e.sub == EXPR_CALL) {     // val l[] = f()
                 Patt_Type pt;
-                assert(find(&pt, env, p.Set.id.val.s));
+                assert(find(&pt, NULL, p.Set.id.val.s));
                 rec_call = (pt.type.sub == TYPE_DATA) && is_rec(pt.type.Data.val.s);
             }
             if (rec_call) {
@@ -328,7 +326,6 @@ void code_patt_set (Decl* env, Patt p, Expr e) {
         case PATT_CONS:
             if (p.Cons.arg != NULL) {
                 code_patt_set (
-                    env,
                     *p.Cons.arg,
                     (Expr) { EXPR_CONS_SUB, {}, {}, .Cons_Sub={&e,p.Cons.data.val.s} }
                 );
@@ -337,7 +334,6 @@ void code_patt_set (Decl* env, Patt p, Expr e) {
         case PATT_TUPLE:
             for (int i=0; i<p.Tuple.size; i++) {
                 code_patt_set (
-                    env,
                     p.Tuple.vec[i],
                     (Expr) { EXPR_TUPLE_IDX, {}, {}, .Tuple_Idx={&e,i} }
                 );
@@ -471,7 +467,7 @@ rec = 0; // TODO
             code_patt_decls(d);
         } else {
             code_patt_decls(d);
-            code_patt_set(ENULL, d.patt, *d.init);
+            code_patt_set(d.patt, *d.init);
             out(";\n");
         }
     }
@@ -524,7 +520,7 @@ void code_expr (Expr e, tce_ret* ret) {
             out("; ptr; })");
             break;
         case EXPR_SET:
-            code_patt_set(ENULL, e.Set.patt, *e.Set.expr);
+            code_patt_set(e.Set.patt, *e.Set.expr);
             out(";\n");
             break;
         case EXPR_CALL:
@@ -580,7 +576,7 @@ void code_expr (Expr e, tce_ret* ret) {
         case EXPR_LET: {    // patt,type,init,body
             out("{\n");
             code_patt_decls(e.Let.decl);
-            code_patt_set(ENULL, e.Let.decl.patt, *e.Let.decl.init);
+            code_patt_set(e.Let.decl.patt, *e.Let.decl.init);
             out(";\n");
             code_expr(*e.Let.body, ret);
             out(";\n");
@@ -654,7 +650,7 @@ void code_expr (Expr e, tce_ret* ret) {
                 code_patt_match(let.decl.patt, tst_);
                 out(") {\n");
                 code_patt_decls(let.decl);
-                code_patt_set(ENULL, let.decl.patt, tst_);
+                code_patt_set(let.decl.patt, tst_);
                 out(";\n");
                 code_expr(*let.body, ret);
                 out(";\n");
