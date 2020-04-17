@@ -158,7 +158,7 @@ typedef struct {
     Patt patt;
     Type type;
     struct Expr* init;
-    struct Decl* up;
+    struct Decl* prev;
 } Decl;
 
 typedef struct {

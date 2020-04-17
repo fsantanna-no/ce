@@ -557,6 +557,8 @@ int parser_decl (Decl** env, Decl* decl) {
         decl->init = NULL;
     }
 
+    decl->prev = (struct Decl*) *env;
+    *env = decl;
     return 1;
 }
 
