@@ -14,9 +14,9 @@ void code_ret (tce_ret* ret) {
     while (ret != NULL) {
         assert (ret->patt->sub == PATT_SET);
         out("VAR_");
-        out(ret->patt->Set.val.s);
+        out(ret->patt->Set.id.val.s);
         out("(");
-        out(ret->patt->Set.val.s);
+        out(ret->patt->Set.id.val.s);
         out(") = ");
         ret = ret->nxt;
     }
@@ -286,7 +286,21 @@ void code_patt_match (Patt p, Expr tst) {
     }
 }
 
-void code_patt_set (Patt p, Expr tst) {
+int find (Patt_Type* ret, Decl* cur, char* id) {
+    if (cur == NULL) {
+        return 0;
+    }
+    assert(cur->patt.sub == PATT_SET);
+    if (!strcmp(cur->patt.Set.id.val.s, id)) {
+        ret->patt = cur->patt;
+        ret->type = cur->type;
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
+void code_patt_set (Patt p, Expr e) {
     switch (p.sub) {
         case PATT_RAW:
         case PATT_ANY:
@@ -294,8 +308,19 @@ void code_patt_set (Patt p, Expr tst) {
         case PATT_EXPR:
             break;
         case PATT_SET: {        // x = ce_tst
-            tce_ret r = { &p, NULL };
-            code_expr(tst, &r);
+            int rec_call = 0;
+            if (e.sub == EXPR_CALL) {     // val l[] = f()
+                Patt_Type pt;
+// TODO
+                //assert(find(&pt, NULL, p.Set.id.val.s));
+                //rec_call = (pt.type.sub == TYPE_DATA) && is_rec(pt.type.Data.val.s);
+            }
+            if (rec_call) {
+                assert(0 && "TODO");
+            } else {
+                tce_ret r = { &p, NULL };
+                code_expr(e, &r);
+            }
             out(";\n");
             break;
         }
@@ -303,7 +328,7 @@ void code_patt_set (Patt p, Expr tst) {
             if (p.Cons.arg != NULL) {
                 code_patt_set (
                     *p.Cons.arg,
-                    (Expr) { EXPR_CONS_SUB, {}, {}, .Cons_Sub={&tst,p.Cons.data.val.s} }
+                    (Expr) { EXPR_CONS_SUB, {}, {}, .Cons_Sub={&e,p.Cons.data.val.s} }
                 );
             }
             break;
@@ -311,7 +336,7 @@ void code_patt_set (Patt p, Expr tst) {
             for (int i=0; i<p.Tuple.size; i++) {
                 code_patt_set (
                     p.Tuple.vec[i],
-                    (Expr) { EXPR_TUPLE_IDX, {}, {}, .Tuple_Idx={&tst,i} }
+                    (Expr) { EXPR_TUPLE_IDX, {}, {}, .Tuple_Idx={&e,i} }
                 );
             }
             break;
@@ -330,7 +355,7 @@ void code_patt_decls (Decl decl) {
                 break;
             case PATT_SET:
                 assert(*vars_i < 16);
-                vars[(*vars_i)++] = patt.Set;
+                vars[(*vars_i)++] = patt.Set.id;
                 break;
             case PATT_CONS:
                 if (patt.Cons.arg != NULL) {
@@ -353,7 +378,8 @@ void code_patt_decls (Decl decl) {
         out("#define VAR_");
         out(vars[0].val.s);
         out("(v) ");
-        if (decl.size == -1) {
+        int size = (decl.patt.sub == PATT_SET ? decl.patt.Set.size : -1);
+        if (size == -1) {
             out("v\n");
             code_type(decl.type);
         } else {
@@ -365,7 +391,7 @@ void code_patt_decls (Decl decl) {
         }
         out(" ");
         out(vars[0].val.s);
-        if (decl.size != -1) {
+        if (size != -1) {
             out(" = &_");
             out(vars[0].val.s);
         }
@@ -373,7 +399,6 @@ void code_patt_decls (Decl decl) {
     } else if (vars_i > 1) {
         assert(decl.type.Tuple.size == vars_i);
         for (int i=0; i<vars_i; i++) {
-            assert(decl.size == -1);
             out("#define VAR_");
             out(vars[i].val.s);
             out("(v) v\n");
@@ -400,10 +425,10 @@ rec = 0; // TODO
         code_type_(out1, out2, *d.type.Func.inp);
         out(out1);
         out("#define VAR_");
-            out(d.patt.Set.val.s);
+            out(d.patt.Set.id.val.s);
             out("(v) v\n");
         out("#define TYPE_");
-            out(d.patt.Set.val.s);
+            out(d.patt.Set.id.val.s);
             out(" ");
             out(out2);
             out("\n");
@@ -413,7 +438,7 @@ rec = 0; // TODO
             code_type(*d.type.Func.out);
         }
             out(" ");
-        out(d.patt.Set.val.s);
+        out(d.patt.Set.id.val.s);
         out(" (");
         if (rec) {
             out("Pool* ce_ret,");
@@ -431,7 +456,7 @@ rec = 0; // TODO
                     code_type(*d.type.Func.out);
                     out(" ce_ret;\n");
                 }
-                Patt pt = (Patt){PATT_SET,.Set={TK_IDVAR,{.s="ce_ret"}}};
+                Patt pt = (Patt){PATT_SET,.Set={{TK_IDVAR,{.s="ce_ret"}},-1}};
                 tce_ret r = { &pt, NULL };
                 code_expr(*d.init, &r);
                 out(";\n");
@@ -529,7 +554,7 @@ void code_expr (Expr e, tce_ret* ret) {
             code_ret(ret);
             if (ret != NULL) {
                 out("(typeof(");
-                out(ret->patt->Set.val.s);
+                out(ret->patt->Set.id.val.s);
                 out(")) ");
             }
             out("{ ");

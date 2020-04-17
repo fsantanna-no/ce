@@ -254,7 +254,7 @@ void t_parser_expr (void) {
         Expr e;
         assert(parser_expr(&e));
         assert(e.sub == EXPR_SET);
-        assert(!strcmp(e.Set.patt.Set.val.s, "a"));
+        assert(!strcmp(e.Set.patt.Set.id.val.s, "a"));
         assert(!strcmp(e.Set.expr->Var.val.s, "x"));
         fclose(ALL.inp);
     }
@@ -383,7 +383,6 @@ void t_parser_decls (void) {
     void* parser_decl_ (void) {
         static Decl d_;
         Decl d;
-        d.size = -1;
         if (!parser_decl(&d)) {
             return NULL;
         }
@@ -418,7 +417,7 @@ void t_parser_decls (void) {
         Decls ds;
         assert(parser_decls(&ds));
         assert(ds.size == 1);
-        assert(!strcmp(ds.vec[0].patt.Set.val.s, "a"));
+        assert(!strcmp(ds.vec[0].patt.Set.id.val.s, "a"));
         assert(ds.vec[0].type.sub == TYPE_UNIT);
         fclose(ALL.inp);
     }
@@ -427,7 +426,7 @@ void t_parser_decls (void) {
         Decls ds;
         assert(parser_decls(&ds));
         assert(ds.size == 1);
-        assert(!strcmp(ds.vec[0].patt.Set.val.s, "a"));
+        assert(!strcmp(ds.vec[0].patt.Set.id.val.s, "a"));
         assert(ds.vec[0].type.sub == TYPE_RAW);
         assert(!strcmp(ds.vec[0].type.Raw.val.s,"char"));
         fclose(ALL.inp);
@@ -437,7 +436,7 @@ void t_parser_decls (void) {
         Decls ds;
         assert(parser_decls(&ds));
         assert(ds.size == 2);
-        assert(!strcmp(ds.vec[0].patt.Tuple.vec[0].Set.val.s, "a"));
+        assert(!strcmp(ds.vec[0].patt.Tuple.vec[0].Set.id.val.s, "a"));
         assert(ds.vec[0].type.sub == TYPE_TUPLE);
         assert(!strcmp(ds.vec[0].type.Tuple.vec[1].Raw.val.s,"char"));
         assert(ds.vec[1].type.sub == TYPE_UNIT);
@@ -519,16 +518,16 @@ void t_code (void) {
             e.Var.sym = TK_IDVAR;
             strcpy(e.Var.val.s, "xxx");
         Decl d;
-            d.size = -1;
             d.init = NULL;
             d.patt.sub = PATT_SET;
-            d.patt.Set.sym = TK_IDVAR;
-            strcpy(d.patt.Set.val.s, "xxx");
+            d.patt.Set.id.sym = TK_IDVAR;
+            d.patt.Set.size   = -1;
+            strcpy(d.patt.Set.id.val.s, "xxx");
             d.type.sub = TYPE_UNIT;
         Expr n = { EXPR_DECL, {}, {}, NULL, .Decl=d };
         e.nested = &n;
         // xxx: xxx::()
-        Patt pt = (Patt){PATT_SET,.Set={TK_IDVAR,{.s="ret"}}};
+        Patt pt = (Patt){PATT_SET,.Set={{TK_IDVAR,{.s="ret"}},-1}};
         tce_ret ret = { &pt, NULL };
         code_expr(e, &ret);
         fclose(ALL.out[OGLOB]);

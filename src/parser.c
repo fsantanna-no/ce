@@ -29,6 +29,9 @@ void dump_expr_ (Expr e, int spc) {
             //fputs(" = ", stdout);
             //dump_expr_(*e.Set.val, 0);
             break;
+        case EXPR_NEW:
+            fputs("new (...)", stdout);
+            break;
         case EXPR_FUNC:
             fputs("func (...)", stdout);
             break;
@@ -420,6 +423,14 @@ int parser_patt (Patt* ret, int is_match) {
         }
     // PATT_SET
     } else if (pr_accept1(TK_IDVAR)) {
+        int size = -1;
+        if (pr_accept1('[')) {
+            if (!pr_accept1(']')) {
+                return err_expected("`]`");
+            }
+            size = 0;
+        }
+
         if (is_match) {
             Expr e = (Expr) { EXPR_VAR, {}, {}, NULL, .Var=TOK0.tk };
             Expr* pe = malloc(sizeof(Expr));
@@ -427,7 +438,7 @@ int parser_patt (Patt* ret, int is_match) {
             *pe = e;
             *ret = (Patt) { PATT_EXPR, .Expr=pe };
         } else {
-            *ret = (Patt) { PATT_SET, .Set=TOK0.tk };
+            *ret = (Patt) { PATT_SET, .Set={TOK0.tk,size} };
         }
     } else if (pr_accept1('~')) {
         Expr* pe = expr_new();
@@ -526,14 +537,6 @@ int parser_decl_nopre (Decl* decl) {
         return 0;
     }
 
-    decl->size = -1;
-    if (pr_accept1('[')) {
-        if (!pr_accept1(']')) {
-            return err_expected("`]`");
-        }
-        decl->size = 0;
-    }
-
     if (!pr_accept1(TK_DECL)) {
         return err_expected("`::`");
     }
@@ -585,7 +588,6 @@ void* parser_expr__ (void) {
 void* parser_case_ (void) {
     static Let let_;
     Let let;
-    let.decl.size = -1;
 
     // patt
     if (pr_accept1(TK_ELSE)) {

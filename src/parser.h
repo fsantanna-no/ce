@@ -133,8 +133,11 @@ typedef struct Patt {
     PATT sub;
     union {
         Tk Raw;             // PATT_RAW
-        Tk Set;             // PATT_SET
-        struct Expr* Expr;  // PATT_SET
+        struct Expr* Expr;  // PATT_EXPR
+        struct {            // PATT_SET
+            Tk  id;
+            int size;       // -1 if not pool, 0 if unbounded, n if bounded
+        } Set;
         struct {            // PATT_TUPLE
             int size;
             struct Patt* vec;
@@ -146,11 +149,16 @@ typedef struct Patt {
     };
 } Patt;
 
+typedef struct Patt_Type {
+    Patt patt;
+    Type type;
+} Patt_Type;
+
 typedef struct {
     Patt patt;
-    int  size;  // -1 if not pool, 0 if unbounded, n if bounded
     Type type;
     struct Expr* init;
+    struct Decl* up;
 } Decl;
 
 typedef struct {
