@@ -268,6 +268,6 @@ FILE* stropen (const char* mode, size_t size, char* str);
 
 int parser_type (Type*  ret);
 int parser_data (Data*  ret);
-int parser_patt (Patt*  ret, int is_match);
+int parser_patt (Decl*  env, Patt* ret, int is_match);
 int parser_expr (Decl** env, Expr* ret);
 int parser_prog (Prog*  prog);
