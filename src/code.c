@@ -266,7 +266,7 @@ void code_patt_match (Patt p, Expr tst) {
                 out(" && ");
                 code_patt_match (
                     *p.Cons.arg,
-                    (Expr) { EXPR_CONS_SUB, {}, {}, .Cons_Sub={&tst,p.Cons.data.val.s} }
+                    (Expr) { EXPR_CONS_SUB, {}, ENULL, .Cons_Sub={&tst,p.Cons.data.val.s} }
                 );
             }
             break;
@@ -277,7 +277,7 @@ void code_patt_match (Patt p, Expr tst) {
                 }
                 code_patt_match (
                     p.Tuple.vec[i],
-                    (Expr) { EXPR_TUPLE_IDX, {}, {}, .Tuple_Idx={&tst,i} }
+                    (Expr) { EXPR_TUPLE_IDX, {}, ENULL, .Tuple_Idx={&tst,i} }
                 );
             }
             break;
@@ -311,7 +311,7 @@ void code_patt_set (Patt p, Expr e) {
             int rec_call = 0;
             if (e.sub == EXPR_CALL) {     // val l[] = f()
                 Patt_Type pt;
-                assert(find(&pt, NULL, p.Set.id.val.s));
+                assert(find(&pt, e.env, p.Set.id.val.s));
                 rec_call = (pt.type.sub == TYPE_DATA) && is_rec(pt.type.Data.val.s);
             }
             if (rec_call) {
@@ -327,7 +327,7 @@ void code_patt_set (Patt p, Expr e) {
             if (p.Cons.arg != NULL) {
                 code_patt_set (
                     *p.Cons.arg,
-                    (Expr) { EXPR_CONS_SUB, {}, {}, .Cons_Sub={&e,p.Cons.data.val.s} }
+                    (Expr) { EXPR_CONS_SUB, {}, ENULL, .Cons_Sub={&e,p.Cons.data.val.s} }
                 );
             }
             break;
@@ -335,7 +335,7 @@ void code_patt_set (Patt p, Expr e) {
             for (int i=0; i<p.Tuple.size; i++) {
                 code_patt_set (
                     p.Tuple.vec[i],
-                    (Expr) { EXPR_TUPLE_IDX, {}, {}, .Tuple_Idx={&e,i} }
+                    (Expr) { EXPR_TUPLE_IDX, {}, ENULL, .Tuple_Idx={&e,i} }
                 );
             }
             break;
@@ -635,16 +635,16 @@ void code_expr (Expr e, tce_ret* ret) {
                 out(") ce_tst = ");
                 code_expr(*e.Cases.tst, NULL);
                 out(";\n");
-                tst = (Expr) { EXPR_VAR, {}, {}, NULL, {.Var={TK_IDVAR,{.s="ce_tst"}}} };
+                tst = (Expr) { EXPR_VAR, {}, ENULL, NULL, {.Var={TK_IDVAR,{.s="ce_tst"}}} };
             }
 
             for (int i=0; i<e.Cases.size; i++) {
                 Expr tst_ = tst;
                 Let let = e.Cases.vec[i];
-                Expr star = (Expr) { EXPR_RAW, {}, {}, NULL, .Raw={TK_RAW,{.s="*"}} };
+                Expr star = (Expr) { EXPR_RAW, {}, ENULL, NULL, .Raw={TK_RAW,{.s="*"}} };
                 Expr old  = tst_;
                 if (let.decl.patt.sub==PATT_CONS && is_rec(let.decl.patt.Cons.data.val.s)) {
-                    tst_ = (Expr) { EXPR_CALL, {}, {}, NULL, .Call={&star,&old} };
+                    tst_ = (Expr) { EXPR_CALL, {}, ENULL, NULL, .Call={&star,&old} };
                 }
                 out("if (");
                 code_patt_match(let.decl.patt, tst_);

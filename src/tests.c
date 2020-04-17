@@ -380,7 +380,7 @@ void t_parser_decls (void) {
         }
         return parser_decl_nopre(decl);
     }
-    void* parser_decl_ (void) {
+    void* parser_decl_ (Decl** decl) {
         static Decl d_;
         Decl d;
         if (!parser_decl(&d)) {
@@ -391,7 +391,7 @@ void t_parser_decls (void) {
     }
     int parser_decls (Decls* ret) {
         List lst;
-        if (!parser_list_line(1, &lst, &parser_decl_, sizeof(Decl))) {
+        if (!parser_list_line(NULL, 1, &lst, &parser_decl_, sizeof(Decl))) {
             return 0;
         }
         *ret = (Decls) { lst.size, lst.vec };
@@ -504,7 +504,7 @@ void t_code (void) {
     {
         char out[256];
         init(stropen("w",sizeof(out),out), NULL);
-        Expr e = { EXPR_VAR, {}, {}, NULL, {} };
+        Expr e = { EXPR_VAR, {}, NULL, NULL, {} };
             e.Var.sym = TK_IDVAR;
             strcpy(e.Var.val.s, "xxx");
         code_expr(e, NULL);
@@ -514,7 +514,7 @@ void t_code (void) {
     {
         char out[256] = "";
         init(stropen("w",sizeof(out),out), NULL);
-        Expr e = { EXPR_VAR, {}, {}, NULL, {} };
+        Expr e = { EXPR_VAR, {}, NULL, NULL, {} };
             e.Var.sym = TK_IDVAR;
             strcpy(e.Var.val.s, "xxx");
         Decl d;
@@ -524,7 +524,7 @@ void t_code (void) {
             d.patt.Set.size   = -1;
             strcpy(d.patt.Set.id.val.s, "xxx");
             d.type.sub = TYPE_UNIT;
-        Expr n = { EXPR_DECL, {}, {}, NULL, .Decl=d };
+        Expr n = { EXPR_DECL, {}, NULL, NULL, .Decl=d };
         e.nested = &n;
         // xxx: xxx::()
         Patt pt = (Patt){PATT_SET,.Set={{TK_IDVAR,{.s="ret"}},-1}};

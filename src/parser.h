@@ -171,10 +171,12 @@ typedef struct {
     struct Expr* ret;
 } If;
 
+#define ENULL NULL
+
 typedef struct Expr {
     EXPR  sub;
     State_Tok tok;
-    Type  type;             // type of expression
+    Decl* env;
     struct Expr* nested;    // nested block inside expression
     union {
         Tk Raw;
@@ -256,8 +258,8 @@ typedef struct {
     int size;
     void* vec;
 } List;
-typedef void* (*List_F) (void);
-int parser_list_line (int global, List* ret, List_F f, size_t unit);
+typedef void* (*List_F) (Decl** env);
+int parser_list_line (Decl** env, int global, List* ret, List_F f, size_t unit);
 
 int is_rec (const char* v);
 void dump_expr (Expr e);

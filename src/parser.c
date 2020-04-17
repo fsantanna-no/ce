@@ -221,7 +221,7 @@ void init (FILE* out, FILE* inp) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-int parser_list_comma (List* ret, void* fst, List_F f, size_t unit) {
+int parser_list_comma (Decl** env, List* ret, void* fst, List_F f, size_t unit) {
     if (!pr_accept1(',')) {
         return err_expected("`,`");
     }
@@ -230,7 +230,7 @@ int parser_list_comma (List* ret, void* fst, List_F f, size_t unit) {
     memcpy(vec, fst, unit);
     int i = 1;
     while (1) {
-        void* item = f();
+        void* item = f(env);
         if (item == NULL) {
             return 0;
         }
@@ -247,7 +247,7 @@ int parser_list_comma (List* ret, void* fst, List_F f, size_t unit) {
     return 1;
 }
 
-int parser_list_line (int global, List* ret, List_F f, size_t unit) {
+int parser_list_line (Decl** env, int global, List* ret, List_F f, size_t unit) {
     if (global) {
         if (!pr_accept1(':')) {
             return err_expected("`:`");
@@ -288,7 +288,7 @@ int parser_list_line (int global, List* ret, List_F f, size_t unit) {
         }
 
         // ITEM
-        void* item = f();;
+        void* item = f(env);;
         if (item == NULL) {
             return 0;
         }
@@ -307,7 +307,7 @@ int parser_list_line (int global, List* ret, List_F f, size_t unit) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void* parser_type_ (void) {
+void* parser_type_ (Decl** env) {
     static Type tp_;
     Type tp;
     if (!parser_type(&tp)) {
@@ -348,7 +348,7 @@ int parser_type (Type* ret) {
     // TYPE_TUPLE
             if (pr_check1(',')) {
                 List lst = { 0, NULL };
-                if (!parser_list_comma(&lst, ret, parser_type_, sizeof(Type))) {
+                if (!parser_list_comma(ENULL, &lst, ret, parser_type_, sizeof(Type))) {
                     return 0;
                 }
                 *ret = (Type) { TYPE_TUPLE, .Tuple={lst.size,lst.vec} };
@@ -369,7 +369,7 @@ int parser_type (Type* ret) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void* parser_patt_ (void) {
+void* parser_patt_ (Decl** env) {
     static Patt pt_;
     Patt pt;
     if (!parser_patt(&pt,0)) {
@@ -394,7 +394,7 @@ int parser_patt (Patt* ret, int is_match) {
     // PATT_TUPLE
             if (pr_check1(',')) {
                 List lst = { 0, NULL };
-                if (!parser_list_comma(&lst, ret, parser_patt_, sizeof(Patt))) {
+                if (!parser_list_comma(ENULL, &lst, ret, parser_patt_, sizeof(Patt))) {
                     return 0;
                 }
                 *ret = (Patt) { PATT_TUPLE, .Tuple={lst.size,lst.vec} };
@@ -432,7 +432,7 @@ int parser_patt (Patt* ret, int is_match) {
         }
 
         if (is_match) {
-            Expr e = (Expr) { EXPR_VAR, {}, {}, NULL, .Var=TOK0.tk };
+            Expr e = (Expr) { EXPR_VAR, {}, ENULL, NULL, .Var=TOK0.tk };
             Expr* pe = malloc(sizeof(Expr));
             assert(pe != NULL);
             *pe = e;
@@ -454,7 +454,7 @@ int parser_patt (Patt* ret, int is_match) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void* parser_cons_ (void) {
+void* parser_cons_ (Decl** env) {
     static Cons c_;
     Cons c;
 
@@ -487,7 +487,7 @@ int parser_data (Data* ret) {
     List lst = { 0, NULL };
     int lst_ok = pr_check1(':');
     if (lst_ok) {
-        if (!parser_list_line(1, &lst, &parser_cons_, sizeof(Cons))) {
+        if (!parser_list_line(ENULL, 1, &lst, &parser_cons_, sizeof(Cons))) {
             return 0;
         }
     }
@@ -562,7 +562,7 @@ int parser_decl_nopre (Decl* decl) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void* parser_expr_ (void) {
+void* parser_expr_ (Decl** env) {
     static Expr e_;
     Expr e;
     if (!parser_expr(&e)) {
@@ -572,10 +572,10 @@ void* parser_expr_ (void) {
     return &e_;
 }
 
-void* parser_expr__ (void) {
+void* parser_expr__ (Decl** env) {
     static Expr e_;
     State_Tok tok = TOK1;
-    Expr* pe = parser_expr_();
+    Expr* pe = parser_expr_(env);
     if (pe == NULL) {
         return NULL;
     }
@@ -585,7 +585,7 @@ void* parser_expr__ (void) {
     return &e_;
 }
 
-void* parser_case_ (void) {
+void* parser_case_ (Decl** env) {
     static Let let_;
     Let let;
 
@@ -619,14 +619,14 @@ void* parser_case_ (void) {
     return &let_;
 }
 
-void* parser_if_ (void) {
+void* parser_if_ (Decl** env) {
     static If c_;
     If c;
 
     if (pr_accept1(TK_ELSE)) {
         c.tst = malloc(sizeof(Expr));
         assert(c.tst != NULL);
-        *c.tst = (Expr) { EXPR_RAW, {}, {}, NULL, .Raw={TK_RAW,{.s="1"}} };
+        *c.tst = (Expr) { EXPR_RAW, {}, ENULL, NULL, .Raw={TK_RAW,{.s="1"}} };
     } else {
         c.tst = expr_new();
         if (c.tst == NULL) {
@@ -650,12 +650,12 @@ void* parser_if_ (void) {
 int parser_expr_one (Expr* ret) {
     // EXPR_RAW
     if (pr_accept1(TK_RAW)) {
-        *ret = (Expr) { EXPR_RAW, {}, {}, NULL, .Raw=TOK0.tk };
+        *ret = (Expr) { EXPR_RAW, {}, ENULL, NULL, .Raw=TOK0.tk };
 
     // EXPR_UNIT
     } else if (pr_accept1('(')) {
         if (pr_accept1(')')) {
-            *ret = (Expr) { EXPR_UNIT, {}, {}, NULL, {} };
+            *ret = (Expr) { EXPR_UNIT, {}, ENULL, NULL, {} };
         } else {
             if (!parser_expr(ret)) {
                 return 0;
@@ -663,10 +663,10 @@ int parser_expr_one (Expr* ret) {
     // EXPR_TUPLE
             if (pr_check1(',')) {
                 List lst = { 0, NULL };
-                if (!parser_list_comma(&lst, ret, parser_expr_, sizeof(Expr))) {
+                if (!parser_list_comma(ENULL, &lst, ret, parser_expr_, sizeof(Expr))) {
                     return 0;
                 }
-                *ret = (Expr) { EXPR_TUPLE, {}, {}, NULL, .Tuple={lst.size,lst.vec} };
+                *ret = (Expr) { EXPR_TUPLE, {}, ENULL, NULL, .Tuple={lst.size,lst.vec} };
             }
     // EXPR_PARENS
             if (!pr_accept1(')')) {
@@ -676,15 +676,15 @@ int parser_expr_one (Expr* ret) {
 
     // EXPR_ARG
     } else if (pr_accept1(TK_ARG)) {
-        *ret = (Expr) { EXPR_ARG, {}, {}, NULL, {} };
+        *ret = (Expr) { EXPR_ARG, {}, ENULL, NULL, {} };
 
     // EXPR_VAR
     } else if (pr_accept1(TK_IDVAR)) {
-        *ret = (Expr) { EXPR_VAR, {}, {}, NULL, .Var=TOK0.tk };
+        *ret = (Expr) { EXPR_VAR, {}, ENULL, NULL, .Var=TOK0.tk };
 
     // EXPR_CONS
     } else if (pr_accept1(TK_IDDATA)) {
-        *ret = (Expr) { EXPR_CONS, {}, {}, NULL, .Cons=TOK0.tk };
+        *ret = (Expr) { EXPR_CONS, {}, ENULL, NULL, .Cons=TOK0.tk };
 
     // EXPR_NEW
     } else if (pr_accept1(TK_NEW)) {
@@ -692,7 +692,7 @@ int parser_expr_one (Expr* ret) {
         if (pe == NULL) {
             return 0;
         }
-        *ret = (Expr) { EXPR_NEW, {}, {}, NULL, .New=pe };
+        *ret = (Expr) { EXPR_NEW, {}, ENULL, NULL, .New=pe };
 
     // EXPR_SET
     } else if (pr_accept1(TK_SET)) {
@@ -707,7 +707,7 @@ int parser_expr_one (Expr* ret) {
         if (e == NULL) {
             return 0;
         }
-        *ret = (Expr) { EXPR_SET, {}, {}, NULL, .Set={p,e} };
+        *ret = (Expr) { EXPR_SET, {}, ENULL, NULL, .Set={p,e} };
 
     // EXPR_DECL
     } else if (pr_accept1(TK_MUT) || pr_accept1(TK_VAL)) {
@@ -715,13 +715,13 @@ int parser_expr_one (Expr* ret) {
         if (!parser_decl_nopre(&d)) {
             return 0;
         }
-        *ret = (Expr) { EXPR_DECL, {}, {}, NULL, .Decl=d };
+        *ret = (Expr) { EXPR_DECL, {}, ENULL, NULL, .Decl=d };
 
     // EXPR_FUNC // EXPR_DECL_FUNC
     } else if (pr_accept1(TK_FUNC)) {
         Decl d;
         if (parser_decl_nopre(&d)) {
-            *ret = (Expr) { EXPR_DECL, {}, {}, NULL, .Decl=d };
+            *ret = (Expr) { EXPR_DECL, {}, ENULL, NULL, .Decl=d };
         } else if (pr_accept1(TK_DECL)) {
             Type tp;
             if (!parser_type(&tp)) {
@@ -731,14 +731,14 @@ int parser_expr_one (Expr* ret) {
             if (pe == NULL) {
                 return 0;
             }
-            *ret = (Expr) { EXPR_FUNC, {}, {}, NULL, .Func={tp,pe} };
+            *ret = (Expr) { EXPR_FUNC, {}, ENULL, NULL, .Func={tp,pe} };
         } else {
             return err_expected("`::` or variable identifier");
         }
 
     // EXPR_PASS
     } else if (pr_accept1(TK_PASS)) {
-        *ret = (Expr) { EXPR_PASS, {}, {}, NULL };
+        *ret = (Expr) { EXPR_PASS, {}, ENULL, NULL };
 
     // EXPR_RETURN
     } else if (pr_accept1(TK_RETURN)) {
@@ -746,15 +746,15 @@ int parser_expr_one (Expr* ret) {
         if (e == NULL) {
             return 0;
         }
-        *ret = (Expr) { EXPR_RETURN, {}, {}, NULL, .Return=e };
+        *ret = (Expr) { EXPR_RETURN, {}, ENULL, NULL, .Return=e };
 
     // EXPR_SEQ
     } else if (pr_check1(':')) {
         List lst;
-        if (!parser_list_line(1, &lst, &parser_expr__, sizeof(Expr))) {
+        if (!parser_list_line(ENULL, 1, &lst, &parser_expr__, sizeof(Expr))) {
             return 0;
         }
-        *ret = (Expr) { EXPR_SEQ, {}, {}, NULL, .Seq={lst.size,lst.vec} };
+        *ret = (Expr) { EXPR_SEQ, {}, ENULL, NULL, .Seq={lst.size,lst.vec} };
 
     // EXPR_LET
     } else if (pr_accept1(TK_LET)) {
@@ -772,16 +772,16 @@ int parser_expr_one (Expr* ret) {
             return 0;
         }
 
-        *ret = (Expr) { EXPR_LET, {}, {}, NULL, .Let={d,pe} };
+        *ret = (Expr) { EXPR_LET, {}, ENULL, NULL, .Let={d,pe} };
 
     } else if (pr_accept1(TK_IF)) {
     // EXPR_IFS
         if (pr_check1(':')) {
             List lst;
-            if (!parser_list_line(1, &lst, &parser_if_, sizeof(If))) {
+            if (!parser_list_line(ENULL, 1, &lst, &parser_if_, sizeof(If))) {
                 return 0;
             }
-            *ret = (Expr) { EXPR_IFS, {}, {}, NULL, .Ifs={lst.size,lst.vec} };
+            *ret = (Expr) { EXPR_IFS, {}, ENULL, NULL, .Ifs={lst.size,lst.vec} };
     // EXPR_IF
         } else {
             Expr* tst = expr_new();
@@ -803,7 +803,7 @@ int parser_expr_one (Expr* ret) {
                 return 0;
             }
 
-            *ret = (Expr) { EXPR_IF, {}, {}, NULL, .Cond={tst,t,f} };
+            *ret = (Expr) { EXPR_IF, {}, ENULL, NULL, .Cond={tst,t,f} };
         }
 
     // EXPR_CASES
@@ -813,10 +813,10 @@ int parser_expr_one (Expr* ret) {
             return 0;
         }
         List lst;
-        if (!parser_list_line(1, &lst, &parser_case_, sizeof(Let))) {
+        if (!parser_list_line(ENULL, 1, &lst, &parser_case_, sizeof(Let))) {
             return 0;
         }
-        *ret = (Expr) { EXPR_CASES, {}, {}, NULL, .Cases={pe,lst.size,lst.vec} };
+        *ret = (Expr) { EXPR_CASES, {}, ENULL, NULL, .Cases={pe,lst.size,lst.vec} };
 
     // EXPR_BREAK
     } else if (pr_accept1(TK_BREAK)) {
@@ -824,7 +824,7 @@ int parser_expr_one (Expr* ret) {
         if (e == NULL) {
             return 0;
         }
-        *ret = (Expr) { EXPR_BREAK, {}, {}, NULL, .Break=e };
+        *ret = (Expr) { EXPR_BREAK, {}, ENULL, NULL, .Break=e };
 
     // EXPR_LOOP
     } else if (pr_accept1(TK_LOOP)) {
@@ -832,7 +832,7 @@ int parser_expr_one (Expr* ret) {
         if (pe == NULL) {
             return 0;
         }
-        *ret = (Expr) { EXPR_LOOP, {}, {}, NULL, .Loop=pe };
+        *ret = (Expr) { EXPR_LOOP, {}, ENULL, NULL, .Loop=pe };
 
     } else {
         return err_expected("expression");
@@ -869,7 +869,7 @@ int parser_expr (Expr* ret) {
         assert(parg!=NULL && func!=NULL);
         *parg = arg;
         *func = *ret;
-        *ret  = (Expr) { EXPR_CALL, {}, {}, NULL, .Call={func,parg} };
+        *ret  = (Expr) { EXPR_CALL, {}, ENULL, NULL, .Call={func,parg} };
     }
 
     // EXPR_MATCH
@@ -883,7 +883,7 @@ int parser_expr (Expr* ret) {
         assert(pe!=NULL && pp!=NULL);
         *pe = *ret;
         *pp = patt;
-        *ret = (Expr) { EXPR_MATCH, {}, {}, NULL, .Match={pe,pp} };
+        *ret = (Expr) { EXPR_MATCH, {}, ENULL, NULL, .Match={pe,pp} };
     }
 
     if (!is_first) {
@@ -902,7 +902,7 @@ int parser_expr (Expr* ret) {
         if_->tst = tst;
         if_->ret = xxx;
         *xxx = *ret;
-        *ret = (Expr) { EXPR_IFS, {}, {}, NULL, .Ifs={1,if_} };
+        *ret = (Expr) { EXPR_IFS, {}, ENULL, NULL, .Ifs={1,if_} };
     }
 
 _WHERE_:
@@ -923,7 +923,7 @@ _WHERE_:
 // Glob ::= Data | Decl | Expr
 // Prog ::= { Glob }
 
-void* parser_glob_ (void) {
+void* parser_glob_ (Decl** env) {
     static Glob g_;
     Glob g;
 
@@ -936,7 +936,7 @@ void* parser_glob_ (void) {
         return &g_;
     }
 
-    Expr* e = parser_expr__();  // other parser_expr* variations do not parse where
+    Expr* e = parser_expr__(env);  // other parser_expr* variations do not parse where
     if (e == NULL) {
         return NULL;
     }
@@ -947,8 +947,9 @@ void* parser_glob_ (void) {
 }
 
 int parser_prog (Prog* ret) {
+    Decl* env = NULL;
     List lst;
-    if (!parser_list_line(0, &lst, &parser_glob_, sizeof(Glob))) {
+    if (!parser_list_line(&env, 0, &lst, &parser_glob_, sizeof(Glob))) {
         return 0;
     }
     *ret = (Prog) { lst.size, lst.vec };
