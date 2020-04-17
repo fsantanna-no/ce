@@ -557,7 +557,10 @@ int parser_decl (Decl** env, Decl* decl) {
         decl->init = NULL;
     }
 
-    decl->prev = (struct Decl*) *env;
+    decl->prev = *env;
+//char* s = (*env==NULL) ? "null" : (*env)->patt.Set.id.val.s;
+//int   d = (*env==NULL) ? -1 : (*env)->patt.sub;
+//printf("[%p->%p] %s -> %d / %s\n", *env, decl, decl->patt.Set.id.val.s, d, s);
     *env = decl;
     return 1;
 }
@@ -601,7 +604,7 @@ void* parser_case_ (Decl** env) {
     // decls
     if (pr_accept1(TK_DECL)) {
         if (!parser_type(&let.decl.type)) {
-            return 0;
+            return NULL;
         }
     } else {
         let.decl.type.sub = TYPE_NONE;
@@ -616,6 +619,8 @@ void* parser_case_ (Decl** env) {
         return NULL;
     }
 
+    let.decl.prev = *env;
+    *env = &let.decl;
     let.body = pe;
     let_ = let;
     return &let_;

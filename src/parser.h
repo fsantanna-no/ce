@@ -154,7 +154,7 @@ typedef struct Patt_Type {
     Type type;
 } Patt_Type;
 
-typedef struct {
+typedef struct Decl {
     Patt patt;
     Type type;
     struct Expr* init;

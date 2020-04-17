@@ -1,6 +1,6 @@
-- code_patt_set
-- code_expr
-    - nested -> where
+- seq / where / cases (look parser_list_*)
+    - create local blocks
+        - must limit env
 
 - types
     - typedefs

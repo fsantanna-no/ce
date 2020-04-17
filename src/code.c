@@ -266,7 +266,7 @@ void code_patt_match (Patt p, Expr tst) {
                 out(" && ");
                 code_patt_match (
                     *p.Cons.arg,
-                    (Expr) { EXPR_CONS_SUB, {}, tst.env, .Cons_Sub={&tst,p.Cons.data.val.s} }
+                    (Expr) { EXPR_CONS_SUB, {}, tst.env, NULL, .Cons_Sub={&tst,p.Cons.data.val.s} }
                 );
             }
             break;
@@ -277,7 +277,7 @@ void code_patt_match (Patt p, Expr tst) {
                 }
                 code_patt_match (
                     p.Tuple.vec[i],
-                    (Expr) { EXPR_TUPLE_IDX, {}, tst.env, .Tuple_Idx={&tst,i} }
+                    (Expr) { EXPR_TUPLE_IDX, {}, tst.env, NULL, .Tuple_Idx={&tst,i} }
                 );
             }
             break;
@@ -287,16 +287,19 @@ void code_patt_match (Patt p, Expr tst) {
 }
 
 int find (Patt_Type* ret, Decl* cur, char* id) {
+//puts("have");
     if (cur == NULL) {
+        puts("null");
         return 0;
     }
     assert(cur->patt.sub == PATT_SET);
+//puts(cur->patt.Set.id.val.s);
     if (!strcmp(cur->patt.Set.id.val.s, id)) {
         ret->patt = cur->patt;
         ret->type = cur->type;
         return 1;
     } else {
-        return 0;
+        return find(ret, cur->prev, id);
     }
 }
 
@@ -309,9 +312,13 @@ void code_patt_set (Patt p, Expr e) {
             break;
         case PATT_SET: {        // x = ce_tst
             int rec_call = 0;
-            if (e.sub == EXPR_CALL) {     // val l[] = f()
+            if (e.sub==EXPR_CALL && e.Call.func->sub!=EXPR_CONS) {     // val l[] = f()
                 Patt_Type pt;
-puts(p.Set.id.val.s);
+// TODO
+//dump_expr(e);
+//printf("env = %p // sub=%d\n", e.env, e.sub);
+//puts("want");
+//puts(p.Set.id.val.s);
                 assert(find(&pt, e.env, p.Set.id.val.s));
                 rec_call = (pt.type.sub == TYPE_DATA) && is_rec(pt.type.Data.val.s);
             }
@@ -328,7 +335,7 @@ puts(p.Set.id.val.s);
             if (p.Cons.arg != NULL) {
                 code_patt_set (
                     *p.Cons.arg,
-                    (Expr) { EXPR_CONS_SUB, {}, e.env, .Cons_Sub={&e,p.Cons.data.val.s} }
+                    (Expr) { EXPR_CONS_SUB, {}, e.env, NULL, .Cons_Sub={&e,p.Cons.data.val.s} }
                 );
             }
             break;
@@ -336,7 +343,7 @@ puts(p.Set.id.val.s);
             for (int i=0; i<p.Tuple.size; i++) {
                 code_patt_set (
                     p.Tuple.vec[i],
-                    (Expr) { EXPR_TUPLE_IDX, {}, e.env, .Tuple_Idx={&e,i} }
+                    (Expr) { EXPR_TUPLE_IDX, {}, e.env, NULL, .Tuple_Idx={&e,i} }
                 );
             }
             break;
