@@ -171,8 +171,6 @@ typedef struct {
     struct Expr* ret;
 } If;
 
-#define ENULL NULL
-
 typedef struct Expr {
     EXPR  sub;
     State_Tok tok;
