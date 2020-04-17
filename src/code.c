@@ -391,6 +391,7 @@ void code_decl (Decl d, tce_ret* ret) {
     if (d.type.sub == TYPE_FUNC) {
         int rec = (d.type.Func.out->sub == TYPE_DATA) &&
                   is_rec(d.type.Func.out->Data.val.s);
+rec = 0; // TODO
         assert(d.init != NULL);
         assert(d.patt.sub == PATT_SET);
         out("\n");
@@ -483,8 +484,9 @@ void code_expr (Expr e, tce_ret* ret) {
         case EXPR_NEW:
             code_ret(ret);
             out("({");
-            out(ret->patt->Set.val.s);
-            out("->cur++; ");
+// TODO
+            //out(ret->patt->Set.val.s);
+            //out("->cur++; ");
             out("typeof(");
             code_expr(*e.New, NULL);
             out(")* ptr = malloc(sizeof(");

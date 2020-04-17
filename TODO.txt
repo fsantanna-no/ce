@@ -1,4 +1,8 @@
 - types
+    - typedefs
+    - TODOS em tests
+- tuples
+    - _1, _2
 - pools
     - alter functions that return (and allocate) rec to receive pool
     - alter functions that declare pool to release on returns (and last stmt)
@@ -102,3 +106,16 @@
    54   115   860 lexer.h
   193   504  3715 parser.h
  1965  4915 47808 total
+
+///////////////////////////////////////////////////////////////////////////////
+
+typedef struct Sym {
+    Tk   tk;
+    Type type;
+    struct Sym* nxt;
+} Sym;
+
+typedef struct Env {
+    Sym sym;
+    struct Env* up;
+}
