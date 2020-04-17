@@ -371,21 +371,21 @@ void t_parser_decls (void) {
     Decl* env = NULL;
     int pr_accept1 (TK tk, int ok);
     int err_expected (const char* v);
-    int parser_decl_nopre (Decl** env, Decl* decl);
+    int parser_decl (Decl** env, Decl* decl);
     typedef struct {
         int   size;
         Decl* vec;
     } Decls;
-    int parser_decl (Decl* decl) {
+    int xxx (Decl* decl) {
         if (!pr_accept1(TK_MUT,1) && !pr_accept1(TK_VAL,1) && !pr_accept1(TK_FUNC,1)) {
             return err_expected("`mut` or `val` or `func`");
         }
-        return parser_decl_nopre(&env,decl);
+        return parser_decl(&env,decl);
     }
     void* parser_decl_ (Decl** decl) {
         static Decl d_;
         Decl d;
-        if (!parser_decl(&d)) {
+        if (!xxx(&d)) {
             return NULL;
         }
         d_ = d;

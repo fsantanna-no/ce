@@ -531,7 +531,7 @@ int parser_data (Data* ret) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-int parser_decl_nopre (Decl** env, Decl* decl) {
+int parser_decl (Decl** env, Decl* decl) {
     int is_func = pr_check0(TK_FUNC);
     if (!parser_patt(*env,&decl->patt,0)) {
         return 0;
@@ -712,7 +712,7 @@ int parser_expr_one (Decl** env, Expr* ret) {
     // EXPR_DECL
     } else if (pr_accept1(TK_MUT) || pr_accept1(TK_VAL)) {
         Decl d;
-        if (!parser_decl_nopre(env,&d)) {
+        if (!parser_decl(env,&d)) {
             return 0;
         }
         *ret = (Expr) { EXPR_DECL, {}, *env, NULL, .Decl=d };
@@ -720,7 +720,7 @@ int parser_expr_one (Decl** env, Expr* ret) {
     // EXPR_FUNC // EXPR_DECL_FUNC
     } else if (pr_accept1(TK_FUNC)) {
         Decl d;
-        if (parser_decl_nopre(env,&d)) {
+        if (parser_decl(env,&d)) {
             *ret = (Expr) { EXPR_DECL, {}, *env, NULL, .Decl=d };
         } else if (pr_accept1(TK_DECL)) {
             Type tp;
@@ -759,7 +759,7 @@ int parser_expr_one (Decl** env, Expr* ret) {
     // EXPR_LET
     } else if (pr_accept1(TK_LET)) {
         Decl d;
-        if (!parser_decl_nopre(env,&d)) {
+        if (!parser_decl(env,&d)) {
             return 0;
         }
         if (d.init == NULL) {
