@@ -106,7 +106,7 @@ int is_rec (const char* v) {
 
 Expr* expr_new (void) {
     Expr e;
-    if (!parser_expr(&e)) {
+    if (!parser_expr(ENULL,&e)) {
         return NULL;
     }
     Expr* pe = malloc(sizeof(Expr));
@@ -547,7 +547,7 @@ int parser_decl_nopre (Decl* decl) {
 
     if (is_func || (!is_func && pr_accept1('='))) {
         Expr init;
-        if (!parser_expr(&init)) {
+        if (!parser_expr(ENULL,&init)) {
             return is_func;
         }
         decl->init = malloc(sizeof(*decl->init));
@@ -565,7 +565,7 @@ int parser_decl_nopre (Decl* decl) {
 void* parser_expr_ (Decl** env) {
     static Expr e_;
     Expr e;
-    if (!parser_expr(&e)) {
+    if (!parser_expr(env,&e)) {
         return NULL;
     }
     e_ = e;
@@ -647,7 +647,7 @@ void* parser_if_ (Decl** env) {
     return &c_;
 }
 
-int parser_expr_one (Expr* ret) {
+int parser_expr_one (Decl** env, Expr* ret) {
     // EXPR_RAW
     if (pr_accept1(TK_RAW)) {
         *ret = (Expr) { EXPR_RAW, {}, ENULL, NULL, .Raw=TOK0.tk };
@@ -657,7 +657,7 @@ int parser_expr_one (Expr* ret) {
         if (pr_accept1(')')) {
             *ret = (Expr) { EXPR_UNIT, {}, ENULL, NULL, {} };
         } else {
-            if (!parser_expr(ret)) {
+            if (!parser_expr(env,ret)) {
                 return 0;
             }
     // EXPR_TUPLE
@@ -843,12 +843,12 @@ int parser_expr_one (Expr* ret) {
     return 1;
 }
 
-int parser_expr (Expr* ret) {
+int parser_expr (Decl** env, Expr* ret) {
     int is_first = TOK0.off==-1 || pr_check0('\n') || pr_check0(TK_ARROW);
 //printf(">>> (%d/%d/%d ==> %d/%d)\n", TOK0.tk.sym, TOK1.tk.sym, TOK2.tk.sym, ALL.ind, TOK0.tk.val.n);
 
     Expr e;
-    if (!parser_expr_one(&e)) {
+    if (!parser_expr_one(env, &e)) {
         return 0;
     }
     *ret = e;
@@ -861,7 +861,7 @@ int parser_expr (Expr* ret) {
     // EXPR_CALL
     if (pr_check1('(')) {
         Expr arg;
-        if (!parser_expr_one(&arg)) {
+        if (!parser_expr_one(env, &arg)) {
             return 0;
         }
         Expr* parg = malloc(sizeof(Expr));

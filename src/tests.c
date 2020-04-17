@@ -186,35 +186,35 @@ void t_parser_expr (void) {
     {
         init(NULL, stropen("r", 0, "(())"));
         Expr e;
-        assert(parser_expr(&e));
+        assert(parser_expr(NULL,&e));
         assert(e.sub == EXPR_UNIT);
         fclose(ALL.inp);
     }
     {
         init(NULL, stropen("r", 0, "( ( ) )"));
         Expr e;
-        assert(parser_expr(&e));
+        assert(parser_expr(NULL,&e));
         assert(e.sub == EXPR_UNIT);
         fclose(ALL.inp);
     }
     {
         init(NULL, stropen("r", 0, "("));
         Expr e;
-        assert(!parser_expr(&e));
+        assert(!parser_expr(NULL,&e));
         assert(!strcmp(ALL.err, "(ln 1, col 2): expected expression : have end of line"));
         fclose(ALL.inp);
     }
     {
         init(NULL, stropen("r", 0, "(("));
         Expr e;
-        assert(!parser_expr(&e));
+        assert(!parser_expr(NULL,&e));
         assert(!strcmp(ALL.err, "(ln 1, col 3): expected expression : have end of line"));
         fclose(ALL.inp);
     }
     {
         init(NULL, stropen("r", 0, "(\n( \n"));
         Expr e;
-        assert(!parser_expr(&e));
+        assert(!parser_expr(NULL,&e));
         assert(!strcmp(ALL.err, "(ln 1, col 2): expected expression : have end of line"));
         fclose(ALL.inp);
     }
@@ -222,14 +222,14 @@ void t_parser_expr (void) {
     {
         init(NULL, stropen("r", 0, "x)"));
         Expr e;
-        assert(parser_expr(&e));
+        assert(parser_expr(NULL,&e));
         assert(e.sub == EXPR_VAR);
         fclose(ALL.inp);
     }
     {
         init(NULL, stropen("r", 0, "x("));
         Expr e;
-        assert(!parser_expr(&e));
+        assert(!parser_expr(NULL,&e));
         assert(!strcmp(ALL.err, "(ln 1, col 3): expected expression : have end of line"));
         fclose(ALL.inp);
     }
@@ -237,7 +237,7 @@ void t_parser_expr (void) {
     {
         init(NULL, stropen("r", 0, "set () = (x"));
         Expr e;
-        assert(!parser_expr(&e));
+        assert(!parser_expr(NULL,&e));
         assert(!strcmp(ALL.err, "(ln 1, col 12): expected `)` : have end of line"));
         //assert(!strcmp(ALL.err, "(ln 1, col 5): expected variable : have `(`"));
         fclose(ALL.inp);
@@ -245,14 +245,14 @@ void t_parser_expr (void) {
     {
         init(NULL, stropen("r", 0, "set a = (x"));
         Expr e;
-        assert(!parser_expr(&e));
+        assert(!parser_expr(NULL,&e));
         assert(!strcmp(ALL.err, "(ln 1, col 11): expected `)` : have end of line"));
         fclose(ALL.inp);
     }
     {
         init(NULL, stropen("r", 0, "set a = (x)"));
         Expr e;
-        assert(parser_expr(&e));
+        assert(parser_expr(NULL,&e));
         assert(e.sub == EXPR_SET);
         assert(!strcmp(e.Set.patt.Set.id.val.s, "a"));
         assert(!strcmp(e.Set.expr->Var.val.s, "x"));
@@ -262,7 +262,7 @@ void t_parser_expr (void) {
     {
         init(NULL, stropen("r", 0, "func :: () ()"));
         Expr e;
-        assert(parser_expr(&e));
+        assert(parser_expr(NULL,&e));
         assert(e.sub == EXPR_FUNC);
         fclose(ALL.inp);
     }
@@ -270,7 +270,7 @@ void t_parser_expr (void) {
     {
         init(NULL, stropen("r", 0, "xxx (  )"));
         Expr e;
-        assert(parser_expr(&e));
+        assert(parser_expr(NULL,&e));
         assert(e.sub == EXPR_CALL);
         assert(e.Call.func->sub == EXPR_VAR);
         assert(!strcmp(e.Call.func->Var.val.s, "xxx"));
@@ -281,21 +281,21 @@ void t_parser_expr (void) {
     {
         init(NULL, stropen("r", 0, ": x"));
         Expr e;
-        assert(!parser_expr(&e));
+        assert(!parser_expr(NULL,&e));
         assert(!strcmp(ALL.err, "(ln 1, col 3): expected new line : have `x`"));
         fclose(ALL.inp);
     }
     {
         init(NULL, stropen("r", 0, ":\nx"));
         Expr e;
-        assert(!parser_expr(&e));
+        assert(!parser_expr(NULL,&e));
         assert(!strcmp(ALL.err, "(ln 2, col 1): expected indentation of 4 spaces : have `x`"));
         fclose(ALL.inp);
     }
     {
         init(NULL, stropen("r", 0, ":\n    x"));
         Expr e;
-        assert(parser_expr(&e));
+        assert(parser_expr(NULL,&e));
         assert(e.sub == EXPR_SEQ);
         assert(e.Seq.size == 1);
         fclose(ALL.inp);
@@ -303,35 +303,35 @@ void t_parser_expr (void) {
     {
         init(NULL, stropen("r", 0, ":\n    x x"));
         Expr e;
-        assert(!parser_expr(&e));
+        assert(!parser_expr(NULL,&e));
         assert(!strcmp(ALL.err, "(ln 2, col 7): expected new line : have `x`"));
         fclose(ALL.inp);
     }
     {
         init(NULL, stropen("r", 0, ":\n    x\n    y ("));
         Expr e;
-        assert(!parser_expr(&e));
+        assert(!parser_expr(NULL,&e));
         assert(!strcmp(ALL.err, "(ln 3, col 8): expected expression : have end of line"));
         fclose(ALL.inp);
     }
     {
         init(NULL, stropen("r", 0, ":\n    x\n    y ("));
         Expr e;
-        assert(!parser_expr(&e));
+        assert(!parser_expr(NULL,&e));
         assert(!strcmp(ALL.err, "(ln 3, col 8): expected expression : have end of line"));
         fclose(ALL.inp);
     }
     {
         init(NULL, stropen("r", 0, ":\n    x\n    y y"));
         Expr e;
-        assert(!parser_expr(&e));
+        assert(!parser_expr(NULL,&e));
         assert(!strcmp(ALL.err, "(ln 3, col 7): expected new line : have `y`"));
         fclose(ALL.inp);
     }
     {
         init(NULL, stropen("r", 0, "val ::"));
         Expr e;
-        assert(!parser_expr(&e));
+        assert(!parser_expr(NULL,&e));
         assert(!strcmp(ALL.err, "(ln 1, col 5): expected variable identifier : have `::`"));
         fclose(ALL.inp);
     }
@@ -344,7 +344,7 @@ void t_parser_expr (void) {
             "    z\n"
         ));
         Expr e;
-        assert(parser_expr(&e));
+        assert(parser_expr(NULL,&e));
         assert(e.sub == EXPR_SEQ);
         assert(e.Seq.size == 3);
         assert(!strcmp(e.Seq.vec[1].Seq.vec[0].Var.val.s, "y"));
@@ -358,7 +358,7 @@ void t_parser_expr (void) {
             "        y\n"
         ));
         Expr e;
-        assert(parser_expr(&e));
+        assert(parser_expr(NULL,&e));
         assert(e.sub == EXPR_SEQ);
         assert(e.Seq.size == 2);
         assert(!strcmp(e.Seq.vec[1].Seq.vec[0].Var.val.s, "y"));
@@ -455,7 +455,7 @@ void t_parser_block (void) {
     {
         init(NULL, stropen("r", 0, "a:\n    val a :: ()"));
         Expr blk;
-        assert(parser_expr(&blk));
+        assert(parser_expr(NULL,&blk));
         fclose(ALL.inp);
     }
     {
@@ -467,7 +467,7 @@ void t_parser_block (void) {
             "        val b :: ()\n"
         ));
         Expr e;
-        assert(parser_expr(&e));
+        assert(parser_expr(NULL,&e));
         assert(e.sub == EXPR_SEQ);
         assert(e.Seq.size == 2);
         assert(e.Seq.vec[0].nested != NULL);
@@ -484,7 +484,7 @@ void t_parser_block (void) {
             "    val a :: ()\n"
         ));
         Expr e;
-        assert(parser_expr(&e));
+        assert(parser_expr(NULL,&e));
         assert(e.sub == EXPR_VAR);
         assert(e.nested != NULL);
         assert(e.nested->sub == EXPR_SEQ);
