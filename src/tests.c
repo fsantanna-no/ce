@@ -530,17 +530,19 @@ void t_code (void) {
     {
         char out[256];
         init(stropen("w",sizeof(out),out), NULL);
-        Expr e = { EXPR_VAR, {}, NULL, NULL, {} };
+        Env env = { {TK_IDVAR,{.s="xxx"}}, -1, {}, NULL };
+        Expr e = { EXPR_VAR, {}, &env, NULL, {} };
             e.Var.sym = TK_IDVAR;
             strcpy(e.Var.val.s, "xxx");
         code_expr(e, NULL);
         fclose(ALL.out[OGLOB]);
-        assert(!strcmp(out,"VAR_xxx(xxx)"));
+        assert(!strcmp(out,"xxx"));
     }
     {
         char out[256] = "";
         init(stropen("w",sizeof(out),out), NULL);
-        Expr e = { EXPR_VAR, {}, NULL, NULL, {} };
+        Env env = { {TK_IDVAR,{.s="xxx"}}, -1, {}, NULL };
+        Expr e = { EXPR_VAR, {}, &env, NULL, {} };
             e.Var.sym = TK_IDVAR;
             strcpy(e.Var.val.s, "xxx");
         Decl d;
@@ -557,7 +559,7 @@ void t_code (void) {
         tce_ret ret = { &pt, NULL };
         code_expr(e, &ret);
         fclose(ALL.out[OGLOB]);
-        assert(!strcmp(out,"{\n#define VAR_xxx(v) v\nint xxx;\nVAR_ret(ret) = VAR_xxx(xxx);\n}\n"));
+        assert(!strcmp(out,"{\nint xxx;\nret = xxx;\n}\n"));
     }
     {
         char out[256] = "";
@@ -573,12 +575,11 @@ void t_code (void) {
             "#include \"inc/ce.c\"\n"
             "int main (void) {\n"
             "\n"
-            "#line 1\n"
-            "#define VAR_a(v) v\n"
+            //"#line 1\n"
             "int a;\n"
             ";\n"
-            "#line 2\n"
-            "show_Bool(VAR_a(a));\n"
+            //"#line 2\n"
+            "show_Bool(a);\n"
             "\n"
             "}\n";
         assert(!strcmp(out,ret));
@@ -587,7 +588,7 @@ void t_code (void) {
         char out[1024] = "";
         init (
             stropen("w", sizeof(out), out),
-            stropen("r", 0, "match {fgetc} (inp):\n    {'\\n'} -> ()")
+            stropen("r", 0, "val inp :: ()\nmatch {fgetc} (inp):\n    {'\\n'} -> ()")
         );
         Prog p;
         parser_prog(&p);
@@ -597,11 +598,12 @@ void t_code (void) {
             "#include \"inc/ce.c\"\n"
             "int main (void) {\n"
             "\n"
-            "#line 1\n"
+            "int inp;\n"
+            ";\n"
+            //"#line 1\n"
             "{\n"
-            "#define VAR_ce_tst(v) v\n"
-            "typeof(fgetc(VAR_inp(inp))) ce_tst = fgetc(VAR_inp(inp));\n"
-            "if (VAR_ce_tst(ce_tst) == '\\n') {\n"
+            "typeof(fgetc(inp)) ce_tst = fgetc(inp);\n"
+            "if (ce_tst == '\\n') {\n"
             ";\n"
             "1;\n"
             "} else {\n"
@@ -818,6 +820,7 @@ void t_all (void) {
         "match i:\n"
         "    (x,_) :: () -> {show_Unit}(x)"
     ));
+puts("=====");
     assert(all(
         "()\n",
         "match i:\n"
@@ -825,6 +828,7 @@ void t_all (void) {
         "where:\n"
         "    val i :: ((),()) = ((),())\n"
     ));
+assert(0);
     assert(all(
         "()\n",
         "match i:\n"

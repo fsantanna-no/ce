@@ -17,11 +17,8 @@ void outl (State_Tok tok) {
 void code_ret (tce_ret* ret) {
     while (ret != NULL) {
         assert (ret->patt->sub == PATT_SET);
-        out("VAR_");
         out(ret->patt->Set.id.val.s);
-        out("(");
-        out(ret->patt->Set.id.val.s);
-        out(") = ");
+        out(" = ");
         ret = ret->nxt;
     }
 }
@@ -348,19 +345,11 @@ void code_patt_decls (Decl decl) {
     int patts_i = 0;
     patt2patts(patts, &patts_i, decl.patt);
     if (patts_i == 1) {
-        out("#define VAR_");
-        out(patts[0].Set.id.val.s);
-        out("(v) ");
         int size = (decl.patt.sub == PATT_SET ? decl.patt.Set.size : -1);
         if (size == -1) {
-            out("v\n");
             code_type(decl.type);
         } else {
-            out("(v->root)\n");
-            out("Pool _");
-            out(patts[0].Set.id.val.s);
-            out(";\n");
-            out("Pool*");
+            out("Pool");
         }
         out(" ");
         out(patts[0].Set.id.val.s);
@@ -372,9 +361,6 @@ void code_patt_decls (Decl decl) {
     } else if (patts_i > 1) {
         assert(decl.type.Tuple.size == patts_i);
         for (int i=0; i<patts_i; i++) {
-            out("#define VAR_");
-            out(patts[i].Set.id.val.s);
-            out("(v) v\n");
             code_type(decl.type.Tuple.vec[i]);
             out(" ");
             out(patts[i].Set.id.val.s);
@@ -396,9 +382,6 @@ void code_decl (Decl d, tce_ret* ret) {
         char out2[4096] = "";    // TODO: asserts
         code_type_(out1, out2, *d.type.Func.inp);
         out(out1);
-        out("#define VAR_");
-            out(d.patt.Set.id.val.s);
-            out("(v) v\n");
         out("#define TYPE_");
             out(d.patt.Set.id.val.s);
             out(" ");
@@ -417,14 +400,10 @@ void code_decl (Decl d, tce_ret* ret) {
         }
         out(out2);
         out(" ce_arg) {\n");
-            if (d.type.Func.out->sub == TYPE_UNIT) {
+            if (d.type.Func.out->sub != TYPE_UNIT) {
                 code_expr(*d.init, NULL);
                 out(";\n");
-            } else {
-                if (rec) {
-                    out("#define VAR_ce_ret(v) (v->root)\n");
-                } else {
-                    out("#define VAR_ce_ret(v) v\n");
+                if (!rec) {
                     code_type(*d.type.Func.out);
                     out(" ce_ret;\n");
                 }
@@ -470,11 +449,15 @@ void code_expr (Expr e, tce_ret* ret) {
             break;
         case EXPR_VAR:
             code_ret(ret);
-            out("VAR_");
+            Env* env = env_find(e.env, e.Var.val.s);
+            assert(env != NULL);
+            if (env->size != -1) {
+                out("(");
+                out(e.Var.val.s);
+                out(".root");
+                out(")");
+            }
             out(e.Var.val.s);
-            out("(");
-            out(e.Var.val.s);
-            out(")");
             break;
         case EXPR_CONS:
             code_ret(ret);
@@ -610,13 +593,12 @@ void code_expr (Expr e, tce_ret* ret) {
             Expr tst = *e.Cases.tst;
             out("{\n");
             if (tst.sub != EXPR_TUPLE) {   // prevents multiple evaluation of tst
-                out("#define VAR_ce_tst(v) v\n");
+                tst = (Expr) { EXPR_VAR, {}, e.env, NULL, {.Var={TK_IDVAR,{.s="ce_tst"}}} };
                 out("typeof(");
                 code_expr(*e.Cases.tst, NULL);
                 out(") ce_tst = ");
                 code_expr(*e.Cases.tst, NULL);
                 out(";\n");
-                tst = (Expr) { EXPR_VAR, {}, e.env, NULL, {.Var={TK_IDVAR,{.s="ce_tst"}}} };
             }
 
             for (int i=0; i<e.Cases.size; i++) {

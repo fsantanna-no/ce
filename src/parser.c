@@ -541,7 +541,7 @@ void patt2patts (Patt* patts, int* patts_i, Patt patt) {
             break;
         case PATT_SET:
             assert(*patts_i < 16);
-//puts(patt.Set.id.val.s);
+puts(patt.Set.id.val.s);
             patts[(*patts_i)++] = patt;
             break;
         case PATT_CONS:
@@ -559,17 +559,21 @@ void patt2patts (Patt* patts, int* patts_i, Patt patt) {
     }
 }
 
-Env* env_find (Env* cur, char* id) {
-//puts("have");
+Env* env_find (Env* cur, char* want) {
+    static Env env = { {}, -1, {TYPE_UNIT} };
+    if (!strcmp(want,"ce_tst")) {
+        return &env;
+    }
+printf("want %s // have ", want);
     if (cur == NULL) {
-        //puts("null");
+        puts("null");
         return NULL;
     }
-//puts(cur->id.val.s);
-    if (!strcmp(cur->id.val.s, id)) {
+puts(cur->id.val.s);
+    if (!strcmp(cur->id.val.s, want)) {
         return cur;
     } else {
-        return env_find(cur->prev, id);
+        return env_find(cur->prev, want);
     }
 }
 
@@ -589,7 +593,8 @@ void env_add (Env** old, Patt patt, Type type) {
     assert(patts[0].sub == PATT_SET);
 
     Env* new = malloc(sizeof(Env));
-    *new = (Env) { patt.Set.id, patt.Set.size, type, *old };
+printf("add %s\n", patts[0].Set.id.val.s);
+    *new = (Env) { patts[0].Set.id, patts[0].Set.size, type, *old };
     *old = new;
 }
 
@@ -677,15 +682,17 @@ void* parser_case_ (Env** env) {
     // ->
     pr_accept1(TK_ARROW);       // optional
 
+    // affect `env` before `body`
+    if (let.decl.type.sub != TYPE_NONE) {
+        env_add(env, let.decl.patt, let.decl.type);
+    }
+
     // expr
     Expr* pe = expr_new(env);
     if (pe == NULL) {
         return NULL;
     }
 
-    if (let.decl.type.sub != TYPE_NONE) {
-        env_add(env, let.decl.patt, let.decl.type);
-    }
     let.body = pe;
     let_ = let;
     return &let_;
