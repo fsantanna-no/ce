@@ -424,6 +424,7 @@ int parser_patt (Decl* env, Patt* ret, int is_match) {
     // PATT_SET
     } else if (pr_accept1(TK_IDVAR)) {
         int size = -1;
+        State_Tok tok = TOK0;
         if (pr_accept1('[')) {
             if (!pr_accept1(']')) {
                 return err_expected("`]`");
@@ -438,7 +439,7 @@ int parser_patt (Decl* env, Patt* ret, int is_match) {
             *pe = e;
             *ret = (Patt) { PATT_EXPR, .Expr=pe };
         } else {
-            *ret = (Patt) { PATT_SET, .Set={TOK0.tk,size} };
+            *ret = (Patt) { PATT_SET, .Set={tok.tk,size} };
         }
     } else if (pr_accept1('~')) {
         Expr* pe = expr_new(&env);
@@ -558,10 +559,8 @@ int parser_decl (Decl** env, Decl* decl) {
     }
 
     decl->prev = *env;
-//char* s = (*env==NULL) ? "null" : (*env)->patt.Set.id.val.s;
-//int   d = (*env==NULL) ? -1 : (*env)->patt.sub;
-//printf("[%p->%p] %s -> %d / %s\n", *env, decl, decl->patt.Set.id.val.s, d, s);
-    *env = decl;
+    *env = malloc(sizeof(Decl));
+    *(*env) = *decl;
     return 1;
 }
 

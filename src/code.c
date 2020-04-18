@@ -292,6 +292,7 @@ int find (Patt_Type* ret, Decl* cur, char* id) {
         puts("null");
         return 0;
     }
+//printf(">>> %p %p %d\n", cur, &cur->patt, cur->patt.sub);
     assert(cur->patt.sub == PATT_SET);
 //puts(cur->patt.Set.id.val.s);
     if (!strcmp(cur->patt.Set.id.val.s, id)) {
@@ -316,7 +317,7 @@ void code_patt_set (Patt p, Expr e) {
                 Patt_Type pt;
 // TODO
 //dump_expr(e);
-//printf("env = %p // sub=%d\n", e.env, e.sub);
+//printf("env = %p // sub=%d\n", e.env, p.sub);
 //puts("want");
 //puts(p.Set.id.val.s);
                 assert(find(&pt, e.env, p.Set.id.val.s));
@@ -362,6 +363,7 @@ void code_patt_decls (Decl decl) {
                 break;
             case PATT_SET:
                 assert(*vars_i < 16);
+//puts(patt.Set.id.val.s);
                 vars[(*vars_i)++] = patt.Set.id;
                 break;
             case PATT_CONS:
@@ -423,7 +425,7 @@ void code_decl (Decl d, tce_ret* ret) {
     if (d.type.sub == TYPE_FUNC) {
         int rec = (d.type.Func.out->sub == TYPE_DATA) &&
                   is_rec(d.type.Func.out->Data.val.s);
-rec = 0; // TODO
+//rec = 0; // TODO
         assert(d.init != NULL);
         assert(d.patt.sub == PATT_SET);
         out("\n");
