@@ -915,6 +915,26 @@ void t_all (void) {
     // DATA - LIST - RECURSIVE
 
     assert(all(
+        "Nil\n",
+        "data List\n"
+        "data List:\n"
+        "    Nil  ()\n"
+        "    Cons ((), List)\n"
+        "val l[] :: List = new Nil\n"
+        "{show_List}(l)"
+    ));
+    assert(all(
+        "Nil\n",
+        "data List\n"
+        "data List:\n"
+        "    Nil  ()\n"
+        "    Cons ((), List)\n"
+        "func fff :: (() -> List):\n"
+        "    new Nil\n"
+        "val l[] :: List = fff()\n"
+        "{show_List}(l)"
+    ));
+    assert(all(
         "Cons\n()\n",
         "data List\n"
         "data List:\n"
@@ -1015,28 +1035,7 @@ void t_all (void) {
 }
 
 int main (void) {
-#if 0
-    assert(all(
-        "Nil\n",
-        "data List\n"
-        "data List:\n"
-        "    Nil  ()\n"
-        "    Cons ((), List)\n"
-        "val l[] :: List = new Nil\n"
-        "{show_List}(l)"
-    ));
-    assert(all(
-        "Nil\n",
-        "data List\n"
-        "data List:\n"
-        "    Nil  ()\n"
-        "    Cons ((), List)\n"
-        "func fff :: (() -> List):\n"
-        "    new Nil\n"
-        "val l[] :: List = fff()\n"
-        "{show_List}(l)"
-    ));
-assert(0);
+#if 1
 #endif
     t_lexer();
     t_parser();

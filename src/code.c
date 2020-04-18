@@ -304,8 +304,8 @@ void code_patt_set (Patt p, Expr e) {
 // TODO
 //dump_expr(e);
 //printf("env = %p // sub=%d\n", e.env, p.sub);
-puts("want");
-puts(p.Set.id.val.s);
+//puts("want");
+//puts(p.Set.id.val.s);
                 rec_call = (env->type.sub == TYPE_DATA) && is_rec(env->type.Data.val.s);
             }
             if (rec_call) {
@@ -385,7 +385,6 @@ void code_decl (Decl d, tce_ret* ret) {
     if (d.type.sub == TYPE_FUNC) {
         int rec = (d.type.Func.out->sub == TYPE_DATA) &&
                   is_rec(d.type.Func.out->Data.val.s);
-//rec = 0; // TODO
         assert(d.init != NULL);
         assert(d.patt.sub == PATT_SET);
         out("\n");
@@ -429,7 +428,9 @@ void code_decl (Decl d, tce_ret* ret) {
                 tce_ret r = { &pt, NULL };
                 code_expr(*d.init, &r);
                 out(";\n");
-                out("return ce_ret;\n");
+                if (!rec) {
+                    out("return ce_ret;\n");
+                }
             }
         out("}\n\n");
     } else {
@@ -497,6 +498,10 @@ void code_expr (Expr e, tce_ret* ret) {
             code_ret(ret);
             code_expr(*e.Call.func, NULL);
             out("(");
+            if (e.Call.out != NULL) {
+                out(e.Call.out->Set.id.val.s);
+                out(", ");
+            }
             if (e.Call.func->sub == EXPR_RAW) {
                 if (e.Call.arg->sub == EXPR_TUPLE) {
                     // {f}(a,b,c) -> f(a,b,c)
