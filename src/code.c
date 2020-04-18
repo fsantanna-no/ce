@@ -10,6 +10,10 @@ void out (const char* v) {
     fputs(v, ALL.out[OGLOB]);
 }
 
+void outl (State_Tok tok) {
+    //fprintf(ALL.out[OGLOB], "#line %ld\n", tok.lin);
+}
+
 void code_ret (tce_ret* ret) {
     while (ret != NULL) {
         assert (ret->patt->sub == PATT_SET);
@@ -545,7 +549,7 @@ void code_expr (Expr e, tce_ret* ret) {
             break;
         case EXPR_SEQ:
             for (int i=0; i<e.Seq.size; i++) {
-                fprintf(ALL.out[OGLOB], "#line %ld\n", e.Seq.vec[i].tok.lin);
+                outl(e.Seq.vec[i].tok);
                 code_expr(e.Seq.vec[i], (i==e.Seq.size-1) ? ret : NULL);
                 out(";\n");
             }
@@ -686,7 +690,7 @@ void code_prog (Prog prog) {
                 code_data(g.data);
                 break;
             case GLOB_EXPR:
-                fprintf(ALL.out[OGLOB], "#line %ld\n", g.expr.tok.lin);
+                outl(g.expr.tok);
                 code_expr(g.expr, NULL);
                 out(";\n");
                 break;
