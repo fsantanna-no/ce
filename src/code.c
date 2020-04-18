@@ -286,24 +286,6 @@ void code_patt_match (Patt p, Expr tst) {
     }
 }
 
-int find (Patt_Type* ret, Decl* cur, char* id) {
-//puts("have");
-    if (cur == NULL) {
-        puts("null");
-        return 0;
-    }
-//printf(">>> %p %p %d\n", cur, &cur->patt, cur->patt.sub);
-    assert(cur->patt.sub == PATT_SET);
-//puts(cur->patt.Set.id.val.s);
-    if (!strcmp(cur->patt.Set.id.val.s, id)) {
-        ret->patt = cur->patt;
-        ret->type = cur->type;
-        return 1;
-    } else {
-        return find(ret, cur->prev, id);
-    }
-}
-
 void code_patt_set (Patt p, Expr e) {
     switch (p.sub) {
         case PATT_RAW:
@@ -313,18 +295,22 @@ void code_patt_set (Patt p, Expr e) {
             break;
         case PATT_SET: {        // x = ce_tst
             int rec_call = 0;
-            if (e.sub==EXPR_CALL && e.Call.func->sub!=EXPR_CONS) {     // val l[] = f()
-                Patt_Type pt;
+            if (e.sub==EXPR_CALL && e.Call.func->sub!=EXPR_CONS) {
+                //  l[] = f(...)
+                // becomes
+                //  f(l,...)
+                Env* env = env_find(e.env, p.Set.id.val.s);
+                assert(env != NULL);
 // TODO
 //dump_expr(e);
 //printf("env = %p // sub=%d\n", e.env, p.sub);
-//puts("want");
-//puts(p.Set.id.val.s);
-                assert(find(&pt, e.env, p.Set.id.val.s));
-                rec_call = (pt.type.sub == TYPE_DATA) && is_rec(pt.type.Data.val.s);
+puts("want");
+puts(p.Set.id.val.s);
+                rec_call = (env->type.sub == TYPE_DATA) && is_rec(env->type.Data.val.s);
             }
             if (rec_call) {
-                assert(0 && "TODO");
+                e.Call.out = &p;
+                code_expr(e, NULL);
             } else {
                 tce_ret r = { &p, NULL };
                 code_expr(e, &r);
@@ -354,38 +340,12 @@ void code_patt_set (Patt p, Expr e) {
 }
 
 void code_patt_decls (Decl decl) {
-    void aux (Tk* vars, int* vars_i, Patt patt) {
-        switch (patt.sub) {
-            case PATT_RAW:
-            case PATT_ANY:
-            case PATT_UNIT:
-            case PATT_EXPR:
-                break;
-            case PATT_SET:
-                assert(*vars_i < 16);
-//puts(patt.Set.id.val.s);
-                vars[(*vars_i)++] = patt.Set.id;
-                break;
-            case PATT_CONS:
-                if (patt.Cons.arg != NULL) {
-                    aux(vars, vars_i, *patt.Cons.arg);
-                }
-                break;
-            case PATT_TUPLE:
-                for (int i=0; i<patt.Tuple.size; i++) {
-                    aux(vars, vars_i, patt.Tuple.vec[i]);
-                }
-                break;
-            default:
-                assert(0 && "TODO");
-        }
-    }
-    Tk vars[16];
-    int vars_i = 0;
-    aux(vars, &vars_i, decl.patt);
-    if (vars_i == 1) {
+    Patt patts[16];
+    int patts_i = 0;
+    patt2patts(patts, &patts_i, decl.patt);
+    if (patts_i == 1) {
         out("#define VAR_");
-        out(vars[0].val.s);
+        out(patts[0].Set.id.val.s);
         out("(v) ");
         int size = (decl.patt.sub == PATT_SET ? decl.patt.Set.size : -1);
         if (size == -1) {
@@ -394,26 +354,26 @@ void code_patt_decls (Decl decl) {
         } else {
             out("(v->root)\n");
             out("Pool _");
-            out(vars[0].val.s);
+            out(patts[0].Set.id.val.s);
             out(";\n");
             out("Pool*");
         }
         out(" ");
-        out(vars[0].val.s);
+        out(patts[0].Set.id.val.s);
         if (size != -1) {
             out(" = &_");
-            out(vars[0].val.s);
+            out(patts[0].Set.id.val.s);
         }
         out(";\n");
-    } else if (vars_i > 1) {
-        assert(decl.type.Tuple.size == vars_i);
-        for (int i=0; i<vars_i; i++) {
+    } else if (patts_i > 1) {
+        assert(decl.type.Tuple.size == patts_i);
+        for (int i=0; i<patts_i; i++) {
             out("#define VAR_");
-            out(vars[i].val.s);
+            out(patts[i].Set.id.val.s);
             out("(v) v\n");
             code_type(decl.type.Tuple.vec[i]);
             out(" ");
-            out(vars[i].val.s);
+            out(patts[i].Set.id.val.s);
             out(";\n");
         }
     }
@@ -539,6 +499,7 @@ void code_expr (Expr e, tce_ret* ret) {
             out("(");
             if (e.Call.func->sub == EXPR_RAW) {
                 if (e.Call.arg->sub == EXPR_TUPLE) {
+                    // {f}(a,b,c) -> f(a,b,c)
                     for (int i=0; i<e.Call.arg->Tuple.size; i++) {
                         if (i > 0) {
                             out(", ");
@@ -546,6 +507,7 @@ void code_expr (Expr e, tce_ret* ret) {
                         code_expr(e.Call.arg->Tuple.vec[i], NULL);
                     }
                 } else {
+                    // {f}(a) -> f(a)
                     code_expr(*e.Call.arg, NULL);
                 }
             } else if (e.Call.func->sub == EXPR_CONS) {

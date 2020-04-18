@@ -104,7 +104,7 @@ int is_rec (const char* v) {
     return 0;
 }
 
-Expr* expr_new (Decl** env) {
+Expr* expr_new (Env** env) {
     Expr e;
     if (!parser_expr(env,&e)) {
         return NULL;
@@ -221,7 +221,7 @@ void init (FILE* out, FILE* inp) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-int parser_list_comma (Decl** env, List* ret, void* fst, List_F f, size_t unit) {
+int parser_list_comma (Env** env, List* ret, void* fst, List_F f, size_t unit) {
     if (!pr_accept1(',')) {
         return err_expected("`,`");
     }
@@ -247,7 +247,7 @@ int parser_list_comma (Decl** env, List* ret, void* fst, List_F f, size_t unit) 
     return 1;
 }
 
-int parser_list_line (Decl** env, int global, List* ret, List_F f, size_t unit) {
+int parser_list_line (Env** env, int global, List* ret, List_F f, size_t unit) {
     if (global) {
         if (!pr_accept1(':')) {
             return err_expected("`:`");
@@ -307,7 +307,7 @@ int parser_list_line (Decl** env, int global, List* ret, List_F f, size_t unit) 
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void* parser_type_ (Decl** env) {
+void* parser_type_ (Env** env) {
     static Type tp_;
     Type tp;
     if (!parser_type(&tp)) {
@@ -369,7 +369,7 @@ int parser_type (Type* ret) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void* parser_patt_ (Decl** env) {
+void* parser_patt_ (Env** env) {
     static Patt pt_;
     Patt pt;
     if (!parser_patt(*env,&pt,0)) {
@@ -379,7 +379,7 @@ void* parser_patt_ (Decl** env) {
     return &pt_;
 }
 
-int parser_patt (Decl* env, Patt* ret, int is_match) {
+int parser_patt (Env* env, Patt* ret, int is_match) {
     // PATT_RAW
     if (pr_accept1(TK_RAW)) {
         *ret = (Patt) { PATT_RAW, .Raw=TOK0.tk };
@@ -455,7 +455,7 @@ int parser_patt (Decl* env, Patt* ret, int is_match) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void* parser_cons_ (Decl** env) {
+void* parser_cons_ (Env** env) {
     static Cons c_;
     Cons c;
 
@@ -532,7 +532,72 @@ int parser_data (Data* ret) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-int parser_decl (Decl** env, Decl* decl) {
+void patt2patts (Patt* patts, int* patts_i, Patt patt) {
+    switch (patt.sub) {
+        case PATT_RAW:
+        case PATT_ANY:
+        case PATT_UNIT:
+        case PATT_EXPR:
+            break;
+        case PATT_SET:
+            assert(*patts_i < 16);
+//puts(patt.Set.id.val.s);
+            patts[(*patts_i)++] = patt;
+            break;
+        case PATT_CONS:
+            if (patt.Cons.arg != NULL) {
+                patt2patts(patts, patts_i, *patt.Cons.arg);
+            }
+            break;
+        case PATT_TUPLE:
+            for (int i=0; i<patt.Tuple.size; i++) {
+                patt2patts(patts, patts_i, patt.Tuple.vec[i]);
+            }
+            break;
+        default:
+            assert(0 && "TODO");
+    }
+}
+
+Env* env_find (Env* cur, char* id) {
+//puts("have");
+    if (cur == NULL) {
+        //puts("null");
+        return NULL;
+    }
+//printf(">>> %p %p %d\n", cur, &cur->patt, cur->patt.sub);
+//puts(cur->patt.Set.id.val.s);
+    if (!strcmp(cur->id.val.s, id)) {
+        return cur;
+    } else {
+        return env_find(cur->prev, id);
+    }
+}
+
+void env_add (Env** old, Patt patt, Type type) {
+    Patt patts[16];
+    int patts_i = 0;
+    patt2patts(patts, &patts_i, patt);
+    if (patts_i > 1) {
+        assert(type.sub == TYPE_TUPLE);
+        for (int i=0; i<patts_i; i++) {
+            env_add(old, patts[i], type.Tuple.vec[i]);
+        }
+        return;
+    }
+
+    assert(patts_i == 1);
+    assert(patts[0].sub == PATT_SET);
+
+    Env* new = malloc(sizeof(Env));
+    *new = (Env) { patt.Set.id, patt.Set.size, type };
+    if (*old != NULL) {
+        (*old)->prev = new;
+    }
+    *old = new;
+}
+
+int parser_decl (Env** env, Decl* decl) {
     int is_func = pr_check0(TK_FUNC);
     if (!parser_patt(*env,&decl->patt,0)) {
         return 0;
@@ -546,6 +611,12 @@ int parser_decl (Decl** env, Decl* decl) {
         return 0;
     }
 
+    env_add(env, decl->patt, decl->type);
+
+//char* s = (*env==NULL) ? "null" : (*env)->patt.Set.id.val.s;
+//int   d = (*env==NULL) ?     -1 : (*env)->patt.sub;
+//printf("[%p<-%p] %s -> %d / %s\n", p, *env, decl->patt.Set.id.val.s, d, s);
+
     if (is_func || (!is_func && pr_accept1('='))) {
         Expr init;
         if (!parser_expr(env,&init)) {
@@ -558,15 +629,12 @@ int parser_decl (Decl** env, Decl* decl) {
         decl->init = NULL;
     }
 
-    decl->prev = *env;
-    *env = malloc(sizeof(Decl));
-    *(*env) = *decl;
     return 1;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void* parser_expr_ (Decl** env) {
+void* parser_expr_ (Env** env) {
     static Expr e_;
     Expr e;
     if (!parser_expr(env,&e)) {
@@ -576,7 +644,7 @@ void* parser_expr_ (Decl** env) {
     return &e_;
 }
 
-void* parser_expr__ (Decl** env) {
+void* parser_expr__ (Env** env) {
     static Expr e_;
     State_Tok tok = TOK1;
     Expr* pe = parser_expr_(env);
@@ -589,7 +657,7 @@ void* parser_expr__ (Decl** env) {
     return &e_;
 }
 
-void* parser_case_ (Decl** env) {
+void* parser_case_ (Env** env) {
     static Let let_;
     Let let;
 
@@ -618,14 +686,15 @@ void* parser_case_ (Decl** env) {
         return NULL;
     }
 
-    let.decl.prev = *env;
-    *env = &let.decl;
+    if (let.decl.type.sub != TYPE_NONE) {
+        env_add(env, let.decl.patt, let.decl.type);
+    }
     let.body = pe;
     let_ = let;
     return &let_;
 }
 
-void* parser_if_ (Decl** env) {
+void* parser_if_ (Env** env) {
     static If c_;
     If c;
 
@@ -653,7 +722,7 @@ void* parser_if_ (Decl** env) {
     return &c_;
 }
 
-int parser_expr_one (Decl** env, Expr* ret) {
+int parser_expr_one (Env** env, Expr* ret) {
     // EXPR_RAW
     if (pr_accept1(TK_RAW)) {
         *ret = (Expr) { EXPR_RAW, {}, *env, NULL, .Raw=TOK0.tk };
@@ -849,7 +918,7 @@ int parser_expr_one (Decl** env, Expr* ret) {
     return 1;
 }
 
-int parser_expr (Decl** env, Expr* ret) {
+int parser_expr (Env** env, Expr* ret) {
     int is_first = TOK0.off==-1 || pr_check0('\n') || pr_check0(TK_ARROW);
 //printf(">>> (%d/%d/%d ==> %d/%d)\n", TOK0.tk.sym, TOK1.tk.sym, TOK2.tk.sym, ALL.ind, TOK0.tk.val.n);
 
@@ -875,7 +944,7 @@ int parser_expr (Decl** env, Expr* ret) {
         assert(parg!=NULL && func!=NULL);
         *parg = arg;
         *func = *ret;
-        *ret  = (Expr) { EXPR_CALL, {}, *env, NULL, .Call={func,parg} };
+        *ret  = (Expr) { EXPR_CALL, {}, *env, NULL, .Call={func,parg,NULL} };
     }
 
     // EXPR_MATCH
@@ -929,7 +998,7 @@ _WHERE_:
 // Glob ::= Data | Decl | Expr
 // Prog ::= { Glob }
 
-void* parser_glob_ (Decl** env) {
+void* parser_glob_ (Env** env) {
     static Glob g_;
     Glob g;
 
@@ -953,7 +1022,7 @@ void* parser_glob_ (Decl** env) {
 }
 
 int parser_prog (Prog* ret) {
-    Decl* env = NULL;
+    Env* env = NULL;
     List lst;
     if (!parser_list_line(&env, 0, &lst, &parser_glob_, sizeof(Glob))) {
         return 0;

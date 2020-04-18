@@ -185,7 +185,7 @@ void t_parser_expr (void) {
     // PARENS
     {
         init(NULL, stropen("r", 0, "(())"));
-        Decl* env = NULL;
+        Env* env = NULL;
         Expr e;
         assert(parser_expr(&env,&e));
         assert(e.sub == EXPR_UNIT);
@@ -193,7 +193,7 @@ void t_parser_expr (void) {
     }
     {
         init(NULL, stropen("r", 0, "( ( ) )"));
-        Decl* env = NULL;
+        Env* env = NULL;
         Expr e;
         assert(parser_expr(&env,&e));
         assert(e.sub == EXPR_UNIT);
@@ -201,7 +201,7 @@ void t_parser_expr (void) {
     }
     {
         init(NULL, stropen("r", 0, "("));
-        Decl* env = NULL;
+        Env* env = NULL;
         Expr e;
         assert(!parser_expr(&env,&e));
         assert(!strcmp(ALL.err, "(ln 1, col 2): expected expression : have end of line"));
@@ -209,7 +209,7 @@ void t_parser_expr (void) {
     }
     {
         init(NULL, stropen("r", 0, "(("));
-        Decl* env = NULL;
+        Env* env = NULL;
         Expr e;
         assert(!parser_expr(&env,&e));
         assert(!strcmp(ALL.err, "(ln 1, col 3): expected expression : have end of line"));
@@ -217,7 +217,7 @@ void t_parser_expr (void) {
     }
     {
         init(NULL, stropen("r", 0, "(\n( \n"));
-        Decl* env = NULL;
+        Env* env = NULL;
         Expr e;
         assert(!parser_expr(&env,&e));
         assert(!strcmp(ALL.err, "(ln 1, col 2): expected expression : have end of line"));
@@ -226,7 +226,7 @@ void t_parser_expr (void) {
     // EXPR_VAR
     {
         init(NULL, stropen("r", 0, "x)"));
-        Decl* env = NULL;
+        Env* env = NULL;
         Expr e;
         assert(parser_expr(&env,&e));
         assert(e.sub == EXPR_VAR);
@@ -234,7 +234,7 @@ void t_parser_expr (void) {
     }
     {
         init(NULL, stropen("r", 0, "x("));
-        Decl* env = NULL;
+        Env* env = NULL;
         Expr e;
         assert(!parser_expr(&env,&e));
         assert(!strcmp(ALL.err, "(ln 1, col 3): expected expression : have end of line"));
@@ -243,7 +243,7 @@ void t_parser_expr (void) {
     // EXPR_SET
     {
         init(NULL, stropen("r", 0, "set () = (x"));
-        Decl* env = NULL;
+        Env* env = NULL;
         Expr e;
         assert(!parser_expr(&env,&e));
         assert(!strcmp(ALL.err, "(ln 1, col 12): expected `)` : have end of line"));
@@ -252,7 +252,7 @@ void t_parser_expr (void) {
     }
     {
         init(NULL, stropen("r", 0, "set a = (x"));
-        Decl* env = NULL;
+        Env* env = NULL;
         Expr e;
         assert(!parser_expr(&env,&e));
         assert(!strcmp(ALL.err, "(ln 1, col 11): expected `)` : have end of line"));
@@ -260,7 +260,7 @@ void t_parser_expr (void) {
     }
     {
         init(NULL, stropen("r", 0, "set a = (x)"));
-        Decl* env = NULL;
+        Env* env = NULL;
         Expr e;
         assert(parser_expr(&env,&e));
         assert(e.sub == EXPR_SET);
@@ -271,7 +271,7 @@ void t_parser_expr (void) {
     // EXPR_FUNC
     {
         init(NULL, stropen("r", 0, "func :: () ()"));
-        Decl* env = NULL;
+        Env* env = NULL;
         Expr e;
         assert(parser_expr(&env,&e));
         assert(e.sub == EXPR_FUNC);
@@ -280,7 +280,7 @@ void t_parser_expr (void) {
     // EXPR_CALL
     {
         init(NULL, stropen("r", 0, "xxx (  )"));
-        Decl* env = NULL;
+        Env* env = NULL;
         Expr e;
         assert(parser_expr(&env,&e));
         assert(e.sub == EXPR_CALL);
@@ -292,7 +292,7 @@ void t_parser_expr (void) {
     // EXPR_SEQ
     {
         init(NULL, stropen("r", 0, ": x"));
-        Decl* env = NULL;
+        Env* env = NULL;
         Expr e;
         assert(!parser_expr(&env,&e));
         assert(!strcmp(ALL.err, "(ln 1, col 3): expected new line : have `x`"));
@@ -300,7 +300,7 @@ void t_parser_expr (void) {
     }
     {
         init(NULL, stropen("r", 0, ":\nx"));
-        Decl* env = NULL;
+        Env* env = NULL;
         Expr e;
         assert(!parser_expr(&env,&e));
         assert(!strcmp(ALL.err, "(ln 2, col 1): expected indentation of 4 spaces : have `x`"));
@@ -308,7 +308,7 @@ void t_parser_expr (void) {
     }
     {
         init(NULL, stropen("r", 0, ":\n    x"));
-        Decl* env = NULL;
+        Env* env = NULL;
         Expr e;
         assert(parser_expr(&env,&e));
         assert(e.sub == EXPR_SEQ);
@@ -317,7 +317,7 @@ void t_parser_expr (void) {
     }
     {
         init(NULL, stropen("r", 0, ":\n    x x"));
-        Decl* env = NULL;
+        Env* env = NULL;
         Expr e;
         assert(!parser_expr(&env,&e));
         assert(!strcmp(ALL.err, "(ln 2, col 7): expected new line : have `x`"));
@@ -325,7 +325,7 @@ void t_parser_expr (void) {
     }
     {
         init(NULL, stropen("r", 0, ":\n    x\n    y ("));
-        Decl* env = NULL;
+        Env* env = NULL;
         Expr e;
         assert(!parser_expr(&env,&e));
         assert(!strcmp(ALL.err, "(ln 3, col 8): expected expression : have end of line"));
@@ -333,7 +333,7 @@ void t_parser_expr (void) {
     }
     {
         init(NULL, stropen("r", 0, ":\n    x\n    y ("));
-        Decl* env = NULL;
+        Env* env = NULL;
         Expr e;
         assert(!parser_expr(&env,&e));
         assert(!strcmp(ALL.err, "(ln 3, col 8): expected expression : have end of line"));
@@ -341,7 +341,7 @@ void t_parser_expr (void) {
     }
     {
         init(NULL, stropen("r", 0, ":\n    x\n    y y"));
-        Decl* env = NULL;
+        Env* env = NULL;
         Expr e;
         assert(!parser_expr(&env,&e));
         assert(!strcmp(ALL.err, "(ln 3, col 7): expected new line : have `y`"));
@@ -349,7 +349,7 @@ void t_parser_expr (void) {
     }
     {
         init(NULL, stropen("r", 0, "val ::"));
-        Decl* env = NULL;
+        Env* env = NULL;
         Expr e;
         assert(!parser_expr(&env,&e));
         assert(!strcmp(ALL.err, "(ln 1, col 5): expected variable identifier : have `::`"));
@@ -363,7 +363,7 @@ void t_parser_expr (void) {
             "        y\n"
             "    z\n"
         ));
-        Decl* env = NULL;
+        Env* env = NULL;
         Expr e;
         assert(parser_expr(&env,&e));
         assert(e.sub == EXPR_SEQ);
@@ -378,7 +378,7 @@ void t_parser_expr (void) {
             "    :\n"
             "        y\n"
         ));
-        Decl* env = NULL;
+        Env* env = NULL;
         Expr e;
         assert(parser_expr(&env,&e));
         assert(e.sub == EXPR_SEQ);
@@ -389,10 +389,10 @@ void t_parser_expr (void) {
 }
 
 void t_parser_decls (void) {
-    Decl* env = NULL;
+    Env* env = NULL;
     int pr_accept1 (TK tk, int ok);
     int err_expected (const char* v);
-    int parser_decl (Decl** env, Decl* decl);
+    int parser_decl (Env** env, Decl* decl);
     typedef struct {
         int   size;
         Decl* vec;
@@ -403,7 +403,7 @@ void t_parser_decls (void) {
         }
         return parser_decl(&env,decl);
     }
-    void* parser_decl_ (Decl** decl) {
+    void* parser_decl_ (Env** env) {
         static Decl d_;
         Decl d;
         if (!xxx(&d)) {
@@ -477,7 +477,7 @@ void t_parser_decls (void) {
 void t_parser_block (void) {
     {
         init(NULL, stropen("r", 0, "a:\n    val a :: ()"));
-        Decl* env = NULL;
+        Env* env = NULL;
         Expr blk;
         assert(parser_expr(&env,&blk));
         fclose(ALL.inp);
@@ -490,7 +490,7 @@ void t_parser_block (void) {
             "    b where:\n"
             "        val b :: ()\n"
         ));
-        Decl* env = NULL;
+        Env* env = NULL;
         Expr e;
         assert(parser_expr(&env,&e));
         assert(e.sub == EXPR_SEQ);
@@ -508,7 +508,7 @@ void t_parser_block (void) {
             "        val y :: ()\n"
             "    val a :: ()\n"
         ));
-        Decl* env = NULL;
+        Env* env = NULL;
         Expr e;
         assert(parser_expr(&env,&e));
         assert(e.sub == EXPR_VAR);

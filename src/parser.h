@@ -158,8 +158,14 @@ typedef struct Decl {
     Patt patt;
     Type type;
     struct Expr* init;
-    struct Decl* prev;
 } Decl;
+
+typedef struct Env {
+    Tk   id;
+    int  size;       // -1 if not pool, 0 if unbounded, n if bounded
+    Type type;
+    struct Env* prev;
+} Env;
 
 typedef struct {
     Decl decl;
@@ -174,7 +180,7 @@ typedef struct {
 typedef struct Expr {
     EXPR  sub;
     State_Tok tok;
-    Decl* env;
+    Env*  env;
     struct Expr* where;    // block that executes/declares before expression
     union {
         Tk Raw;
@@ -202,6 +208,7 @@ typedef struct Expr {
         struct {        // EXPR_CALL
             struct Expr* func;
             struct Expr* arg;
+            struct Patt* out;       // l[]=f() -> f(l)
         } Call;
         struct {        // EXPR_IF
             struct Expr* tst;
@@ -256,16 +263,19 @@ typedef struct {
     int size;
     void* vec;
 } List;
-typedef void* (*List_F) (Decl** env);
-int parser_list_line (Decl** env, int global, List* ret, List_F f, size_t unit);
+typedef void* (*List_F) (Env** env);
+int parser_list_line (Env** env, int global, List* ret, List_F f, size_t unit);
 
 int is_rec (const char* v);
 void dump_expr (Expr e);
 void init (FILE* out, FILE* inp);
 FILE* stropen (const char* mode, size_t size, char* str);
 
-int parser_type (Type*  ret);
-int parser_data (Data*  ret);
-int parser_patt (Decl*  env, Patt* ret, int is_match);
-int parser_expr (Decl** env, Expr* ret);
-int parser_prog (Prog*  prog);
+Env* env_find (Env* cur, char* id);
+void patt2patts (Patt* patts, int* patts_i, Patt patt);
+
+int parser_type (Type* ret);
+int parser_data (Data* ret);
+int parser_patt (Env* env, Patt* ret, int is_match);
+int parser_expr (Env** env, Expr* ret);
+int parser_prog (Prog* prog);
