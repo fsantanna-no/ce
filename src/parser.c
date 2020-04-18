@@ -565,8 +565,7 @@ Env* env_find (Env* cur, char* id) {
         //puts("null");
         return NULL;
     }
-//printf(">>> %p %p %d\n", cur, &cur->patt, cur->patt.sub);
-//puts(cur->patt.Set.id.val.s);
+//puts(cur->id.val.s);
     if (!strcmp(cur->id.val.s, id)) {
         return cur;
     } else {
@@ -590,10 +589,7 @@ void env_add (Env** old, Patt patt, Type type) {
     assert(patts[0].sub == PATT_SET);
 
     Env* new = malloc(sizeof(Env));
-    *new = (Env) { patt.Set.id, patt.Set.size, type };
-    if (*old != NULL) {
-        (*old)->prev = new;
-    }
+    *new = (Env) { patt.Set.id, patt.Set.size, type, *old };
     *old = new;
 }
 
@@ -611,11 +607,12 @@ int parser_decl (Env** env, Decl* decl) {
         return 0;
     }
 
+//Env* old = *env;
     env_add(env, decl->patt, decl->type);
 
 //char* s = (*env==NULL) ? "null" : (*env)->patt.Set.id.val.s;
 //int   d = (*env==NULL) ?     -1 : (*env)->patt.sub;
-//printf("[%p<-%p] %s -> %d / %s\n", p, *env, decl->patt.Set.id.val.s, d, s);
+//printf("[%p<-%p] %s\n", old, *env, (*env)->id.val.s);
 
     if (is_func || (!is_func && pr_accept1('='))) {
         Expr init;

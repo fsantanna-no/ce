@@ -299,13 +299,13 @@ void code_patt_set (Patt p, Expr e) {
                 //  l[] = f(...)
                 // becomes
                 //  f(l,...)
-                Env* env = env_find(e.env, p.Set.id.val.s);
-                assert(env != NULL);
 // TODO
 //dump_expr(e);
 //printf("env = %p // sub=%d\n", e.env, p.sub);
 //puts("want");
 //puts(p.Set.id.val.s);
+                Env* env = env_find(e.env, p.Set.id.val.s);
+                assert(env != NULL);
                 rec_call = (env->type.sub == TYPE_DATA) && is_rec(env->type.Data.val.s);
             }
             if (rec_call) {
