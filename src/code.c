@@ -10,11 +10,11 @@ void outl (State_Tok tok) {
 
 void code_ret (tce_ret* ret) {
     while (ret != NULL) {
-        if (ret->env.type.sub!=TYPE_DATA || ret->env.type.size==-1) {
-            out(ret->env->id.val.s);
+        if (ret->env.type.sub!=TYPE_DATA || ret->env.type.Data.size==-1) {
+            out(ret->env.id.val.s);
         } else {
             out("(");
-            out(ret->env->id.val.s);
+            out(ret->env.id.val.s);
             out("->root");
             out(")");
         }
@@ -300,6 +300,8 @@ void code_patt_set (Patt p, Expr e) {
             break;
         case PATT_SET: {        // x = ce_tst
             int rec_call = 0;
+            Type* type = env_get(e.env, p.Set.val.s);
+            assert(type != NULL);
             if (e.sub==EXPR_CALL && e.Call.func->sub!=EXPR_CONS) {
                 //  l[] = f(...)
                 // becomes
@@ -309,16 +311,14 @@ void code_patt_set (Patt p, Expr e) {
 //printf("env = %p // sub=%d\n", e.env, p.sub);
 //puts("want");
 //puts(p.Set.val.s);
-                Type* type = env_get(e.env, p.Set.val.s);
-                assert(type != NULL);
                 rec_call = (type->sub == TYPE_DATA) && is_rec(type->Data.tk.val.s);
             }
             if (rec_call) {
                 e.Call.out = &p;
                 code_expr(e, NULL);
             } else {
-                Env_Plain env = { p.Set.val.s, {TYPE_NONE} };
-                tce_ret r = { &env, NULL };
+                Env_Plain env = { p.Set, *type };
+                tce_ret r = { env, NULL };
                 code_expr(e, &r);
             }
             out(";\n");
@@ -412,8 +412,8 @@ void code_decl (Decl d, tce_ret* ret) {
                     code_type(*d.type.Func.out);
                     out(" ce_ret;\n");
                 }
-                Env_Plain env = { {TK_IDVAR,{.s="ce_ret"}, {TYPE_NONE} };
-                tce_ret r = { &env, NULL };
+                Env_Plain env = { {TK_IDVAR,{.s="ce_ret"}}, {TYPE_NONE} };
+                tce_ret r = { env, NULL };
                 code_expr(*d.init, &r);
                 out(";\n");
                 if (!rec) {
@@ -530,7 +530,7 @@ void code_expr (Expr e, tce_ret* ret) {
             code_ret(ret);
             if (ret != NULL) {
                 out("(typeof(");
-                out(ret->patt->Set.val.s);
+                out(ret->env.id.val.s);
                 out(")) ");
             }
             out("{ ");
