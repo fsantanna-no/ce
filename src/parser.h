@@ -274,12 +274,10 @@ typedef void* (*List_F) (Env** env);
 int parser_list_line (Env** env, int global, List* ret, List_F f, size_t unit);
 
 int is_rec (const char* v);
-void dump_expr (Expr e);
 void init (FILE* out, FILE* inp);
 FILE* stropen (const char* mode, size_t size, char* str);
 
 Env* env_find (Env* cur, char* want);
-void env_dump (Env* cur);
 void patt2patts (Patt* patts, int* patts_i, Patt patt);
 
 int parser_type (Type* ret);

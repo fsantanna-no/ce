@@ -8,96 +8,6 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void dump_expr_ (Expr e, int spc) {
-    for (int i=0; i<spc; i++) printf(" ");
-    switch (e.sub) {
-        case EXPR_RAW:
-            printf("{ %s }", e.Raw.val.s);
-            break;
-        case EXPR_UNIT:
-            fputs("()", stdout);
-            break;
-        case EXPR_VAR:
-            fputs(e.Var.val.s, stdout);
-            break;
-        case EXPR_CONS:
-            fputs(e.Var.val.s, stdout);
-            break;
-        case EXPR_SET:
-            puts("set");
-            //fputs(e.Set.var.val.s, stdout);
-            //fputs(" = ", stdout);
-            //dump_expr_(*e.Set.val, 0);
-            break;
-        case EXPR_DECL:
-            fputs("decl (...)", stdout);
-            break;
-        case EXPR_NEW:
-            fputs("new (...)", stdout);
-            break;
-        case EXPR_FUNC:
-            fputs("func (...)", stdout);
-            break;
-        case EXPR_RETURN:
-            fputs("return ", stdout);
-            dump_expr_(*e.Return, 0);
-            break;
-        case EXPR_BREAK:
-            fputs("break ", stdout);
-            if (e.Break) {
-                dump_expr_(*e.Break, 0);
-            }
-            break;
-        case EXPR_LOOP: {
-            puts("loop:");
-            dump_expr_(*e.Loop, spc+4);
-            break;
-        }
-        case EXPR_MATCH:
-            dump_expr_(*e.Match.expr, 0);
-            fputs(" ~ ???", stdout);
-            break;
-        case EXPR_TUPLE:
-            fputs("<", stdout);
-            for (int i=0; i<e.Tuple.size; i++) {
-                if (i>0) fputs(", ", stdout);
-                dump_expr_(e.Tuple.vec[i], 0);
-            }
-            fputs(">", stdout);
-            break;
-        case EXPR_CALL:
-            dump_expr_(*e.Call.func, 0);
-            fputs("(", stdout);
-            dump_expr_(*e.Call.arg, 0);
-            fputs(")", stdout);
-            break;
-        case EXPR_SEQ:
-            printf(": [%d]\n", e.Seq.size);
-            for (int i=0; i<e.Seq.size; i++) {
-                dump_expr_(e.Seq.vec[i], spc+4);
-                puts("");
-            }
-            break;
-        case EXPR_LET:
-            fputs("let (...)", stdout);
-            break;
-        case EXPR_IF:
-            fputs("if (...)", stdout);
-            break;
-        case EXPR_CASES:
-            fputs("match (...)", stdout);
-            break;
-        default:
-            printf(">>> %d\n", e.sub);
-            assert(0 && "TODO");
-    }
-}
-
-void dump_expr (Expr e) {
-    dump_expr_(e, 0);
-    puts("");
-}
-
 int is_rec (const char* v) {
     for (int i=0; i<ALL.data_recs.size; i++) {
         if (!strcmp(ALL.data_recs.buf[i].val.s, v)) {
@@ -587,26 +497,6 @@ Env* env_find (Env* cur, char* want) {
             }
     }
     return env_find(cur->prev, want);
-}
-
-void env_dump (Env* cur) {
-    static int N = 0;
-    if (cur == NULL) {
-        return;
-    }
-    for (int i=0; i<N; i++) printf(" ");
-    switch (cur->sub) {
-        case ENV_HUB:
-            printf("hub [%p->%p]:\n", cur, cur->prev);
-            N += 2;
-            env_dump(cur->Hub);
-            N -= 2;
-            break;
-        case ENV_PLAIN:
-            printf("id %s [%p->%p]\n", cur->Plain.id.val.s, cur, cur->prev);
-            break;
-    }
-    return env_dump(cur->prev);
 }
 
 void env_add (Env** old, Patt patt, Type type) {
