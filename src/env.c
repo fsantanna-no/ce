@@ -9,7 +9,7 @@ void patt2patts (Patt* patts, int* patts_i, Patt patt) {
             break;
         case PATT_SET:
             assert(*patts_i < 16);
-//puts(patt.Set.id.val.s);
+//puts(patt.Set.val.s);
             patts[(*patts_i)++] = patt;
             break;
         case PATT_CONS:
@@ -27,11 +27,7 @@ void patt2patts (Patt* patts, int* patts_i, Patt patt) {
     }
 }
 
-Env* env_get (Env* cur, char* want) {
-    static Env env = { ENV_PLAIN, NULL, .Plain={{},-1,{TYPE_UNIT}} };
-    if (!strcmp(want,"ce_tst")) {
-        return &env;
-    }
+Type* env_get (Env* cur, char* want) {
 //printf("want %s [%p] // have ", want, cur);
     if (cur == NULL) {
         //puts("null");
@@ -39,7 +35,7 @@ Env* env_get (Env* cur, char* want) {
     }
     switch (cur->sub) {
         case ENV_HUB: {
-            Env* x = env_get(cur->Hub, want);
+            Type* x = env_get(cur->Hub, want);
             if (x != NULL) {
                 return x;
             }
@@ -48,7 +44,7 @@ Env* env_get (Env* cur, char* want) {
         case ENV_PLAIN:
 //puts(cur->Plain.id.val.s);
             if (!strcmp(cur->Plain.id.val.s, want)) {
-                return cur;
+                return &cur->Plain.type;
             }
     }
     return env_get(cur->prev, want);
@@ -70,15 +66,15 @@ void env_add (Env** old, Patt patt, Type type) {
     assert(patts[0].sub == PATT_SET);
 
     Env* new = malloc(sizeof(Env));
-    *new = (Env) { ENV_PLAIN, *old, .Plain={patts[0].Set.id, patts[0].Set.size, type} };
+    *new = (Env) { ENV_PLAIN, *old, .Plain={patts[0].Set, type} };
     *old = new;
-//printf("add %s\n", patts[0].Set.id.val.s);
-//printf("add %p/%p<-%p/%p %s\n", old,(*old)->prev,*old,new, patts[0].Set.id.val.s);
+//printf("add %s\n", patts[0].Set.val.s);
+//printf("add %p/%p<-%p/%p %s\n", old,(*old)->prev,*old,new, patts[0].Set.val.s);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
-Env* env_expr (Expr expr) {
+Type* env_expr (Expr expr) {
     switch (expr.sub) {
         case EXPR_VAR: {
             return env_get(expr.env, expr.Var.val.s);

@@ -258,7 +258,7 @@ void t_parser_expr (void) {
         Expr e;
         assert(parser_expr(&env,&e));
         assert(e.sub == EXPR_SET);
-        assert(!strcmp(e.Set.patt.Set.id.val.s, "a"));
+        assert(!strcmp(e.Set.patt.Set.val.s, "a"));
         assert(!strcmp(e.Set.expr->Var.val.s, "x"));
         fclose(ALL.inp);
     }
@@ -434,7 +434,7 @@ void t_parser_decls (void) {
         Decls ds;
         assert(parser_decls(&ds));
         assert(ds.size == 1);
-        assert(!strcmp(ds.vec[0].patt.Set.id.val.s, "a"));
+        assert(!strcmp(ds.vec[0].patt.Set.val.s, "a"));
         assert(ds.vec[0].type.sub == TYPE_UNIT);
         fclose(ALL.inp);
     }
@@ -443,7 +443,7 @@ void t_parser_decls (void) {
         Decls ds;
         assert(parser_decls(&ds));
         assert(ds.size == 1);
-        assert(!strcmp(ds.vec[0].patt.Set.id.val.s, "a"));
+        assert(!strcmp(ds.vec[0].patt.Set.val.s, "a"));
         assert(ds.vec[0].type.sub == TYPE_RAW);
         assert(!strcmp(ds.vec[0].type.Raw.val.s,"char"));
         fclose(ALL.inp);
@@ -453,7 +453,7 @@ void t_parser_decls (void) {
         Decls ds;
         assert(parser_decls(&ds));
         assert(ds.size == 2);
-        assert(!strcmp(ds.vec[0].patt.Tuple.vec[0].Set.id.val.s, "a"));
+        assert(!strcmp(ds.vec[0].patt.Tuple.vec[0].Set.val.s, "a"));
         assert(ds.vec[0].type.sub == TYPE_TUPLE);
         assert(!strcmp(ds.vec[0].type.Tuple.vec[1].Raw.val.s,"char"));
         assert(ds.vec[1].type.sub == TYPE_UNIT);
@@ -524,7 +524,7 @@ void t_code (void) {
     {
         char out[256];
         init(stropen("w",sizeof(out),out), NULL);
-        Env env = { ENV_PLAIN, NULL, .Plain={{TK_IDVAR,{.s="xxx"}},-1,{}} };
+        Env env = { ENV_PLAIN, NULL, .Plain={{TK_IDVAR,{.s="xxx"}},{}} };
         Expr e = { EXPR_VAR, {}, &env, NULL, {} };
             e.Var.sym = TK_IDVAR;
             strcpy(e.Var.val.s, "xxx");
@@ -535,21 +535,20 @@ void t_code (void) {
     {
         char out[256] = "";
         init(stropen("w",sizeof(out),out), NULL);
-        Env env = { ENV_PLAIN, NULL, .Plain={{TK_IDVAR,{.s="xxx"}},-1,{}} };
+        Env env = { ENV_PLAIN, NULL, .Plain={{TK_IDVAR,{.s="xxx"}},{}} };
         Expr e = { EXPR_VAR, {}, &env, NULL, {} };
             e.Var.sym = TK_IDVAR;
             strcpy(e.Var.val.s, "xxx");
         Decl d;
             d.init = NULL;
             d.patt.sub = PATT_SET;
-            d.patt.Set.id.sym = TK_IDVAR;
-            d.patt.Set.size   = -1;
-            strcpy(d.patt.Set.id.val.s, "xxx");
+            d.patt.Set.sym = TK_IDVAR;
+            strcpy(d.patt.Set.val.s, "xxx");
             d.type.sub = TYPE_UNIT;
         Expr n = { EXPR_DECL, {}, NULL, NULL, .Decl=d };
         e.where = &n;
         // xxx: xxx::()
-        Patt pt = (Patt){PATT_SET,.Set={{TK_IDVAR,{.s="ret"}},-1}};
+        Patt pt = (Patt){PATT_SET,.Set={TK_IDVAR,{.s="ret"}}};
         tce_ret ret = { &pt, NULL };
         code_expr(e, &ret);
         fclose(ALL.out[OGLOB]);
@@ -606,6 +605,7 @@ void t_code (void) {
             ";\n"
             "\n"
             "}\n";
+puts(out);
         assert(!strcmp(out,ret));
     }
     {
@@ -945,7 +945,7 @@ void t_all (void) {
         "data List:\n"
         "    Nil  ()\n"
         "    Cons ((), List)\n"
-        "val l[] :: List = new Nil\n"
+        "val l :: List[] = new Nil\n"
         "{show_List}(l)"
     ));
     assert(all(
@@ -956,7 +956,7 @@ void t_all (void) {
         "    Cons ((), List)\n"
         "func fff :: (() -> List):\n"
         "    new Nil\n"
-        "val l[] :: List = fff()\n"
+        "val l :: List[] = fff()\n"
         "{show_List}(l)"
     ));
 puts("===========");
@@ -966,7 +966,7 @@ puts("===========");
         "data List:\n"
         "    Nil  ()\n"
         "    Cons ((), List)\n"
-        "val l[] :: List = Nil\n"
+        "val l :: List[] = Nil\n"
         "val n :: () = match l:\n"
         "    Nil -> ()\n"
         "{show_List}(l)\n"
@@ -979,7 +979,7 @@ assert(0);
         "data List:\n"
         "    Nil  ()\n"
         "    Cons ((), List)\n"
-        "val l[] :: List = Nil\n"
+        "val l :: List[] = Nil\n"
         "set l = new Cons((),l)\n"
         "val n :: () = match l:\n"
         "    Cons(x,_) :: () -> x\n"

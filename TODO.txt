@@ -1,3 +1,4 @@
+- Type[]
 - back to lst1, always test lexer "OK"
 - ambiguity
     - loop / if next line

@@ -38,7 +38,6 @@ typedef struct Env {
         struct Env* Hub;
         struct {
             Tk   id;
-            int  size;       // -1 if not pool, 0 if unbounded, n if bounded
             Type type;
         } Plain;
     };
@@ -50,5 +49,5 @@ typedef struct Env {
 
 void patt2patts (Patt* patts, int* patts_i, Patt patt);
 void env_add (Env** old, Patt patt, Type type);
-Env* env_get (Env* cur, char* want);
-Env* env_expr (Expr expr);
+Type* env_get (Env* cur, char* want);
+Type* env_expr (Expr expr);

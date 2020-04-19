@@ -97,10 +97,7 @@ typedef struct Patt {
     union {
         Tk Raw;             // PATT_RAW
         struct Expr* Expr;  // PATT_EXPR
-        struct {            // PATT_SET
-            Tk  id;
-            int size;       // -1 if not pool, 0 if unbounded, n if bounded
-        } Set;
+        Tk Set;             // PATT_SET
         struct {            // PATT_TUPLE
             int size;
             struct Patt* vec;

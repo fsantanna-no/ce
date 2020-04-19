@@ -11,7 +11,10 @@ typedef struct Type {
     TYPE sub;
     union {
         Tk Raw;
-        Tk Data;
+        struct {
+            Tk  tk;
+            int size;   // -1 if not pool, 0 if unbounded, n if bounded
+        } Data;
         struct {        // TYPE_FUNC
             struct Type* inp;
             struct Type* out;

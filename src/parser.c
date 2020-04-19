@@ -267,7 +267,15 @@ int parser_type (Type* ret) {
         }
     // TYPE_DATA
     } else if (pr_accept1(TK_IDDATA)) {
-        *ret = (Type) { TYPE_DATA, .Data=TOK0.tk };
+        int size = -1;
+        Tk tk0 = TOK0.tk;
+        if (pr_accept1('[')) {
+            if (!pr_accept1(']')) {
+                return err_expected("`]`");
+            }
+            size = 0;
+        }
+        *ret = (Type) { TYPE_DATA, .Data={tk0,size} };
     } else {
         return err_expected("type");
     }
@@ -330,15 +338,6 @@ int parser_patt (Env* env, Patt* ret, int is_match) {
         }
     // PATT_SET
     } else if (pr_accept1(TK_IDVAR)) {
-        int size = -1;
-        State_Tok tok = TOK0;
-        if (pr_accept1('[')) {
-            if (!pr_accept1(']')) {
-                return err_expected("`]`");
-            }
-            size = 0;
-        }
-
         if (is_match) {
             Expr e = (Expr) { EXPR_VAR, {}, env, NULL, .Var=TOK0.tk };
             Expr* pe = malloc(sizeof(Expr));
@@ -346,7 +345,7 @@ int parser_patt (Env* env, Patt* ret, int is_match) {
             *pe = e;
             *ret = (Patt) { PATT_EXPR, .Expr=pe };
         } else {
-            *ret = (Patt) { PATT_SET, .Set={tok.tk,size} };
+            *ret = (Patt) { PATT_SET, .Set=TOK0.tk };
         }
     } else if (pr_accept1('~')) {
         Expr* pe = expr_new(&env);
@@ -456,7 +455,7 @@ int parser_decl (Env** env, Decl* decl) {
 //Env* old = *env;
     env_add(env, decl->patt, decl->type);
 
-//char* s = (*env==NULL) ? "null" : (*env)->patt.Set.id.val.s;
+//char* s = (*env==NULL) ? "null" : (*env)->patt.Set.val.s;
 //int   d = (*env==NULL) ?     -1 : (*env)->patt.sub;
 //printf("[%p<-%p] %s\n", old, *env, (*env)->id.val.s);
 //printf("decl %s\n", (*env)->Plain.id.val.s);
