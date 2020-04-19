@@ -1,8 +1,3 @@
-typedef struct tce_ret {
-    Patt* patt;
-    struct tce_ret* nxt;
-} tce_ret;
-
 void code_data  (Data data);
 void code_expr  (Expr e, tce_ret* ret);
 void code_prog  (Prog prog);

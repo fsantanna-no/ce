@@ -30,21 +30,29 @@ extern State_Tok TOK0, TOK1, TOK2;
 
 #include "type.h"
 
+typedef struct Env_Plain {
+    Tk   id;
+    Type type;
+} Env_Plain;
+
 enum { ENV_PLAIN, ENV_HUB };
 typedef struct Env {
     int sub;
     struct Env* prev;
     union {
         struct Env* Hub;
-        struct {
-            Tk   id;
-            Type type;
-        } Plain;
+        Env_Plain Plain;
     };
 } Env;
 
 #include "parser.h"
 #include "dump.h"
+
+typedef struct tce_ret {
+    Env_Plain env;
+    struct tce_ret* nxt;
+} tce_ret;
+
 #include "code.h"
 
 void patt2patts (Patt* patts, int* patts_i, Patt patt);

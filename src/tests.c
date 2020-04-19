@@ -548,8 +548,7 @@ void t_code (void) {
         Expr n = { EXPR_DECL, {}, NULL, NULL, .Decl=d };
         e.where = &n;
         // xxx: xxx::()
-        Patt pt = (Patt){PATT_SET,.Set={TK_IDVAR,{.s="ret"}}};
-        tce_ret ret = { &pt, NULL };
+        tce_ret ret = { {{TK_IDVAR,{.s="ret"}},{TYPE_NONE}}, NULL };
         code_expr(e, &ret);
         fclose(ALL.out[OGLOB]);
         assert(!strcmp(out,"{\nint xxx;\nret = xxx;\n}\n"));

@@ -10,16 +10,14 @@ void outl (State_Tok tok) {
 
 void code_ret (tce_ret* ret) {
     while (ret != NULL) {
-        assert (ret->patt->sub == PATT_SET);
-        out(ret->patt->Set.val.s);
-#if 0
+        if (ret->env.type.sub!=TYPE_DATA || ret->env.type.size==-1) {
+            out(ret->env->id.val.s);
         } else {
             out("(");
-            out(ret->patt->Set.val.s);
+            out(ret->env->id.val.s);
             out("->root");
             out(")");
         }
-#endif
         out(" = ");
         ret = ret->nxt;
     }
@@ -319,7 +317,8 @@ void code_patt_set (Patt p, Expr e) {
                 e.Call.out = &p;
                 code_expr(e, NULL);
             } else {
-                tce_ret r = { &p, NULL };
+                Env_Plain env = { p.Set.val.s, {TYPE_NONE} };
+                tce_ret r = { &env, NULL };
                 code_expr(e, &r);
             }
             out(";\n");
@@ -413,11 +412,8 @@ void code_decl (Decl d, tce_ret* ret) {
                     code_type(*d.type.Func.out);
                     out(" ce_ret;\n");
                 }
-                Patt pt = (Patt) {
-                    PATT_SET,
-                    .Set = { TK_IDVAR, {.s="ce_ret"} }
-                };
-                tce_ret r = { &pt, NULL };
+                Env_Plain env = { {TK_IDVAR,{.s="ce_ret"}, {TYPE_NONE} };
+                tce_ret r = { &env, NULL };
                 code_expr(*d.init, &r);
                 out(";\n");
                 if (!rec) {
