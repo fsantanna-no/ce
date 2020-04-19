@@ -279,6 +279,7 @@ void init (FILE* out, FILE* inp);
 FILE* stropen (const char* mode, size_t size, char* str);
 
 Env* env_find (Env* cur, char* want);
+void env_dump (Env* cur);
 void patt2patts (Patt* patts, int* patts_i, Patt patt);
 
 int parser_type (Type* ret);

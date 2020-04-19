@@ -589,6 +589,26 @@ Env* env_find (Env* cur, char* want) {
     return env_find(cur->prev, want);
 }
 
+void env_dump (Env* cur) {
+    static int N = 0;
+    if (cur == NULL) {
+        return;
+    }
+    for (int i=0; i<N; i++) printf(" ");
+    switch (cur->sub) {
+        case ENV_HUB:
+            printf("hub [%p->%p]:\n", cur, cur->prev);
+            N += 2;
+            env_dump(cur->Hub);
+            N -= 2;
+            break;
+        case ENV_PLAIN:
+            printf("id %s [%p->%p]\n", cur->Plain.id.val.s, cur, cur->prev);
+            break;
+    }
+    return env_dump(cur->prev);
+}
+
 void env_add (Env** old, Patt patt, Type type) {
     Patt patts[16];
     int patts_i = 0;
@@ -607,6 +627,7 @@ void env_add (Env** old, Patt patt, Type type) {
     Env* new = malloc(sizeof(Env));
     *new = (Env) { ENV_PLAIN, *old, .Plain={patts[0].Set.id, patts[0].Set.size, type} };
     *old = new;
+//printf("add %s\n", patts[0].Set.id.val.s);
 //printf("add %p/%p<-%p/%p %s\n", old,(*old)->prev,*old,new, patts[0].Set.id.val.s);
 }
 
@@ -630,6 +651,7 @@ int parser_decl (Env** env, Decl* decl) {
 //char* s = (*env==NULL) ? "null" : (*env)->patt.Set.id.val.s;
 //int   d = (*env==NULL) ?     -1 : (*env)->patt.sub;
 //printf("[%p<-%p] %s\n", old, *env, (*env)->id.val.s);
+//printf("decl %s\n", (*env)->Plain.id.val.s);
 
     if (is_func || (!is_func && pr_accept1('='))) {
         Expr init;
@@ -947,7 +969,7 @@ int parser_expr (Env** env, Expr* ret) {
     int is_first = TOK0.off==-1 || pr_check0('\n') || pr_check0(TK_ARROW);
 
     Env* hub = malloc(sizeof(Env));
-    *hub = (Env) { ENV_HUB, *env, .Hub=NULL };
+    *hub = (Env) { ENV_HUB, *env, .Hub=*env };
     *env = hub;
 
     Expr e;

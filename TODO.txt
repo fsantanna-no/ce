@@ -1,7 +1,4 @@
-- seq / where / cases (look parser_list_*)
-    - create local blocks
-        - must limit env
-
+- back to lst1, always test lexer "OK"
 - ambiguity
     - loop / if next line
 

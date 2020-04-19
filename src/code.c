@@ -450,6 +450,8 @@ void code_expr (Expr e, tce_ret* ret) {
         case EXPR_VAR:
             code_ret(ret);
             Env* env = env_find(e.env, e.Var.val.s);
+//env_dump(e.env);
+//puts(e.Var.val.s);
             assert(env != NULL);
             if (env->Plain.size != -1) {
                 out("(");
