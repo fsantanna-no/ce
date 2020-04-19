@@ -410,8 +410,6 @@ void code_decl (Decl d, tce_ret* ret) {
         out(out2);
         out(" ce_arg) {\n");
             if (d.type.Func.out->sub != TYPE_UNIT) {
-                code_expr(*d.init, NULL);
-                out(";\n");
                 if (!rec) {
                     code_type(*d.type.Func.out);
                     out(" ce_ret;\n");

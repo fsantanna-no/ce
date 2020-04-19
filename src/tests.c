@@ -1066,8 +1066,6 @@ void t_all (void) {
 }
 
 int main (void) {
-#if 1
-#endif
     t_lexer();
     t_parser();
     t_code();
