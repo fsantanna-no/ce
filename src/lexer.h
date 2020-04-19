@@ -9,11 +9,12 @@ typedef enum {
     TK_COMMENT,
     TK_RAW,
 
+    TK_SEQ1,
     TK_DECL,
     TK_ARROW,
     TK_ARG,
 
-    TK_IDVAR,   // 262
+    TK_IDVAR,   // 263
     TK_IDDATA,
 
     // all reserved keywords

@@ -307,7 +307,7 @@ void code_patt_set (Patt p, Expr e) {
 //puts(p.Set.id.val.s);
                 Env* env = env_find(e.env, p.Set.id.val.s);
                 assert(env != NULL);
-                rec_call = (env->type.sub == TYPE_DATA) && is_rec(env->type.Data.val.s);
+                rec_call = (env->Plain.type.sub == TYPE_DATA) && is_rec(env->Plain.type.Data.val.s);
             }
             if (rec_call) {
                 e.Call.out = &p;
@@ -451,7 +451,7 @@ void code_expr (Expr e, tce_ret* ret) {
             code_ret(ret);
             Env* env = env_find(e.env, e.Var.val.s);
             assert(env != NULL);
-            if (env->size != -1) {
+            if (env->Plain.size != -1) {
                 out("(");
                 out(e.Var.val.s);
                 out(".root");

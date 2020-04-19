@@ -530,7 +530,7 @@ void t_code (void) {
     {
         char out[256];
         init(stropen("w",sizeof(out),out), NULL);
-        Env env = { {TK_IDVAR,{.s="xxx"}}, -1, {}, NULL };
+        Env env = { ENV_PLAIN, NULL, .Plain={{TK_IDVAR,{.s="xxx"}},-1,{}} };
         Expr e = { EXPR_VAR, {}, &env, NULL, {} };
             e.Var.sym = TK_IDVAR;
             strcpy(e.Var.val.s, "xxx");
@@ -541,7 +541,7 @@ void t_code (void) {
     {
         char out[256] = "";
         init(stropen("w",sizeof(out),out), NULL);
-        Env env = { {TK_IDVAR,{.s="xxx"}}, -1, {}, NULL };
+        Env env = { ENV_PLAIN, NULL, .Plain={{TK_IDVAR,{.s="xxx"}},-1,{}} };
         Expr e = { EXPR_VAR, {}, &env, NULL, {} };
             e.Var.sym = TK_IDVAR;
             strcpy(e.Var.val.s, "xxx");
@@ -691,7 +691,37 @@ void t_all (void) {
         "99\n",
         "val b :: () = let it :: {int} = {99} -> it\n{ printf(\"%d\\n\",b) }\n"
     ));
+
+    // ENV
+
+    assert(all(
+        "()\n",
+        "i where:\n"
+        "    val i :: () = ()\n"
+        "{show_Unit}()\n"
+    ));
+    assert(all(
+        "()\n",
+        "{show_Unit}(i) where:\n"
+        "    val i :: () = ()\n"
+    ));
 #if 0
+    // TODO: i not declared
+    assert(all(
+        "()\n",
+        ":\n"
+        "    val i :: () = ()\n"
+        "{show_Unit}(i)\n"
+    ));
+    // TODO: i not declared
+    assert(all(
+        "()\n",
+        "{show_Unit}(i) where:\n"
+        "    val i :: () = ()\n"
+        "{show_Unit}(i)"
+    ));
+#endif
+
     // TODO: multiple vars
     assert(all(
         "()\n",
@@ -701,7 +731,6 @@ void t_all (void) {
         "99\n",
         "let (a,b) :: ((),{int}) = ((),{99}):\n    { printf(\"%d\\n\",b) }\n"
     ));
-#endif
     assert(all(
         "True\n",
         "data Bool:\n"
@@ -820,7 +849,6 @@ void t_all (void) {
         "match i:\n"
         "    (x,_) :: () -> {show_Unit}(x)"
     ));
-puts("=====");
     assert(all(
         "()\n",
         "match i:\n"
@@ -828,7 +856,6 @@ puts("=====");
         "where:\n"
         "    val i :: ((),()) = ((),())\n"
     ));
-assert(0);
     assert(all(
         "()\n",
         "match i:\n"

@@ -29,6 +29,9 @@ void dump_expr_ (Expr e, int spc) {
             //fputs(" = ", stdout);
             //dump_expr_(*e.Set.val, 0);
             break;
+        case EXPR_DECL:
+            fputs("decl (...)", stdout);
+            break;
         case EXPR_NEW:
             fputs("new (...)", stdout);
             break;
@@ -541,7 +544,7 @@ void patt2patts (Patt* patts, int* patts_i, Patt patt) {
             break;
         case PATT_SET:
             assert(*patts_i < 16);
-puts(patt.Set.id.val.s);
+//puts(patt.Set.id.val.s);
             patts[(*patts_i)++] = patt;
             break;
         case PATT_CONS:
@@ -560,21 +563,30 @@ puts(patt.Set.id.val.s);
 }
 
 Env* env_find (Env* cur, char* want) {
-    static Env env = { {}, -1, {TYPE_UNIT} };
+    static Env env = { ENV_PLAIN, NULL, .Plain={{},-1,{TYPE_UNIT}} };
     if (!strcmp(want,"ce_tst")) {
         return &env;
     }
-printf("want %s // have ", want);
+//printf("want %s [%p] // have ", want, cur);
     if (cur == NULL) {
-        puts("null");
+        //puts("null");
         return NULL;
     }
-puts(cur->id.val.s);
-    if (!strcmp(cur->id.val.s, want)) {
-        return cur;
-    } else {
-        return env_find(cur->prev, want);
+    switch (cur->sub) {
+        case ENV_HUB: {
+            Env* x = env_find(cur->Hub, want);
+            if (x != NULL) {
+                return x;
+            }
+            break;
+        }
+        case ENV_PLAIN:
+//puts(cur->Plain.id.val.s);
+            if (!strcmp(cur->Plain.id.val.s, want)) {
+                return cur;
+            }
     }
+    return env_find(cur->prev, want);
 }
 
 void env_add (Env** old, Patt patt, Type type) {
@@ -593,9 +605,9 @@ void env_add (Env** old, Patt patt, Type type) {
     assert(patts[0].sub == PATT_SET);
 
     Env* new = malloc(sizeof(Env));
-printf("add %s\n", patts[0].Set.id.val.s);
-    *new = (Env) { patts[0].Set.id, patts[0].Set.size, type, *old };
+    *new = (Env) { ENV_PLAIN, *old, .Plain={patts[0].Set.id, patts[0].Set.size, type} };
     *old = new;
+//printf("add %p/%p<-%p/%p %s\n", old,(*old)->prev,*old,new, patts[0].Set.id.val.s);
 }
 
 int parser_decl (Env** env, Decl* decl) {
@@ -828,10 +840,19 @@ int parser_expr_one (Env** env, Expr* ret) {
         *ret = (Expr) { EXPR_RETURN, {}, *env, NULL, .Return=e };
 
     // EXPR_SEQ
-    } else if (pr_check1(':')) {
+    } else if (pr_check1(':') || pr_check1(TK_SEQ1)) {
+        int nest = pr_check1(':');
+        TOK1.tk.sym = ':';
+        Env* tmp = *env;
         List lst;
         if (!parser_list_line(env, 1, &lst, &parser_expr__, sizeof(Expr))) {
+            if (nest) {
+                *env = tmp;
+            }
             return 0;
+        }
+        if (nest) {
+            *env = tmp;
         }
         *ret = (Expr) { EXPR_SEQ, {}, *env, NULL, .Seq={lst.size,lst.vec} };
 
@@ -924,7 +945,10 @@ int parser_expr_one (Env** env, Expr* ret) {
 
 int parser_expr (Env** env, Expr* ret) {
     int is_first = TOK0.off==-1 || pr_check0('\n') || pr_check0(TK_ARROW);
-//printf(">>> (%d/%d/%d ==> %d/%d)\n", TOK0.tk.sym, TOK1.tk.sym, TOK2.tk.sym, ALL.ind, TOK0.tk.val.n);
+
+    Env* hub = malloc(sizeof(Env));
+    *hub = (Env) { ENV_HUB, *env, .Hub=NULL };
+    *env = hub;
 
     Expr e;
     if (!parser_expr_one(env, &e)) {
@@ -991,7 +1015,10 @@ _WHERE_:
     ||
         (!pr_check0('\n') && pr_accept1(TK_WHERE))
     ) {
-        ret->where = expr_new(env);
+        if (pr_check1(':')) {
+            TOK1.tk.sym = TK_SEQ1;
+        }
+        ret->where = expr_new(&hub->Hub);
         return (ret->where != NULL);
     }
     return 1;
