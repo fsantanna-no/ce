@@ -945,7 +945,6 @@ void t_all (void) {
 
     // DATA - LIST - RECURSIVE
 
-puts("=========");
     assert(all(
         "Nil\n",
         "data List\n"
@@ -955,7 +954,6 @@ puts("=========");
         "val l[] :: List = new Nil\n"
         "{show_List}(l)"
     ));
-assert(0);
     assert(all(
         "Nil\n",
         "data List\n"

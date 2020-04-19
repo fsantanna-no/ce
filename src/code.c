@@ -17,7 +17,14 @@ void outl (State_Tok tok) {
 void code_ret (tce_ret* ret) {
     while (ret != NULL) {
         assert (ret->patt->sub == PATT_SET);
-        out(ret->patt->Set.id.val.s);
+        if (ret->patt->Set.size == -1) {
+            out(ret->patt->Set.id.val.s);
+        } else {
+            out("(");
+            out(ret->patt->Set.id.val.s);
+            out("->root");
+            out(")");
+        }
         out(" = ");
         ret = ret->nxt;
     }
@@ -349,7 +356,9 @@ void code_patt_decls (Decl decl) {
         if (size == -1) {
             code_type(decl.type);
         } else {
-            out("Pool");
+            out("Pool _");
+            out(patts[0].Set.id.val.s);
+            out(";\nPool*"); // all pools must be used as pointers b/c of fun args w/ write access
         }
         out(" ");
         out(patts[0].Set.id.val.s);
@@ -407,7 +416,10 @@ void code_decl (Decl d, tce_ret* ret) {
                     code_type(*d.type.Func.out);
                     out(" ce_ret;\n");
                 }
-                Patt pt = (Patt){PATT_SET,.Set={{TK_IDVAR,{.s="ce_ret"}},-1}};
+                Patt pt = (Patt) {
+                    PATT_SET,
+                    .Set = { {TK_IDVAR, {.s="ce_ret"}}, (rec?0:-1) }
+                };
                 tce_ret r = { &pt, NULL };
                 code_expr(*d.init, &r);
                 out(";\n");
@@ -451,15 +463,17 @@ void code_expr (Expr e, tce_ret* ret) {
             code_ret(ret);
             Env* env = env_find(e.env, e.Var.val.s);
 //env_dump(e.env);
+//puts(">>>");
 //puts(e.Var.val.s);
             assert(env != NULL);
-            if (env->Plain.size != -1) {
+            if (env->Plain.size == -1) {
+                out(e.Var.val.s);
+            } else {
                 out("(");
                 out(e.Var.val.s);
-                out(".root");
+                out("->root");
                 out(")");
             }
-            out(e.Var.val.s);
             break;
         case EXPR_CONS:
             code_ret(ret);
