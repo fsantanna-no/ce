@@ -947,6 +947,7 @@ void t_all (void) {
         "val l :: List[] = new Nil\n"
         "{show_List}(l)"
     ));
+puts("===========");
     assert(all(
         "Nil\n",
         "data List\n"
@@ -958,7 +959,7 @@ void t_all (void) {
         "val l :: List[] = fff()\n"
         "{show_List}(l)"
     ));
-puts("===========");
+assert(0);
     assert(all(
         "Cons\n()\n",
         "data List\n"
@@ -971,7 +972,6 @@ puts("===========");
         "{show_List}(l)\n"
         "{show_Unit}(n)"
     ));
-assert(0);
     assert(all(
         "Cons\n()\n",
         "data List\n"

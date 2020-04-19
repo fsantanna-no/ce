@@ -1,8 +1,8 @@
 #include "all.h"
 
-void dump_env (Env* cur) {
+void dump_env (Env* cur, Env* stop) {
     static int N = 0;
-    if (cur == NULL) {
+    if (cur==NULL || cur==stop) {
         return;
     }
     for (int i=0; i<N; i++) printf(" ");
@@ -10,14 +10,14 @@ void dump_env (Env* cur) {
         case ENV_HUB:
             printf("hub [%p->%p]:\n", cur, cur->prev);
             N += 2;
-            dump_env(cur->Hub);
+            dump_env(cur->Hub, cur->prev);
             N -= 2;
             break;
         case ENV_PLAIN:
             printf("id %s [%p->%p]\n", cur->Plain.id.val.s, cur, cur->prev);
             break;
     }
-    return dump_env(cur->prev);
+    return dump_env(cur->prev, stop);
 }
 
 void dump_expr_ (Expr e, int spc) {

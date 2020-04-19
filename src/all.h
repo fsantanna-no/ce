@@ -57,5 +57,5 @@ typedef struct tce_ret {
 
 void patt2patts (Patt* patts, int* patts_i, Patt patt);
 void env_add (Env** old, Patt patt, Type type);
-Type* env_get (Env* cur, char* want);
+Type* env_get (Env* cur, char* want, Env* stop);
 Type* env_expr (Expr expr);

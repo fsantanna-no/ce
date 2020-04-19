@@ -458,7 +458,7 @@ int parser_decl (Env** env, Decl* decl) {
 //char* s = (*env==NULL) ? "null" : (*env)->patt.Set.val.s;
 //int   d = (*env==NULL) ?     -1 : (*env)->patt.sub;
 //printf("[%p<-%p] %s\n", old, *env, (*env)->id.val.s);
-//printf("decl %s\n", (*env)->Plain.id.val.s);
+printf("decl %s\n", (*env)->Plain.id.val.s);
 
     if (is_func || (!is_func && pr_accept1('='))) {
         Expr init;
@@ -526,10 +526,13 @@ void* parser_case_ (Env** env) {
     // affect `env` before `body`
     if (let.decl.type.sub != TYPE_NONE) {
         env_add(env, let.decl.patt, let.decl.type);
+printf("decl2 %s\n", (*env)->Plain.id.val.s);
     }
 
     // expr
     Expr* pe = expr_new(env);
+puts("=======");
+dump_env(*env,NULL);
     if (pe == NULL) {
         return NULL;
     }
@@ -775,8 +778,11 @@ int parser_expr_one (Env** env, Expr* ret) {
 int parser_expr (Env** env, Expr* ret) {
     int is_first = TOK0.off==-1 || pr_check0('\n') || pr_check0(TK_ARROW);
 
+    Env* prv = *env;
+
     Env* hub = malloc(sizeof(Env));
-    *hub = (Env) { ENV_HUB, *env, .Hub=*env };
+    *hub = (Env) { ENV_HUB, *env, .Hub=prv };
+puts("create");
     *env = hub;
 
     Expr e;

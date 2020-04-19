@@ -27,15 +27,15 @@ void patt2patts (Patt* patts, int* patts_i, Patt patt) {
     }
 }
 
-Type* env_get (Env* cur, char* want) {
+Type* env_get (Env* cur, char* want, Env* stop) {
 //printf("want %s [%p] // have ", want, cur);
-    if (cur == NULL) {
+    if (cur==NULL || cur==stop) {
         //puts("null");
         return NULL;
     }
     switch (cur->sub) {
         case ENV_HUB: {
-            Type* x = env_get(cur->Hub, want);
+            Type* x = env_get(cur->Hub, want, cur->prev);
             if (x != NULL) {
                 return x;
             }
@@ -47,7 +47,7 @@ Type* env_get (Env* cur, char* want) {
                 return &cur->Plain.type;
             }
     }
-    return env_get(cur->prev, want);
+    return env_get(cur->prev, want, stop);
 }
 
 void env_add (Env** old, Patt patt, Type type) {
@@ -68,7 +68,7 @@ void env_add (Env** old, Patt patt, Type type) {
     Env* new = malloc(sizeof(Env));
     *new = (Env) { ENV_PLAIN, *old, .Plain={patts[0].Set, type} };
     *old = new;
-//printf("add %s\n", patts[0].Set.val.s);
+printf("add %s\n", patts[0].Set.val.s);
 //printf("add %p/%p<-%p/%p %s\n", old,(*old)->prev,*old,new, patts[0].Set.val.s);
 }
 
@@ -77,7 +77,7 @@ void env_add (Env** old, Patt patt, Type type) {
 Type* env_expr (Expr expr) {
     switch (expr.sub) {
         case EXPR_VAR: {
-            return env_get(expr.env, expr.Var.val.s);
+            return env_get(expr.env, expr.Var.val.s, NULL);
         }
         default:
             printf(">>> %d\n", expr.sub);
