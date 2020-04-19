@@ -27,7 +27,7 @@ void patt2patts (Patt* patts, int* patts_i, Patt patt) {
     }
 }
 
-Env* env_find (Env* cur, char* want) {
+Env* env_get (Env* cur, char* want) {
     static Env env = { ENV_PLAIN, NULL, .Plain={{},-1,{TYPE_UNIT}} };
     if (!strcmp(want,"ce_tst")) {
         return &env;
@@ -39,7 +39,7 @@ Env* env_find (Env* cur, char* want) {
     }
     switch (cur->sub) {
         case ENV_HUB: {
-            Env* x = env_find(cur->Hub, want);
+            Env* x = env_get(cur->Hub, want);
             if (x != NULL) {
                 return x;
             }
@@ -51,7 +51,7 @@ Env* env_find (Env* cur, char* want) {
                 return cur;
             }
     }
-    return env_find(cur->prev, want);
+    return env_get(cur->prev, want);
 }
 
 void env_add (Env** old, Patt patt, Type type) {
@@ -74,4 +74,17 @@ void env_add (Env** old, Patt patt, Type type) {
     *old = new;
 //printf("add %s\n", patts[0].Set.id.val.s);
 //printf("add %p/%p<-%p/%p %s\n", old,(*old)->prev,*old,new, patts[0].Set.id.val.s);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+Env* env_expr (Expr expr) {
+    switch (expr.sub) {
+        case EXPR_VAR: {
+            return env_get(expr.env, expr.Var.val.s);
+        }
+        default:
+            printf(">>> %d\n", expr.sub);
+            assert(0 && "TODO");
+    }
 }

@@ -310,7 +310,7 @@ void code_patt_set (Patt p, Expr e) {
 //printf("env = %p // sub=%d\n", e.env, p.sub);
 //puts("want");
 //puts(p.Set.id.val.s);
-                Env* env = env_find(e.env, p.Set.id.val.s);
+                Env* env = env_get(e.env, p.Set.id.val.s);
                 assert(env != NULL);
                 rec_call = (env->Plain.type.sub == TYPE_DATA) && is_rec(env->Plain.type.Data.val.s);
             }
@@ -438,6 +438,8 @@ void code_decl (Decl d, tce_ret* ret) {
 ///////////////////////////////////////////////////////////////////////////////
 
 void code_expr (Expr e, tce_ret* ret) {
+    //Env* env = env_expr(e);
+
     if (e.where != NULL) {
         out("{\n");
         code_expr(*e.where, NULL);
@@ -457,7 +459,7 @@ void code_expr (Expr e, tce_ret* ret) {
             break;
         case EXPR_VAR:
             code_ret(ret);
-            Env* env = env_find(e.env, e.Var.val.s);
+            Env* env = env_get(e.env, e.Var.val.s);
 //env_dump(e.env);
 //puts(">>>");
 //puts(e.Var.val.s);
@@ -606,8 +608,13 @@ void code_expr (Expr e, tce_ret* ret) {
             out("{\n");
             if (tst.sub != EXPR_TUPLE) {   // prevents multiple evaluation of tst
                 tst = (Expr) { EXPR_VAR, {}, e.env, NULL, {.Var={TK_IDVAR,{.s="ce_tst"}}} };
-                code_type(type_expr(*e.Cases.tst));
-                out(" ce_tst = ");
+
+                //code_type(env_expr(*e.Cases.tst)->Plain.type);
+                //out(" ce_tst = ");
+                out("typeof(");
+                code_expr(*e.Cases.tst, NULL);
+                out(") ce_tst = ");
+
                 code_expr(*e.Cases.tst, NULL);
                 out(";\n");
             }
