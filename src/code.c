@@ -139,6 +139,7 @@ void code_data (Data data) {
     char SUP[256];
     assert(strlen(sup) < sizeof(SUP));
     strcpy(SUP, strupper(sup));
+    int is = is_rec(sup);
 
     // only pre declaration
     if (data.size == 0) {
@@ -165,18 +166,22 @@ void code_data (Data data) {
         if (cons.type.sub != TYPE_UNIT) {
             out("(...)");
         }
-        out(" ((");
-        out(sup);
-        out(") { ");
-        out(sup);
-        out("_");
-        out(sub);
-        if (cons.type.sub != TYPE_UNIT) {
-            out(", ._");
+        if (is && cons.type.sub == TYPE_UNIT) {
+            out(" NULL\n");
+        } else {
+            out(" ((");
+            out(sup);
+            out(") { ");
+            out(sup);
+            out("_");
             out(sub);
-            out("=__VA_ARGS__");
+            if (cons.type.sub != TYPE_UNIT) {
+                out(", ._");
+                out(sub);
+                out("=__VA_ARGS__");
+            }
+            out(" })\n");
         }
-        out(" })\n");
     }
     out("\n");
 
@@ -220,7 +225,6 @@ void code_data (Data data) {
         sup, SUP, out2, sup
     );
 
-    int is = is_rec(sup);
     fprintf(ALL.out[OGLOB],
         "void show_%s (%s%s v) {\n"
         "    switch (v%ssub) {\n",
