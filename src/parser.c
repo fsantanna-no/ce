@@ -1,11 +1,4 @@
-#include <stdlib.h>
-#include <assert.h>
-#include <stdio.h>
-#include <string.h>
-
-#include "lexer.h"
-#include "parser.h"
-#include "env.h"
+#include "all.h"
 
 ///////////////////////////////////////////////////////////////////////////////
 

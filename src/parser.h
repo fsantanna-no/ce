@@ -44,15 +44,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 typedef enum {
-    TYPE_NONE,
-    TYPE_RAW,
-    TYPE_UNIT,
-    TYPE_DATA,
-    TYPE_FUNC,
-    TYPE_TUPLE
-} TYPE;
-
-typedef enum {
     PATT_RAW,
     PATT_UNIT,
     PATT_ARG,
@@ -101,34 +92,6 @@ typedef enum {
 
 struct Expr;
 
-typedef struct Type {
-    TYPE sub;
-    union {
-        Tk Raw;
-        Tk Data;
-        struct {        // TYPE_FUNC
-            struct Type* inp;
-            struct Type* out;
-        } Func;
-        struct {        // TYPE_TUPLE
-            int size;
-            struct Type* vec;
-        } Tuple;
-    };
-} Type;
-
-typedef struct {
-    int  idx;
-    Tk   tk;
-    Type type;
-} Cons;
-
-typedef struct {
-    Tk    tk;
-    int   size;     // size=0: recursive pre declaration
-    Cons* vec;
-} Data;
-
 typedef struct Patt {
     PATT sub;
     union {
@@ -159,20 +122,6 @@ typedef struct Decl {
     Type type;
     struct Expr* init;
 } Decl;
-
-enum { ENV_PLAIN, ENV_HUB };
-typedef struct Env {
-    int sub;
-    struct Env* prev;
-    union {
-        struct Env* Hub;
-        struct {
-            Tk   id;
-            int  size;       // -1 if not pool, 0 if unbounded, n if bounded
-            Type type;
-        } Plain;
-    };
-} Env;
 
 typedef struct {
     Decl decl;
@@ -276,9 +225,6 @@ int parser_list_line (Env** env, int global, List* ret, List_F f, size_t unit);
 int is_rec (const char* v);
 void init (FILE* out, FILE* inp);
 FILE* stropen (const char* mode, size_t size, char* str);
-
-Env* env_find (Env* cur, char* want);
-void patt2patts (Patt* patts, int* patts_i, Patt patt);
 
 int parser_type (Type* ret);
 int parser_data (Data* ret);

@@ -3,8 +3,7 @@
 #include <ctype.h>
 #include <string.h>
 
-#include "lexer.h"
-#include "parser.h"
+#include "all.h"
 
 State_All ALL = { NULL,{NULL,NULL,NULL},{},0 };
 State_Tok TOK0, TOK1, TOK2;

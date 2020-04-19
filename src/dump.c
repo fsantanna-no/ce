@@ -1,9 +1,4 @@
-#include <assert.h>
-#include <stdio.h>
-
-#include "lexer.h"
-#include "parser.h"
-#include "dump.h"
+#include "all.h"
 
 void dump_env (Env* cur) {
     static int N = 0;

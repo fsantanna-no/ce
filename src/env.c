@@ -1,9 +1,4 @@
-#include <assert.h>
-#include <string.h>
-#include <stdlib.h>
-
-#include "lexer.h"
-#include "parser.h"
+#include "all.h"
 
 void patt2patts (Patt* patts, int* patts_i, Patt patt) {
     switch (patt.sub) {

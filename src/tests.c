@@ -1,10 +1,4 @@
-#include <stdio.h>
-#include <string.h>
-#include <assert.h>
-
-#include "lexer.h"
-#include "parser.h"
-#include "code.h"
+#include "all.h"
 
 int all (const char* xp, char* src) {
     static char out[65000];

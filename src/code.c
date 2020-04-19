@@ -1,11 +1,4 @@
-#include <assert.h>
-#include <string.h>
-#include <ctype.h>
-
-#include "lexer.h"
-#include "parser.h"
-#include "type.h"
-#include "code.h"
+#include "all.h"
 
 void out (const char* v) {
     fputs(v, ALL.out[OGLOB]);

@@ -1,7 +1,4 @@
-#include <assert.h>
-
-#include "lexer.h"
-#include "parser.h"
+#include "all.h"
 
 Type type_expr (Expr expr) {
     switch (expr.sub) {
