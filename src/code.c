@@ -4,6 +4,7 @@
 
 #include "lexer.h"
 #include "parser.h"
+#include "type.h"
 #include "code.h"
 
 void out (const char* v) {
@@ -612,9 +613,8 @@ void code_expr (Expr e, tce_ret* ret) {
             out("{\n");
             if (tst.sub != EXPR_TUPLE) {   // prevents multiple evaluation of tst
                 tst = (Expr) { EXPR_VAR, {}, e.env, NULL, {.Var={TK_IDVAR,{.s="ce_tst"}}} };
-                out("typeof(");
-                code_expr(*e.Cases.tst, NULL);
-                out(") ce_tst = ");
+                code_type(type_expr(*e.Cases.tst));
+                out(" ce_tst = ");
                 code_expr(*e.Cases.tst, NULL);
                 out(";\n");
             }
