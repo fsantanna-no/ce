@@ -77,12 +77,15 @@ Type env_expr (Expr expr) {
     switch (expr.sub) {
         case EXPR_UNIT:
             return (Type) { TYPE_UNIT };
-        case EXPR_VAR: {
+        case EXPR_VAR:
             return *env_get(expr.env, expr.Var.val.s, NULL);
-        }
+        case EXPR_CONS:
+            return (Type) { TYPE_DATA, .Data={expr.Cons,-1} };
+        case EXPR_CALL:
+            return env_expr(*expr.Call.func);
         default:
+            printf(">>>>>> ENV_EXPR %d <<<<<<\n", expr.sub);
             return (Type) { TYPE_NONE };
-            //printf(">>> %d\n", expr.sub);
             //assert(0 && "TODO");
     }
 }
