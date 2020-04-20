@@ -580,7 +580,7 @@ void t_code (void) {
         char out[1024] = "";
         all_init (
             stropen("w", sizeof(out), out),
-            stropen("r", 0, "val inp :: ()\nmatch {fgetc} (inp):\n    {'\\n'} -> ()")
+            stropen("r", 0, "val inp :: ()\nmatch {fgetc(inp)}:\n    {'\\n'} -> ()")
         );
         Prog p;
         parser_prog(&p);

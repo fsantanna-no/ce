@@ -511,7 +511,9 @@ void code_expr (Expr e, tce_ret* ret) {
             if (type==NULL || type->sub!=TYPE_DATA || type->Data.size==-1) {
                 out(e.Var.val.s);
             } else {
-                out("(");
+                out("((");
+                out(type->Data.tk.val.s);
+                out("*)");
                 out(e.Var.val.s);
                 out("->root");
                 out(")");
@@ -665,10 +667,11 @@ void code_expr (Expr e, tce_ret* ret) {
         case EXPR_CASES: {  // tst,size,vec
             Expr tst = *e.Cases.tst;
             out("{\n");
+#if 1
             Type type = env_expr(*e.Cases.tst);
             Tk tk = { TK_IDVAR,{.s="ce_tst"} };
             Env env = { ENV_PLAIN, e.env, .Plain={tk,type} };
-            if (tst.sub != EXPR_TUPLE) {   // prevents multiple evaluation of tst
+            if (tst.sub == EXPR_RAW) {   // prevents multiple evaluation of tst
                 tst = (Expr) { EXPR_VAR, {}, &env, NULL, {.Var=tk} };
 
                 if (type.sub != TYPE_NONE) {
@@ -682,6 +685,7 @@ void code_expr (Expr e, tce_ret* ret) {
                 code_expr(*e.Cases.tst, NULL);
                 out(";\n");
             }
+#endif
 
             for (int i=0; i<e.Cases.size; i++) {
                 Let let = e.Cases.vec[i];
@@ -724,6 +728,8 @@ void code_expr (Expr e, tce_ret* ret) {
         case EXPR_CONS_SUB: {
             code_ret(ret);
             Type type = env_expr(*e.Cons_Sub.cons);
+//dump_expr(*e.Cons_Sub.cons);
+//printf(">>> %d\n", type.sub);
             assert(type.sub == TYPE_DATA);
             out("(");
             code_expr(*e.Cons_Sub.cons, NULL);
