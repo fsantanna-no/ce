@@ -308,8 +308,10 @@ int parser_data (Data* ret) {
 
     if (!tp_ok && !lst_ok) {
         // recursive pre declaration
-        assert(ALL.rec.datas.size < sizeof(ALL.rec.datas.buf));
-        ALL.rec.datas.buf[ALL.rec.datas.size++] = id;
+        assert(ALL.rec_datas.size < sizeof(ALL.rec_datas.buf));
+        ALL.rec_datas.buf[ALL.rec_datas.size].kind = REC_NODE;
+        strcpy(ALL.rec_datas.buf[ALL.rec_datas.size].cons, id.val.s);
+        ALL.rec_datas.size++;
         *ret = (Data) { id, 0, NULL };
         return 1;
     }
@@ -320,9 +322,11 @@ int parser_data (Data* ret) {
     }
 
     // mark each Cons as all_rec as well
-    if (all_rec(id.val.s)) {
+    if (all_rec(id.val.s) != REC_NONE) {
         for (int i=0; i<ret->size; i++) {
-            ALL.rec.datas.buf[ALL.rec.datas.size++] = ret->vec[i].tk;
+            ALL.rec_datas.buf[ALL.rec_datas.size].kind = (i==0 ? REC_LEAF : REC_NODE);
+            strcpy(ALL.rec_datas.buf[ALL.rec_datas.size].cons, ret->vec[i].tk.val.s);
+            ALL.rec_datas.size++;
         }
     }
 

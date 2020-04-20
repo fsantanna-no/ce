@@ -131,7 +131,7 @@ void t_parser_datas (void) {
         all_init(NULL, stropen("r", 0, "data Err"));
         Data dts;
         assert(parser_data(&dts));
-        assert(ALL.rec.datas.size == 1);
+        assert(ALL.rec_datas.size == 1);
         //assert(!strcmp(ALL.err, "(ln 1, col 9): expected `=` or `:` : have end of file"));
         fclose(ALL.inp);
     }
@@ -1074,6 +1074,7 @@ assert(0);
 }
 
 int main (void) {
+#if 1
     assert(all(
         "Cons\n()\n",
         "data List\n"
@@ -1087,6 +1088,7 @@ int main (void) {
         "{show_Unit}(n)"
     ));
 assert(0);
+#endif
     t_lexer();
     t_parser();
     t_code();

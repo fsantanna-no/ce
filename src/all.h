@@ -15,17 +15,12 @@ typedef struct {
     char  err[256];
     int   ind;
     struct {
+        int size;
         struct {
-            int size;
-            Tk  buf[256];
-        } datas;
-#if 0
-        struct {
-            int size;
-            Tk  buf[256];
-        } nulls;
-#endif
-    } rec;
+            char cons[256];
+            int  kind;
+        } buf[256];
+    } rec_datas;
 } State_All;
 
 typedef struct {
@@ -67,7 +62,9 @@ typedef struct tce_ret {
 
 #include "code.h"
 
-int   all_rec  (const char* v);
+typedef enum { REC_NONE, REC_LEAF, REC_NODE } REC;
+REC all_rec (const char* v);
+
 void  all_init (FILE* out, FILE* inp);
 
 void patt2patts (Patt* patts, int* patts_i, Patt patt);
