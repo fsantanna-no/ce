@@ -969,7 +969,6 @@ void t_all (void) {
         "{show_List}(l)\n"
         "{show_Unit}(n)"
     ));
-puts("===========");
     assert(all(
         "Cons\n()\n",
         "data List\n"
@@ -983,7 +982,6 @@ puts("===========");
         "{show_List}(l)\n"
         "{show_Unit}(n)"
     ));
-assert(0);
     assert(all(
         "()\n",
         "func f :: (((),()) -> ()) ()\n"
@@ -1019,6 +1017,7 @@ assert(0);
         "{show_Unit}(n)"
     ));
 #endif
+puts("===========");
     assert(all(
         "Tre\n",
         "data Nat:\n"
@@ -1034,6 +1033,7 @@ assert(0);
         "    Cons(x,_) :: Nat -> x\n"
         "{show_Nat}(n)"
     ));
+assert(0);
 
     // LOOP
 

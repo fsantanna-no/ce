@@ -234,8 +234,8 @@ void code_data (Data data) {
     );
     int has_switch = 0;
     for (int i=0; i<data.size; i++) {
+        char* v = data.vec[i].tk.val.s;
         if (kind==DATA_REC && i==0) {
-            char* v = data.vec[i].tk.val.s;
             fprintf(ALL.out[OGLOB],
                 "if (v == NULL) {\n"
                 "    puts(\"%s\");\n"
@@ -246,8 +246,12 @@ void code_data (Data data) {
         }
         if (kind == DATA_SINGLE) {
             // no switch
+            fprintf(ALL.out[OGLOB], "puts(\"%s\");\n", v);
         } else if (kind == DATA_REC && data.size<=2) {
             // no switch
+            if (i > 0) {
+                fprintf(ALL.out[OGLOB], "puts(\"%s\");\n", v);
+            }
         } else {
             if (kind == DATA_PLAIN) {
                 has_switch = 1;
@@ -260,7 +264,6 @@ void code_data (Data data) {
                     fprintf(ALL.out[OGLOB], "switch (v->sub) {\n");
                 }
             }
-            char* v = data.vec[i].tk.val.s;
             fprintf(ALL.out[OGLOB],
                 "case %s_%s:\n"
                 "    puts(\"%s\");\n"
