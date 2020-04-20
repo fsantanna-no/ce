@@ -28,6 +28,11 @@ typedef struct {
 extern State_All ALL;
 extern State_Tok TOK0, TOK1, TOK2;
 
+int all_rec (const char* v);
+void all_init (FILE* out, FILE* inp);
+FILE* stropen (const char* mode, size_t size, char* str);
+
+
 #include "type.h"
 
 typedef struct Env_Plain {

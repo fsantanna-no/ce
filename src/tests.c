@@ -2,7 +2,7 @@
 
 int all (const char* xp, char* src) {
     static char out[65000];
-    init (
+    all_init (
         stropen("w", sizeof(out), out),
         stropen("r", 0, src)
     );
@@ -118,7 +118,7 @@ void t_lexer (void) {
 
 void t_parser_type (void) {
     {
-        init(NULL, stropen("r", 0, "()"));
+        all_init(NULL, stropen("r", 0, "()"));
         Type tp;
         parser_type(&tp);
         assert(tp.sub == TYPE_UNIT);
@@ -128,7 +128,7 @@ void t_parser_type (void) {
 
 void t_parser_datas (void) {
     {
-        init(NULL, stropen("r", 0, "data Err"));
+        all_init(NULL, stropen("r", 0, "data Err"));
         Data dts;
         assert(parser_data(&dts));
         assert(ALL.data_recs.size == 1);
@@ -136,7 +136,7 @@ void t_parser_datas (void) {
         fclose(ALL.inp);
     }
     {
-        init(NULL, stropen("r", 0, "data Km ()"));
+        all_init(NULL, stropen("r", 0, "data Km ()"));
         Data dts;
         parser_data(&dts);
         assert(dts.size == 1);
@@ -146,7 +146,7 @@ void t_parser_datas (void) {
         fclose(ALL.inp);
     }
     {
-        init(NULL, stropen("r", 0, "data Bool:\n    False ()\n    True ()"));
+        all_init(NULL, stropen("r", 0, "data Bool:\n    False ()\n    True ()"));
         Data dts;
         parser_data(&dts);
         assert(lexer().sym == EOF);
@@ -162,7 +162,7 @@ void t_parser_datas (void) {
 #if 0
     // TODO: both at same time
     {
-        init(NULL, stropen("r", 0, "data Ast (Int):\n    Expr Int\n    Decl ()"));
+        all_init(NULL, stropen("r", 0, "data Ast (Int):\n    Expr Int\n    Decl ()"));
         Data dts;
         parser_data(&dts);
         assert(dts.size == 2);
@@ -178,7 +178,7 @@ void t_parser_datas (void) {
 void t_parser_expr (void) {
     // PARENS
     {
-        init(NULL, stropen("r", 0, "(())"));
+        all_init(NULL, stropen("r", 0, "(())"));
         Env* env = NULL;
         Expr e;
         assert(parser_expr(&env,&e));
@@ -186,7 +186,7 @@ void t_parser_expr (void) {
         fclose(ALL.inp);
     }
     {
-        init(NULL, stropen("r", 0, "( ( ) )"));
+        all_init(NULL, stropen("r", 0, "( ( ) )"));
         Env* env = NULL;
         Expr e;
         assert(parser_expr(&env,&e));
@@ -194,7 +194,7 @@ void t_parser_expr (void) {
         fclose(ALL.inp);
     }
     {
-        init(NULL, stropen("r", 0, "("));
+        all_init(NULL, stropen("r", 0, "("));
         Env* env = NULL;
         Expr e;
         assert(!parser_expr(&env,&e));
@@ -202,7 +202,7 @@ void t_parser_expr (void) {
         fclose(ALL.inp);
     }
     {
-        init(NULL, stropen("r", 0, "(("));
+        all_init(NULL, stropen("r", 0, "(("));
         Env* env = NULL;
         Expr e;
         assert(!parser_expr(&env,&e));
@@ -210,7 +210,7 @@ void t_parser_expr (void) {
         fclose(ALL.inp);
     }
     {
-        init(NULL, stropen("r", 0, "(\n( \n"));
+        all_init(NULL, stropen("r", 0, "(\n( \n"));
         Env* env = NULL;
         Expr e;
         assert(!parser_expr(&env,&e));
@@ -219,7 +219,7 @@ void t_parser_expr (void) {
     }
     // EXPR_VAR
     {
-        init(NULL, stropen("r", 0, "x)"));
+        all_init(NULL, stropen("r", 0, "x)"));
         Env* env = NULL;
         Expr e;
         assert(parser_expr(&env,&e));
@@ -227,7 +227,7 @@ void t_parser_expr (void) {
         fclose(ALL.inp);
     }
     {
-        init(NULL, stropen("r", 0, "x("));
+        all_init(NULL, stropen("r", 0, "x("));
         Env* env = NULL;
         Expr e;
         assert(!parser_expr(&env,&e));
@@ -236,7 +236,7 @@ void t_parser_expr (void) {
     }
     // EXPR_SET
     {
-        init(NULL, stropen("r", 0, "set () = (x"));
+        all_init(NULL, stropen("r", 0, "set () = (x"));
         Env* env = NULL;
         Expr e;
         assert(!parser_expr(&env,&e));
@@ -245,7 +245,7 @@ void t_parser_expr (void) {
         fclose(ALL.inp);
     }
     {
-        init(NULL, stropen("r", 0, "set a = (x"));
+        all_init(NULL, stropen("r", 0, "set a = (x"));
         Env* env = NULL;
         Expr e;
         assert(!parser_expr(&env,&e));
@@ -253,7 +253,7 @@ void t_parser_expr (void) {
         fclose(ALL.inp);
     }
     {
-        init(NULL, stropen("r", 0, "set a = (x)"));
+        all_init(NULL, stropen("r", 0, "set a = (x)"));
         Env* env = NULL;
         Expr e;
         assert(parser_expr(&env,&e));
@@ -264,7 +264,7 @@ void t_parser_expr (void) {
     }
     // EXPR_FUNC
     {
-        init(NULL, stropen("r", 0, "func :: () ()"));
+        all_init(NULL, stropen("r", 0, "func :: () ()"));
         Env* env = NULL;
         Expr e;
         assert(parser_expr(&env,&e));
@@ -273,7 +273,7 @@ void t_parser_expr (void) {
     }
     // EXPR_CALL
     {
-        init(NULL, stropen("r", 0, "xxx (  )"));
+        all_init(NULL, stropen("r", 0, "xxx (  )"));
         Env* env = NULL;
         Expr e;
         assert(parser_expr(&env,&e));
@@ -285,7 +285,7 @@ void t_parser_expr (void) {
     }
     // EXPR_SEQ
     {
-        init(NULL, stropen("r", 0, ": x"));
+        all_init(NULL, stropen("r", 0, ": x"));
         Env* env = NULL;
         Expr e;
         assert(!parser_expr(&env,&e));
@@ -293,7 +293,7 @@ void t_parser_expr (void) {
         fclose(ALL.inp);
     }
     {
-        init(NULL, stropen("r", 0, ":\nx"));
+        all_init(NULL, stropen("r", 0, ":\nx"));
         Env* env = NULL;
         Expr e;
         assert(!parser_expr(&env,&e));
@@ -301,7 +301,7 @@ void t_parser_expr (void) {
         fclose(ALL.inp);
     }
     {
-        init(NULL, stropen("r", 0, ":\n    x"));
+        all_init(NULL, stropen("r", 0, ":\n    x"));
         Env* env = NULL;
         Expr e;
         assert(parser_expr(&env,&e));
@@ -310,7 +310,7 @@ void t_parser_expr (void) {
         fclose(ALL.inp);
     }
     {
-        init(NULL, stropen("r", 0, ":\n    x x"));
+        all_init(NULL, stropen("r", 0, ":\n    x x"));
         Env* env = NULL;
         Expr e;
         assert(!parser_expr(&env,&e));
@@ -318,7 +318,7 @@ void t_parser_expr (void) {
         fclose(ALL.inp);
     }
     {
-        init(NULL, stropen("r", 0, ":\n    x\n    y ("));
+        all_init(NULL, stropen("r", 0, ":\n    x\n    y ("));
         Env* env = NULL;
         Expr e;
         assert(!parser_expr(&env,&e));
@@ -326,7 +326,7 @@ void t_parser_expr (void) {
         fclose(ALL.inp);
     }
     {
-        init(NULL, stropen("r", 0, ":\n    x\n    y ("));
+        all_init(NULL, stropen("r", 0, ":\n    x\n    y ("));
         Env* env = NULL;
         Expr e;
         assert(!parser_expr(&env,&e));
@@ -334,7 +334,7 @@ void t_parser_expr (void) {
         fclose(ALL.inp);
     }
     {
-        init(NULL, stropen("r", 0, ":\n    x\n    y y"));
+        all_init(NULL, stropen("r", 0, ":\n    x\n    y y"));
         Env* env = NULL;
         Expr e;
         assert(!parser_expr(&env,&e));
@@ -342,7 +342,7 @@ void t_parser_expr (void) {
         fclose(ALL.inp);
     }
     {
-        init(NULL, stropen("r", 0, "val ::"));
+        all_init(NULL, stropen("r", 0, "val ::"));
         Env* env = NULL;
         Expr e;
         assert(!parser_expr(&env,&e));
@@ -350,7 +350,7 @@ void t_parser_expr (void) {
         fclose(ALL.inp);
     }
     {
-        init(NULL, stropen("r", 0,
+        all_init(NULL, stropen("r", 0,
             ":\n"
             "    x\n"
             "    :\n"
@@ -366,7 +366,7 @@ void t_parser_expr (void) {
         fclose(ALL.inp);
     }
     {
-        init(NULL, stropen("r", 0,
+        all_init(NULL, stropen("r", 0,
             ":\n"
             "    x\n"
             "    :\n"
@@ -416,21 +416,21 @@ void t_parser_decls (void) {
     }
 
     {
-        init(NULL, stropen("r", 0, "a"));
+        all_init(NULL, stropen("r", 0, "a"));
         Decls ds;
         assert(!parser_decls(&ds));
         assert(!strcmp(ALL.err, "(ln 1, col 1): expected `:` : have `a`"));
         fclose(ALL.inp);
     }
     {
-        init(NULL, stropen("r", 0, ":\n    val a"));
+        all_init(NULL, stropen("r", 0, ":\n    val a"));
         Decls ds;
         assert(!parser_decls(&ds));
         assert(!strcmp(ALL.err, "(ln 2, col 10): expected `::` : have end of line"));
         fclose(ALL.inp);
     }
     {
-        init(NULL, stropen("r", 0, ":\n    val a :: ()"));
+        all_init(NULL, stropen("r", 0, ":\n    val a :: ()"));
         Decls ds;
         assert(parser_decls(&ds));
         assert(ds.size == 1);
@@ -439,7 +439,7 @@ void t_parser_decls (void) {
         fclose(ALL.inp);
     }
     {
-        init(NULL, stropen("r", 0, ":\n    val a :: {char}"));
+        all_init(NULL, stropen("r", 0, ":\n    val a :: {char}"));
         Decls ds;
         assert(parser_decls(&ds));
         assert(ds.size == 1);
@@ -449,7 +449,7 @@ void t_parser_decls (void) {
         fclose(ALL.inp);
     }
     {
-        init(NULL, stropen("r", 0, ":\n    val (a,b) :: ((),{char})\n    val x :: ()"));
+        all_init(NULL, stropen("r", 0, ":\n    val (a,b) :: ((),{char})\n    val x :: ()"));
         Decls ds;
         assert(parser_decls(&ds));
         assert(ds.size == 2);
@@ -460,7 +460,7 @@ void t_parser_decls (void) {
         fclose(ALL.inp);
     }
     {
-        init(NULL, stropen("r", 0, ":\n    val a :: (x)"));
+        all_init(NULL, stropen("r", 0, ":\n    val a :: (x)"));
         Decls ds;
         assert(!parser_decls(&ds));
         assert(!strcmp(ALL.err, "(ln 2, col 15): expected type : have `x`"));
@@ -470,14 +470,14 @@ void t_parser_decls (void) {
 
 void t_parser_block (void) {
     {
-        init(NULL, stropen("r", 0, "a:\n    val a :: ()"));
+        all_init(NULL, stropen("r", 0, "a:\n    val a :: ()"));
         Env* env = NULL;
         Expr blk;
         assert(parser_expr(&env,&blk));
         fclose(ALL.inp);
     }
     {
-        init(NULL, stropen("r", 0,
+        all_init(NULL, stropen("r", 0,
             ":\n"
             "    a where:\n"
             "        val a :: ()\n"
@@ -496,7 +496,7 @@ void t_parser_block (void) {
         fclose(ALL.inp);
     }
     {
-        init(NULL, stropen("r", 0,
+        all_init(NULL, stropen("r", 0,
             "x where:\n"
             "    val x :: () = y where:\n"
             "        val y :: ()\n"
@@ -523,7 +523,7 @@ void t_parser (void) {
 void t_code (void) {
     {
         char out[256];
-        init(stropen("w",sizeof(out),out), NULL);
+        all_init(stropen("w",sizeof(out),out), NULL);
         Env env = { ENV_PLAIN, NULL, .Plain={{TK_IDVAR,{.s="xxx"}},{}} };
         Expr e = { EXPR_VAR, {}, &env, NULL, {} };
             e.Var.sym = TK_IDVAR;
@@ -534,7 +534,7 @@ void t_code (void) {
     }
     {
         char out[256] = "";
-        init(stropen("w",sizeof(out),out), NULL);
+        all_init(stropen("w",sizeof(out),out), NULL);
         Env env = { ENV_PLAIN, NULL, .Plain={{TK_IDVAR,{.s="xxx"}},{}} };
         Expr e = { EXPR_VAR, {}, &env, NULL, {} };
             e.Var.sym = TK_IDVAR;
@@ -555,7 +555,7 @@ void t_code (void) {
     }
     {
         char out[256] = "";
-        init (
+        all_init (
             stropen("w", sizeof(out), out),
             stropen("r", 0, "val a :: ()\n{show_Bool}(a)")
         );
@@ -578,7 +578,7 @@ void t_code (void) {
     }
     {
         char out[1024] = "";
-        init (
+        all_init (
             stropen("w", sizeof(out), out),
             stropen("r", 0, "val inp :: ()\nmatch {fgetc} (inp):\n    {'\\n'} -> ()")
         );
@@ -609,7 +609,7 @@ puts(out);
     }
     {
         char out[1024];
-        init (
+        all_init (
             stropen("w", sizeof(out), out),
             stropen("r", 0,
                 "data Bool:\n"

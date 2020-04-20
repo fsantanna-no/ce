@@ -2,15 +2,6 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 
-int is_rec (const char* v) {
-    for (int i=0; i<ALL.data_recs.size; i++) {
-        if (!strcmp(ALL.data_recs.buf[i].val.s, v)) {
-            return 1;
-        }
-    }
-    return 0;
-}
-
 Expr* expr_new (Env** env) {
     Expr e;
     if (!parser_expr(env,&e)) {
@@ -42,15 +33,6 @@ void pr_lincol (void) {
     } else {
         TOK2.col = TOK1.col + (TOK2.off - TOK1.off);
     }
-}
-
-void pr_init () {
-    TOK0 = (State_Tok) { -1,0,0,{} };
-    TOK1 = (State_Tok) { -1,1,1,{} };
-    TOK2 = (State_Tok) { -1,1,1,{} };
-    pr_read(&TOK1);
-    pr_read(&TOK2);
-    pr_lincol();
 }
 
 void pr_next () {
@@ -95,6 +77,15 @@ int pr_check2 (TK tk) {
 }
 #endif
 
+void parser_init (void) {
+    TOK0 = (State_Tok) { -1,0,0,{} };
+    TOK1 = (State_Tok) { -1,1,1,{} };
+    TOK2 = (State_Tok) { -1,1,1,{} };
+    pr_read(&TOK1);
+    pr_read(&TOK2);
+    pr_lincol();
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 
 int err_expected (const char* v) {
@@ -106,24 +97,6 @@ int err_expected (const char* v) {
 int err_unexpected (const char* v) {
     sprintf(ALL.err, "(ln %ld, col %ld): unexpected %s", TOK1.lin, TOK1.col, v);
     return 0;
-}
-
-///////////////////////////////////////////////////////////////////////////////
-
-FILE* stropen (const char* mode, size_t size, char* str) {
-    size = (size != 0) ? size : strlen(str);
-    return fmemopen(str, size, mode);
-}
-
-void init (FILE* out, FILE* inp) {
-    static char buf1[65000];
-    static char buf2[65000];
-    FILE* out1 = stropen("w", sizeof(buf1), buf1);
-    FILE* out2 = stropen("w", sizeof(buf2), buf2);
-    ALL = (State_All) { inp,{out,out1,out2},{},0,{0,{}} };
-    if (inp != NULL) {
-        pr_init();
-    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -412,8 +385,8 @@ int parser_data (Data* ret) {
         ret->vec[i].idx = i;
     }
 
-    // mark each Cons as is_rec as well
-    if (is_rec(id.val.s)) {
+    // mark each Cons as all_rec as well
+    if (all_rec(id.val.s)) {
         for (int i=0; i<ret->size; i++) {
             ALL.data_recs.buf[ALL.data_recs.size++] = ret->vec[i].tk;
         }

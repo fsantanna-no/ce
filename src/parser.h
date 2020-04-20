@@ -219,10 +219,7 @@ typedef struct {
 typedef void* (*List_F) (Env** env);
 int parser_list_line (Env** env, int global, List* ret, List_F f, size_t unit);
 
-int is_rec (const char* v);
-void init (FILE* out, FILE* inp);
-FILE* stropen (const char* mode, size_t size, char* str);
-
+void parser_init (void);
 int parser_type (Type* ret);
 int parser_data (Data* ret);
 int parser_patt (Env* env, Patt* ret, int is_match);

@@ -69,7 +69,7 @@ void code_type_ (char* out1, char* out2, Type tp) {
             strcat(out2, "int");
             break;
         case TYPE_DATA: {
-            int is = is_rec(tp.Data.tk.val.s);
+            int is = all_rec(tp.Data.tk.val.s);
             if (is) strcat(out2, "struct ");
             strcat(out2, tp.Data.tk.val.s);
             if (is) strcat(out2, "*");
@@ -132,7 +132,7 @@ void code_data (Data data) {
     char SUP[256];
     assert(strlen(sup) < sizeof(SUP));
     strcpy(SUP, strupper(sup));
-    int is = is_rec(sup);
+    int is = all_rec(sup);
 
     // only pre declaration
     if (data.size == 0) {
@@ -301,7 +301,7 @@ void code_patt_set (Env* env, Patt p, Expr e) {
         case PATT_SET: {        // x = ce_tst
             Type* type = env_get(env, p.Set.val.s, NULL);
             assert(type != NULL);
-            int rec = (type->sub==TYPE_DATA) && is_rec(type->Data.tk.val.s);
+            int rec = (type->sub==TYPE_DATA) && all_rec(type->Data.tk.val.s);
             if (rec && (e.sub==EXPR_CALL && e.Call.func->sub!=EXPR_CONS)) {
                 //  l[] = f(...)
                 // becomes
@@ -375,7 +375,7 @@ void code_patt_decls (Decl decl) {
 void code_decl (Decl d, tce_ret* ret) {
     if (d.type.sub == TYPE_FUNC) {
         int rec = (d.type.Func.out->sub == TYPE_DATA) &&
-                  is_rec(d.type.Func.out->Data.tk.val.s);
+                  all_rec(d.type.Func.out->Data.tk.val.s);
         assert(d.init != NULL);
         assert(d.patt.sub == PATT_SET);
         out("\n");
@@ -617,7 +617,7 @@ void code_expr (Expr e, tce_ret* ret) {
                 Let let = e.Cases.vec[i];
                 Expr star = (Expr) { EXPR_RAW, {}, e.env, NULL, .Raw={TK_RAW,{.s="*"}} };
                 Expr old  = tst_;
-                if (let.decl.patt.sub==PATT_CONS && is_rec(let.decl.patt.Cons.data.val.s)) {
+                if (let.decl.patt.sub==PATT_CONS && all_rec(let.decl.patt.Cons.data.val.s)) {
                     tst_ = (Expr) { EXPR_CALL, {}, e.env, NULL, .Call={&star,&old} };
                 }
                 out("if (");
