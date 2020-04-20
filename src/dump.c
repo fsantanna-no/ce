@@ -99,6 +99,13 @@ void dump_expr_ (Expr e, int spc) {
         case EXPR_CASES:
             fputs("match (...)", stdout);
             break;
+        case EXPR_CONS_SUB:
+            dump_expr_(*e.Cons_Sub.cons, 0);
+            fputs("()", stdout);
+            break;
+        case EXPR_TUPLE_IDX:
+            fputs("idx (...)", stdout);
+            break;
         default:
             printf(">>> %d\n", e.sub);
             assert(0 && "TODO");

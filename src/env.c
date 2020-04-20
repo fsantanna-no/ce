@@ -68,8 +68,7 @@ void env_add (Env** old, Patt patt, Type type) {
     Env* new = malloc(sizeof(Env));
     *new = (Env) { ENV_PLAIN, *old, .Plain={patts[0].Set, type} };
     *old = new;
-printf("add %s\n", patts[0].Set.val.s);
-//printf("add %p/%p<-%p/%p %s\n", old,(*old)->prev,*old,new, patts[0].Set.val.s);
+//printf("add %s\n", patts[0].Set.val.s);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -82,7 +81,8 @@ Type env_expr (Expr expr) {
             return *env_get(expr.env, expr.Var.val.s, NULL);
         }
         default:
-            printf(">>> %d\n", expr.sub);
-            assert(0 && "TODO");
+            return (Type) { TYPE_NONE };
+            //printf(">>> %d\n", expr.sub);
+            //assert(0 && "TODO");
     }
 }

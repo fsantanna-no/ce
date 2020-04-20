@@ -604,7 +604,6 @@ void t_code (void) {
             ";\n"
             "\n"
             "}\n";
-puts(out);
         assert(!strcmp(out,ret));
     }
     {

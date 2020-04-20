@@ -186,11 +186,11 @@ typedef struct Expr {
             struct Expr* body;
         } Func;
         ////
-        struct {
+        struct {        // EXPR_TUPLE_IDX
             struct Expr* tuple;
             int idx;
         } Tuple_Idx;
-        struct {
+        struct {        // EXPR_CONS_SUB
             struct Expr* cons;
             const char* sub;
         } Cons_Sub;

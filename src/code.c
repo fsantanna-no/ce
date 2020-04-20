@@ -316,6 +316,7 @@ void code_patt_match (Patt p, Expr tst) {
                     break;
                 default:
                     out("(");
+//dump_expr(tst);
                     code_expr(tst, NULL);
                     out(").sub == SUP_");
                     out(p.Cons.data.val.s);
@@ -506,12 +507,7 @@ void code_expr (Expr e, tce_ret* ret) {
         case EXPR_VAR:
             code_ret(ret);
             Type* type = env_get(e.env, e.Var.val.s, NULL);
-//env_dump(e.env);
-//puts(">>>");
-//puts(e.Var.val.s);
-            if (strcmp(e.Var.val.s,"ce_tst")) {
-                assert(type != NULL);
-            }
+            assert(type != NULL);
             if (type==NULL || type->sub!=TYPE_DATA || type->Data.size==-1) {
                 out(e.Var.val.s);
             } else {
@@ -669,16 +665,13 @@ void code_expr (Expr e, tce_ret* ret) {
         case EXPR_CASES: {  // tst,size,vec
             Expr tst = *e.Cases.tst;
             out("{\n");
+            Type type = env_expr(*e.Cases.tst);
+            Tk tk = { TK_IDVAR,{.s="ce_tst"} };
+            Env env = { ENV_PLAIN, e.env, .Plain={tk,type} };
             if (tst.sub != EXPR_TUPLE) {   // prevents multiple evaluation of tst
-                tst = (Expr) { EXPR_VAR, {}, e.env, NULL, {.Var={TK_IDVAR,{.s="ce_tst"}}} };
+                tst = (Expr) { EXPR_VAR, {}, &env, NULL, {.Var=tk} };
 
-                //if ( e.Cases.tst->sub==EXPR_RAW
-                //||  (e.Cases.tst->sub==EXPR_CALL && e.Cases.tst->Call.func->sub==EXPR_RAW)
-                //||   e.Cases.tst->sub == EXPR_ARG
-                //) {
-                if (e.Cases.tst->sub == EXPR_VAR) {
-                    Type type = env_expr(*e.Cases.tst);
-                    assert(type.sub != TYPE_NONE);
+                if (type.sub != TYPE_NONE) {
                     code_type(type);
                 } else {
                     out("typeof(");
@@ -691,14 +684,7 @@ void code_expr (Expr e, tce_ret* ret) {
             }
 
             for (int i=0; i<e.Cases.size; i++) {
-                //Expr tst_ = tst;
                 Let let = e.Cases.vec[i];
-// TODO
-                //Expr star = (Expr) { EXPR_RAW, {}, e.env, NULL, .Raw={TK_RAW,{.s="* /*x*/"}} };
-                //Expr old  = tst_;
-                //if (let.decl.patt.sub==PATT_CONS && all_rec(let.decl.patt.Cons.data.val.s)!=REC_NONE) {
-                    //tst_ = (Expr) { EXPR_CALL, {}, e.env, NULL, .Call={&star,&old} };
-                //}
                 out("if (");
                 code_patt_match(let.decl.patt, tst);
                 out(") {\n");
@@ -735,13 +721,18 @@ void code_expr (Expr e, tce_ret* ret) {
                 fprintf(ALL.out[OGLOB], "._%d", e.Tuple_Idx.idx);
             }
             break;
-        case EXPR_CONS_SUB:
+        case EXPR_CONS_SUB: {
             code_ret(ret);
+            Type type = env_expr(*e.Cons_Sub.cons);
+            assert(type.sub == TYPE_DATA);
             out("(");
             code_expr(*e.Cons_Sub.cons, NULL);
-            out(")._");
+            out(")");
+            out(datas_data(type.Data.tk.val.s) == DATA_REC ? "->" : ".");
+            out("_");
             out(e.Cons_Sub.sub);
             break;
+        }
         default:
 //printf("%d\n", e.sub);
             assert(0 && "TODO");
