@@ -308,10 +308,10 @@ int parser_data (Data* ret) {
 
     if (!tp_ok && !lst_ok) {
         // recursive pre declaration
-        assert(ALL.rec_datas.size < sizeof(ALL.rec_datas.buf));
-        ALL.rec_datas.buf[ALL.rec_datas.size].kind = REC_NODE;
-        strcpy(ALL.rec_datas.buf[ALL.rec_datas.size].cons, id.val.s);
-        ALL.rec_datas.size++;
+        assert(ALL.data.datas.size < sizeof(ALL.data.datas.buf));
+        ALL.data.datas.buf[ALL.data.datas.size].kind = DATA_REC;
+        strcpy(ALL.data.datas.buf[ALL.data.datas.size].id, id.val.s);
+        ALL.data.datas.size++;
         *ret = (Data) { id, 0, NULL };
         return 1;
     }
@@ -321,13 +321,25 @@ int parser_data (Data* ret) {
         ret->vec[i].idx = i;
     }
 
-    // mark each Cons as all_rec as well
-    if (all_rec(id.val.s) != REC_NONE) {
-        for (int i=0; i<ret->size; i++) {
-            ALL.rec_datas.buf[ALL.rec_datas.size].kind = (i==0 ? REC_LEAF : REC_NODE);
-            strcpy(ALL.rec_datas.buf[ALL.rec_datas.size].cons, ret->vec[i].tk.val.s);
-            ALL.rec_datas.size++;
+    DATA kind = datas_data(id.val.s);
+
+    // new type is either DATA_SINGLE or DATA_PLAIN
+    if (kind == DATA_ERROR) {
+        ALL.data.datas.buf[ALL.data.datas.size].kind = (ret->size < 2 ? DATA_SINGLE : DATA_PLAIN);
+        strcpy(ALL.data.datas.buf[ALL.data.datas.size].id, id.val.s);
+        ALL.data.datas.size++;
+    }
+
+    // set kinds of CONS
+    for (int i=0; i<ret->size; i++) {
+        assert(ret->size >= 2);
+        if (kind == DATA_ERROR) {
+            ALL.data.conss.buf[ALL.data.conss.size].kind = CONS_CASE;
+        } else {
+            ALL.data.conss.buf[ALL.data.conss.size].kind = (i==0 ? CONS_NULL : CONS_CASE);
         }
+        strcpy(ALL.data.conss.buf[ALL.data.conss.size].id, ret->vec[i].tk.val.s);
+        ALL.data.conss.size++;
     }
 
     // realloc TP more spaces inside each CONS
@@ -341,6 +353,10 @@ int parser_data (Data* ret) {
             Cons c = (Cons) { 0, {}, tp };
             strcpy(c.tk.val.s, id.val.s);
             ret->vec[0] = c;
+
+            ALL.data.conss.buf[ALL.data.conss.size].kind = CONS_SINGLE;
+            strcpy(ALL.data.conss.buf[ALL.data.conss.size].id, id.val.s);
+            ALL.data.conss.size++;
         }
     }
 

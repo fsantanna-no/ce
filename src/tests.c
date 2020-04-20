@@ -131,7 +131,7 @@ void t_parser_datas (void) {
         all_init(NULL, stropen("r", 0, "data Err"));
         Data dts;
         assert(parser_data(&dts));
-        assert(ALL.rec_datas.size == 1);
+        assert(ALL.data.datas.size == 1);
         //assert(!strcmp(ALL.err, "(ln 1, col 9): expected `=` or `:` : have end of file"));
         fclose(ALL.inp);
     }
@@ -639,16 +639,16 @@ puts(out);
             "} Bool;\n"
             "\n"
             "void show_Bool (Bool v) {\n"
-            "    switch (v.sub) {\n"
-            "        case Bool_False:\n"
-            "            puts(\"False\");\n"
-            "            break;\n"
-            "        case Bool_True:\n"
-            "            puts(\"True\");\n"
-            "            break;\n"
-            "        default:\n"
-            "            assert(0 && \"bug found\");\n"
-            "    }\n"
+            "switch (v.sub) {\n"
+            "case Bool_False:\n"
+            "    puts(\"False\");\n"
+            "    break;\n"
+            "case Bool_True:\n"
+            "    puts(\"True\");\n"
+            "    break;\n"
+            "default:\n"
+            "    assert(0 && \"bug found\");\n"
+            "}\n"
             "}\n"
             "\n";
         assert(!strcmp(out,xp));
@@ -824,6 +824,7 @@ void t_all (void) {
         "        True  -> return False\n"
         "{show_Bool}(inv(True))"
     ));
+puts(">>>>>>>>>>>>>");
     assert(all(
         "True\n",
         "data Bool:\n"
@@ -836,6 +837,7 @@ void t_all (void) {
         "    Vv(x) :: Bool -> x\n"
         "{show_Bool}(b)"
     ));
+assert(0);
     assert(all(
         "()\n",
         "val i :: ((),()) = ((),())\n"
@@ -1074,7 +1076,7 @@ assert(0);
 }
 
 int main (void) {
-#if 1
+#if 0
     assert(all(
         "Cons\n()\n",
         "data List\n"

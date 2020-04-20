@@ -9,18 +9,31 @@ FILE* stropen  (const char* mode, size_t size, char* str);
 #include "lexer.h"
 
 enum { OGLOB, ODECL, OEXPR };
+
+typedef enum { DATA_ERROR, DATA_SINGLE, DATA_PLAIN, DATA_REC  } DATA;
+typedef enum { CONS_ERROR, CONS_SINGLE, CONS_CASE,  CONS_NULL } CONS;
+
 typedef struct {
     FILE* inp;
     FILE* out[3];
     char  err[256];
     int   ind;
     struct {
-        int size;
         struct {
-            char cons[256];
-            int  kind;
-        } buf[256];
-    } rec_datas;
+            int size;
+            struct {
+                char id[256];
+                DATA kind;
+            } buf[256];
+        } datas;
+        struct {
+            int size;
+            struct {
+                char id[256];
+                CONS kind;
+            } buf[256];
+        } conss;
+    } data;
 } State_All;
 
 typedef struct {
@@ -62,10 +75,10 @@ typedef struct tce_ret {
 
 #include "code.h"
 
-typedef enum { REC_NONE, REC_LEAF, REC_NODE } REC;
-REC all_rec (const char* v);
+DATA datas_data (const char* v);
+CONS datas_cons (const char* v);
 
-void  all_init (FILE* out, FILE* inp);
+void all_init (FILE* out, FILE* inp);
 
 void patt2patts (Patt* patts, int* patts_i, Patt patt);
 

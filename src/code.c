@@ -69,7 +69,7 @@ void code_type_ (char* out1, char* out2, Type tp) {
             strcat(out2, "int");
             break;
         case TYPE_DATA: {
-            int isrec = (all_rec(tp.Data.tk.val.s) != REC_NONE);
+            int isrec = (datas_data(tp.Data.tk.val.s) == DATA_REC);
             if (isrec) strcat(out2, "struct ");
             strcat(out2, tp.Data.tk.val.s);
             if (isrec) strcat(out2, "*");
@@ -132,7 +132,7 @@ void code_data (Data data) {
     char SUP[256];
     assert(strlen(sup) < sizeof(SUP));
     strcpy(SUP, strupper(sup));
-    int isrec = (all_rec(sup) != REC_NONE);
+    DATA kind = datas_data(sup);
 
     // only pre declaration
     if (data.size == 0) {
@@ -159,7 +159,7 @@ void code_data (Data data) {
         if (cons.type.sub != TYPE_UNIT) {
             out("(...)");
         }
-        if (isrec && cons.type.sub == TYPE_UNIT) {
+        if (kind==DATA_REC && cons.type.sub==TYPE_UNIT) {
             out(" NULL\n");
         } else {
             out(" ((");
@@ -208,36 +208,74 @@ void code_data (Data data) {
     }
 
     out(out1);
-    fprintf(ALL.out[OGLOB],
-        "typedef struct %s {\n"
-        "    %s sub;\n"
-        "    union {\n"
-        "%s"
-        "    };\n"
-        "} %s;\n\n",
-        sup, SUP, out2, sup
-    );
 
-    fprintf(ALL.out[OGLOB],
-        "void show_%s (%s%s v) {\n"
-        "    switch (v%ssub) {\n",
-        sup, sup, (isrec ? "*" : ""), (isrec ? "->" : ".")
-    );
-    for (int i=0; i<data.size; i++) {
-        char* v = data.vec[i].tk.val.s;
+    if (kind==DATA_PLAIN || (kind==DATA_REC && data.size>2)) {
         fprintf(ALL.out[OGLOB],
-            "        case %s_%s:\n"
-            "            puts(\"%s\");\n"
-            "            break;\n",
-            sup, v, v
+            "typedef struct %s {\n"
+            "    %s sub;\n"
+            "    union {\n"
+            "%s"
+            "    };\n"
+            "} %s;\n\n",
+            sup, SUP, out2, sup
+        );
+    } else {
+        fprintf(ALL.out[OGLOB],
+            "typedef struct %s {\n"
+            "%s"
+            "} %s;\n\n",
+            sup, out2, sup
         );
     }
+
     fprintf(ALL.out[OGLOB],
-        "        default:\n"
-        "            assert(0 && \"bug found\");\n"
-        "    }\n"
-        "}\n\n"
+        "void show_%s (%s%s v) {\n",
+        sup, sup, (kind==DATA_REC ? "*" : "")
     );
+    int has_switch = 0;
+    for (int i=0; i<data.size; i++) {
+        if (kind==DATA_REC && i==0) {
+            fprintf(ALL.out[OGLOB],
+                "if (v == NULL) {\n"
+                "    puts(\"%s\");\n"
+                "    return;\n"
+                "}\n",
+                sup
+            );
+        }
+        if (kind == DATA_SINGLE) {
+            // no switch
+        } else if (kind == DATA_REC && data.size<=2) {
+            // no switch
+        } else {
+            if (kind == DATA_PLAIN) {
+                has_switch = 1;
+                if (i == 0) {
+                    fprintf(ALL.out[OGLOB], "switch (v.sub) {\n");
+                }
+            } else if (kind == DATA_REC) {
+                has_switch = 1;
+                if (i == 1) {
+                    fprintf(ALL.out[OGLOB], "switch (v->sub) {\n");
+                }
+            }
+            char* v = data.vec[i].tk.val.s;
+            fprintf(ALL.out[OGLOB],
+                "case %s_%s:\n"
+                "    puts(\"%s\");\n"
+                "    break;\n",
+                sup, v, v
+            );
+        }
+    }
+    if (has_switch) {
+        fprintf(ALL.out[OGLOB],
+            "default:\n"
+            "    assert(0 && \"bug found\");\n"
+            "}\n"
+        );
+    }
+    out("}\n\n");
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -262,11 +300,24 @@ void code_patt_match (Patt p, Expr tst) {
             code_expr(tst, NULL);
             out(" == 1");
             break;
-        case PATT_CONS:
-            out("(");
-            code_expr(tst, NULL);
-            out(").sub == SUP_");
-            out(p.Cons.data.val.s);
+        case PATT_CONS: {
+            CONS kind = datas_cons(p.Cons.data.val.s);
+            switch (kind) {
+                case CONS_SINGLE:
+                    out("1");
+                    // always succeeds
+                    break;
+                case CONS_NULL:
+                    code_expr(tst, NULL);
+                    out(" == NULL");
+                    break;
+                default:
+                    out("(");
+                    code_expr(tst, NULL);
+                    out(").sub == SUP_");
+                    out(p.Cons.data.val.s);
+                    break;
+            }
             if (p.Cons.arg != NULL) {
                 out(" && ");
                 code_patt_match (
@@ -275,6 +326,7 @@ void code_patt_match (Patt p, Expr tst) {
                 );
             }
             break;
+        }
         case PATT_TUPLE:
             for (int i=0; i<p.Tuple.size; i++) {
                 if (i > 0) {
@@ -301,7 +353,7 @@ void code_patt_set (Env* env, Patt p, Expr e) {
         case PATT_SET: {        // x = ce_tst
             Type* type = env_get(env, p.Set.val.s, NULL);
             assert(type != NULL);
-            int isrec = (type->sub==TYPE_DATA && all_rec(type->Data.tk.val.s)!=REC_NONE);
+            int isrec = (type->sub==TYPE_DATA && datas_data(type->Data.tk.val.s)==DATA_REC);
             if (isrec && (e.sub==EXPR_CALL && e.Call.func->sub!=EXPR_CONS)) {
                 //  l[] = f(...)
                 // becomes
@@ -375,7 +427,7 @@ void code_patt_decls (Decl decl) {
 void code_decl (Decl d, tce_ret* ret) {
     if (d.type.sub == TYPE_FUNC) {
         int isrec = (d.type.Func.out->sub == TYPE_DATA &&
-                    all_rec(d.type.Func.out->Data.tk.val.s) != REC_NONE);
+                     datas_data(d.type.Func.out->Data.tk.val.s) == DATA_REC);
         assert(d.init != NULL);
         assert(d.patt.sub == PATT_SET);
         out("\n");
@@ -613,18 +665,18 @@ void code_expr (Expr e, tce_ret* ret) {
             }
 
             for (int i=0; i<e.Cases.size; i++) {
-                Expr tst_ = tst;
+                //Expr tst_ = tst;
                 Let let = e.Cases.vec[i];
-                Expr star = (Expr) { EXPR_RAW, {}, e.env, NULL, .Raw={TK_RAW,{.s="*"}} };
-                Expr old  = tst_;
-                if (let.decl.patt.sub==PATT_CONS && all_rec(let.decl.patt.Cons.data.val.s)!=REC_NONE) {
-                    tst_ = (Expr) { EXPR_CALL, {}, e.env, NULL, .Call={&star,&old} };
-                }
+                //Expr star = (Expr) { EXPR_RAW, {}, e.env, NULL, .Raw={TK_RAW,{.s="* /*x*/"}} };
+                //Expr old  = tst_;
+                //if (let.decl.patt.sub==PATT_CONS && all_rec(let.decl.patt.Cons.data.val.s)!=REC_NONE) {
+                    //tst_ = (Expr) { EXPR_CALL, {}, e.env, NULL, .Call={&star,&old} };
+                //}
                 out("if (");
-                code_patt_match(let.decl.patt, tst_);
+                code_patt_match(let.decl.patt, tst);
                 out(") {\n");
                 code_patt_decls(let.decl);
-                code_patt_set(let.body->env, let.decl.patt, tst_);
+                code_patt_set(let.body->env, let.decl.patt, tst);
                 out(";\n");     // maybe let.body->env->prev ?
                 code_expr(*let.body, ret);
                 out(";\n");

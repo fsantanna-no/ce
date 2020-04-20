@@ -1,4 +1,7 @@
-- Type[]
+- remove
+    - pre data declaration
+    - SUP_*
+    - VA_ARGS
 - back to lst1, always test lexer "OK"
 - ambiguity
     - loop / if next line
