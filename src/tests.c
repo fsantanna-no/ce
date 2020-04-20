@@ -1074,7 +1074,6 @@ assert(0);
 }
 
 int main (void) {
-#if 0
     assert(all(
         "Cons\n()\n",
         "data List\n"
@@ -1088,7 +1087,6 @@ int main (void) {
         "{show_Unit}(n)"
     ));
 assert(0);
-#endif
     t_lexer();
     t_parser();
     t_code();

@@ -69,10 +69,10 @@ void code_type_ (char* out1, char* out2, Type tp) {
             strcat(out2, "int");
             break;
         case TYPE_DATA: {
-            int is = all_rec(tp.Data.tk.val.s);
-            if (is) strcat(out2, "struct ");
+            int isrec = all_rec(tp.Data.tk.val.s);
+            if (isrec) strcat(out2, "struct ");
             strcat(out2, tp.Data.tk.val.s);
-            if (is) strcat(out2, "*");
+            if (isrec) strcat(out2, "*");
             break;
         }
         case TYPE_TUPLE: {
@@ -132,7 +132,7 @@ void code_data (Data data) {
     char SUP[256];
     assert(strlen(sup) < sizeof(SUP));
     strcpy(SUP, strupper(sup));
-    int is = all_rec(sup);
+    int isrec = all_rec(sup);
 
     // only pre declaration
     if (data.size == 0) {
@@ -159,7 +159,7 @@ void code_data (Data data) {
         if (cons.type.sub != TYPE_UNIT) {
             out("(...)");
         }
-        if (is && cons.type.sub == TYPE_UNIT) {
+        if (isrec && cons.type.sub == TYPE_UNIT) {
             out(" NULL\n");
         } else {
             out(" ((");
@@ -221,7 +221,7 @@ void code_data (Data data) {
     fprintf(ALL.out[OGLOB],
         "void show_%s (%s%s v) {\n"
         "    switch (v%ssub) {\n",
-        sup, sup, (is ? "*" : ""), (is ? "->" : ".")
+        sup, sup, (isrec ? "*" : ""), (isrec ? "->" : ".")
     );
     for (int i=0; i<data.size; i++) {
         char* v = data.vec[i].tk.val.s;
@@ -301,8 +301,8 @@ void code_patt_set (Env* env, Patt p, Expr e) {
         case PATT_SET: {        // x = ce_tst
             Type* type = env_get(env, p.Set.val.s, NULL);
             assert(type != NULL);
-            int rec = (type->sub==TYPE_DATA) && all_rec(type->Data.tk.val.s);
-            if (rec && (e.sub==EXPR_CALL && e.Call.func->sub!=EXPR_CONS)) {
+            int isrec = (type->sub==TYPE_DATA) && all_rec(type->Data.tk.val.s);
+            if (isrec && (e.sub==EXPR_CALL && e.Call.func->sub!=EXPR_CONS)) {
                 //  l[] = f(...)
                 // becomes
                 //  f(l,...)
@@ -374,8 +374,8 @@ void code_patt_decls (Decl decl) {
 
 void code_decl (Decl d, tce_ret* ret) {
     if (d.type.sub == TYPE_FUNC) {
-        int rec = (d.type.Func.out->sub == TYPE_DATA) &&
-                  all_rec(d.type.Func.out->Data.tk.val.s);
+        int isrec = (d.type.Func.out->sub == TYPE_DATA) &&
+                    all_rec(d.type.Func.out->Data.tk.val.s);
         assert(d.init != NULL);
         assert(d.patt.sub == PATT_SET);
         out("\n");
@@ -388,7 +388,7 @@ void code_decl (Decl d, tce_ret* ret) {
             out(" ");
             out(out2);
             out("\n");
-        if (rec) {
+        if (isrec) {
             out("void");
         } else {
             code_type(*d.type.Func.out);
@@ -396,13 +396,13 @@ void code_decl (Decl d, tce_ret* ret) {
             out(" ");
         out(d.patt.Set.val.s);
         out(" (");
-        if (rec) {
+        if (isrec) {
             out("Pool* ce_ret,");
         }
         out(out2);
         out(" ce_arg) {\n");
             if (d.type.Func.out->sub != TYPE_UNIT) {
-                if (!rec) {
+                if (!isrec) {
                     code_type(*d.type.Func.out);
                     out(" ce_ret;\n");
                 }
@@ -410,7 +410,7 @@ void code_decl (Decl d, tce_ret* ret) {
                 tce_ret r = { env, NULL };
                 code_expr(*d.init, &r);
                 out(";\n");
-                if (!rec) {
+                if (!isrec) {
                     out("return ce_ret;\n");
                 }
             }
