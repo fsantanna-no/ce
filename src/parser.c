@@ -1,6 +1,13 @@
 #include "all.h"
 
-///////////////////////////////////////////////////////////////////////////////
+void parser_init (void) {
+    TOK0 = (State_Tok) { -1,0,0,{} };
+    TOK1 = (State_Tok) { -1,1,1,{} };
+    TOK2 = (State_Tok) { -1,1,1,{} };
+    ll_read(&TOK1);
+    ll_read(&TOK2);
+    ll_lincol();
+}
 
 Expr* expr_new (Env** env) {
     Expr e;
@@ -11,17 +18,6 @@ Expr* expr_new (Env** env) {
     assert(pe != NULL);
     *pe = e;
     return pe;
-}
-
-///////////////////////////////////////////////////////////////////////////////
-
-void parser_init (void) {
-    TOK0 = (State_Tok) { -1,0,0,{} };
-    TOK1 = (State_Tok) { -1,1,1,{} };
-    TOK2 = (State_Tok) { -1,1,1,{} };
-    ll_read(&TOK1);
-    ll_read(&TOK2);
-    ll_lincol();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
