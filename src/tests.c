@@ -384,7 +384,7 @@ void t_parser_expr (void) {
 
 void t_parser_decls (void) {
     Env* env = NULL;
-    int pr_accept1 (TK tk, int ok);
+    int ll_accept1 (TK tk);
     int err_expected (const char* v);
     int parser_decl (Env** env, Decl* decl);
     typedef struct {
@@ -392,7 +392,7 @@ void t_parser_decls (void) {
         Decl* vec;
     } Decls;
     int xxx (Decl* decl) {
-        if (!pr_accept1(TK_MUT,1) && !pr_accept1(TK_VAL,1) && !pr_accept1(TK_FUNC,1)) {
+        if (!ll_accept1(TK_MUT) && !ll_accept1(TK_VAL) && !ll_accept1(TK_FUNC)) {
             return err_expected("`mut` or `val` or `func`");
         }
         return parser_decl(&env,decl);
@@ -1074,6 +1074,7 @@ assert(0);
 }
 
 int main (void) {
+#if 0
     assert(all(
         "Cons\n()\n",
         "data List\n"
@@ -1087,6 +1088,7 @@ int main (void) {
         "{show_Unit}(n)"
     ));
 assert(0);
+#endif
     t_lexer();
     t_parser();
     t_code();
