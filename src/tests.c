@@ -1017,7 +1017,22 @@ void t_all (void) {
         "{show_Unit}(n)"
     ));
 #endif
-puts("===========");
+    assert(all(
+        "Two\n",
+        "data Nat:\n"
+        "    One ()\n"
+        "    Two ()\n"
+        "    Tre ()\n"
+        "data List\n"
+        "data List:\n"
+        "    Nil  ()\n"
+        "    Cons (Nat, List)\n"
+        "val l :: List = new Nil\n"
+        "val n :: Nat = match l:\n"
+        "    Cons(x,_) :: Nat -> x\n"
+        "    Nil -> Two\n"
+        "{show_Nat}(n)"
+    ));
     assert(all(
         "Tre\n",
         "data Nat:\n"
@@ -1028,12 +1043,26 @@ puts("===========");
         "data List:\n"
         "    Nil  ()\n"
         "    Cons (Nat, List)\n"
-        "val l :: List = new Cons(Tre,Cons(Two,Cons(One,Nil)))\n"
+        "val l :: List = new Cons(Tre,Nil)\n"
         "val n :: Nat = match l:\n"
         "    Cons(x,_) :: Nat -> x\n"
         "{show_Nat}(n)"
     ));
-assert(0);
+    assert(all(
+        "Tre\n",
+        "data Nat:\n"
+        "    One ()\n"
+        "    Two ()\n"
+        "    Tre ()\n"
+        "data List\n"
+        "data List:\n"
+        "    Nil  ()\n"
+        "    Cons (Nat, List)\n"
+        "val l :: List = new Cons(Tre,new Cons(Two,new Cons(One,Nil)))\n"
+        "val n :: Nat = match l:\n"
+        "    Cons(x,_) :: Nat -> x\n"
+        "{show_Nat}(n)"
+    ));
 
     // LOOP
 

@@ -315,7 +315,8 @@ void code_patt_match (Patt p, Expr tst) {
                     out(" == NULL");
                     break;
                 case CONS_CASE1:
-                    out("1"); // always succeeds (after NULL check)
+                    code_expr(tst, NULL);
+                    out(" != NULL");
                     break;
                 default:
                     out("(");

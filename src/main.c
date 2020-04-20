@@ -3,9 +3,7 @@
 #include <assert.h>
 #include <stdlib.h>
 
-#include "lexer.h"
-#include "parser.h"
-#include "code.h"
+#include "all.h"
 
 enum {
     MODE_CODE,
@@ -41,7 +39,7 @@ int main (int argc, char* argv[]) {
     }
     assert(finp!=NULL && fout!=NULL);
 
-    init(fout, finp);
+    all_init(fout, finp);
 
     Prog prog;
     if (!parser_prog(&prog)) {
