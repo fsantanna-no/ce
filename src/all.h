@@ -84,5 +84,5 @@ void all_init (FILE* out, FILE* inp);
 void patt2patts (Patt* patts, int* patts_i, Patt patt);
 
 void  env_add  (Env** old, Patt patt, Type type);
-Type* env_get  (Env* cur, char* want, Env* stop);
-Type* env_expr (Expr expr);
+Type* env_get  (Env* cur, char* want, Env* stop);   // TODO: return Type w/o *
+Type  env_expr (Expr expr);

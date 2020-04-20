@@ -74,10 +74,12 @@ printf("add %s\n", patts[0].Set.val.s);
 
 ///////////////////////////////////////////////////////////////////////////////
 
-Type* env_expr (Expr expr) {
+Type env_expr (Expr expr) {
     switch (expr.sub) {
+        case EXPR_UNIT:
+            return (Type) { TYPE_UNIT };
         case EXPR_VAR: {
-            return env_get(expr.env, expr.Var.val.s, NULL);
+            return *env_get(expr.env, expr.Var.val.s, NULL);
         }
         default:
             printf(">>> %d\n", expr.sub);

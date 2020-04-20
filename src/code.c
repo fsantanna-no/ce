@@ -672,12 +672,20 @@ void code_expr (Expr e, tce_ret* ret) {
             if (tst.sub != EXPR_TUPLE) {   // prevents multiple evaluation of tst
                 tst = (Expr) { EXPR_VAR, {}, e.env, NULL, {.Var={TK_IDVAR,{.s="ce_tst"}}} };
 
-                //code_type(env_expr(*e.Cases.tst)->Plain.type);
-                //out(" ce_tst = ");
-                out("typeof(");
-                code_expr(*e.Cases.tst, NULL);
-                out(") ce_tst = ");
-
+                //if ( e.Cases.tst->sub==EXPR_RAW
+                //||  (e.Cases.tst->sub==EXPR_CALL && e.Cases.tst->Call.func->sub==EXPR_RAW)
+                //||   e.Cases.tst->sub == EXPR_ARG
+                //) {
+                if (e.Cases.tst->sub == EXPR_VAR) {
+                    Type type = env_expr(*e.Cases.tst);
+                    assert(type.sub != TYPE_NONE);
+                    code_type(type);
+                } else {
+                    out("typeof(");
+                    code_expr(*e.Cases.tst, NULL);
+                    out(")");
+                }
+                out(" ce_tst = ");
                 code_expr(*e.Cases.tst, NULL);
                 out(";\n");
             }
