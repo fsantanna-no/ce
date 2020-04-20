@@ -299,26 +299,13 @@ void code_patt_set (Env* env, Patt p, Expr e) {
         case PATT_EXPR:
             break;
         case PATT_SET: {        // x = ce_tst
-            int rec_call = 0;
             Type* type = env_get(env, p.Set.val.s, NULL);
-            Type type_ = { TYPE_NONE };
-printf("---- %s [%p]\n", p.Set.val.s, env);
             assert(type != NULL);
-            //if (type == NULL) {
-                //type = &type_;
-            //}
-            if (e.sub==EXPR_CALL && e.Call.func->sub!=EXPR_CONS) {
+            int rec = (type->sub==TYPE_DATA) && is_rec(type->Data.tk.val.s);
+            if (rec && (e.sub==EXPR_CALL && e.Call.func->sub!=EXPR_CONS)) {
                 //  l[] = f(...)
                 // becomes
                 //  f(l,...)
-// TODO
-//dump_expr(e);
-//printf("env = %p // sub=%d\n", e.env, p.sub);
-//puts("want");
-//puts(p.Set.val.s);
-                rec_call = (type->sub==TYPE_DATA) && is_rec(type->Data.tk.val.s);
-            }
-            if (rec_call) {
                 e.Call.out = &p;
                 code_expr(e, NULL);
             } else {
@@ -419,7 +406,7 @@ void code_decl (Decl d, tce_ret* ret) {
                     code_type(*d.type.Func.out);
                     out(" ce_ret;\n");
                 }
-                Env_Plain env = { {TK_IDVAR,{.s="ce_ret"}}, {TYPE_NONE} };
+                Env_Plain env = { {TK_IDVAR,{.s="ce_ret"}}, *d.type.Func.out };
                 tce_ret r = { env, NULL };
                 code_expr(*d.init, &r);
                 out(";\n");

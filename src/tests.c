@@ -947,19 +947,18 @@ void t_all (void) {
         "val l :: List[] = new Nil\n"
         "{show_List}(l)"
     ));
-puts("===========");
     assert(all(
         "Nil\n",
         "data List\n"
         "data List:\n"
         "    Nil  ()\n"
         "    Cons ((), List)\n"
-        "func fff :: (() -> List):\n"
+        "func fff :: (() -> List[]):\n"
         "    new Nil\n"
         "val l :: List[] = fff()\n"
         "{show_List}(l)"
     ));
-assert(0);
+puts("===========");
     assert(all(
         "Cons\n()\n",
         "data List\n"
@@ -972,6 +971,7 @@ assert(0);
         "{show_List}(l)\n"
         "{show_Unit}(n)"
     ));
+assert(0);
     assert(all(
         "Cons\n()\n",
         "data List\n"
@@ -985,7 +985,6 @@ assert(0);
         "{show_List}(l)\n"
         "{show_Unit}(n)"
     ));
-assert(0);
     assert(all(
         "()\n",
         "func f :: (((),()) -> ()) ()\n"
@@ -1075,6 +1074,19 @@ assert(0);
 }
 
 int main (void) {
+    assert(all(
+        "Cons\n()\n",
+        "data List\n"
+        "data List:\n"
+        "    Nil  ()\n"
+        "    Cons ((), List)\n"
+        "val l :: List[] = Nil\n"
+        "val n :: () = match l:\n"
+        "    Nil -> ()\n"
+        "{show_List}(l)\n"
+        "{show_Unit}(n)"
+    ));
+assert(0);
     t_lexer();
     t_parser();
     t_code();
