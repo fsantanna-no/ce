@@ -15,9 +15,17 @@ typedef struct {
     char  err[256];
     int   ind;
     struct {
-        int size;
-        Tk  buf[256];
-    } data_recs;
+        struct {
+            int size;
+            Tk  buf[256];
+        } datas;
+#if 0
+        struct {
+            int size;
+            Tk  buf[256];
+        } nulls;
+#endif
+    } rec;
 } State_All;
 
 typedef struct {

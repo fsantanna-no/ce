@@ -24,8 +24,8 @@ typedef enum {
 } TK;
 
 typedef union {
-        int  n;
-        char s[256];
+    int  n;
+    char s[256];
 } TK_val;
 
 typedef struct {

@@ -308,8 +308,8 @@ int parser_data (Data* ret) {
 
     if (!tp_ok && !lst_ok) {
         // recursive pre declaration
-        assert(ALL.data_recs.size < sizeof(ALL.data_recs.buf));
-        ALL.data_recs.buf[ALL.data_recs.size++] = id;
+        assert(ALL.rec.datas.size < sizeof(ALL.rec.datas.buf));
+        ALL.rec.datas.buf[ALL.rec.datas.size++] = id;
         *ret = (Data) { id, 0, NULL };
         return 1;
     }
@@ -322,7 +322,7 @@ int parser_data (Data* ret) {
     // mark each Cons as all_rec as well
     if (all_rec(id.val.s)) {
         for (int i=0; i<ret->size; i++) {
-            ALL.data_recs.buf[ALL.data_recs.size++] = ret->vec[i].tk;
+            ALL.rec.datas.buf[ALL.rec.datas.size++] = ret->vec[i].tk;
         }
     }
 
