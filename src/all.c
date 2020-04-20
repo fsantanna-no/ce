@@ -14,9 +14,12 @@ DATA datas_data (const char* v) {
     return DATA_ERROR;
 }
 
-CONS datas_cons (const char* v) {
+CONS datas_cons (const char* v, char** sup) {
     for (int i=0; i<ALL.data.conss.size; i++) {
         if (!strcmp(ALL.data.conss.buf[i].id, v)) {
+            if (sup != NULL) {
+                *sup = ALL.data.conss.buf[i].sup;
+            }
             return ALL.data.conss.buf[i].kind;
         }
     }

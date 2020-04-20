@@ -293,7 +293,7 @@ int parser_data (Data* ret) {
     if (!ll_accept1(TK_IDDATA)) {
         return err_expected("data identifier");
     }
-    Tk id = TOK0.tk;
+    Tk SUP = TOK0.tk;
 
     Type tp;
     int tp_ok = parser_type(&tp);
@@ -310,23 +310,23 @@ int parser_data (Data* ret) {
         // recursive pre declaration
         assert(ALL.data.datas.size < sizeof(ALL.data.datas.buf));
         ALL.data.datas.buf[ALL.data.datas.size].kind = DATA_REC;
-        strcpy(ALL.data.datas.buf[ALL.data.datas.size].id, id.val.s);
+        strcpy(ALL.data.datas.buf[ALL.data.datas.size].id, SUP.val.s);
         ALL.data.datas.size++;
-        *ret = (Data) { id, 0, NULL };
+        *ret = (Data) { SUP, 0, NULL };
         return 1;
     }
 
-    *ret = (Data) { id, lst.size, lst.vec };
+    *ret = (Data) { SUP, lst.size, lst.vec };
     for (int i=0; i<ret->size; i++) {
         ret->vec[i].idx = i;
     }
 
-    DATA kind = datas_data(id.val.s);
+    DATA kind = datas_data(SUP.val.s);
 
     // new type is either DATA_SINGLE or DATA_PLAIN
     if (kind == DATA_ERROR) {
         ALL.data.datas.buf[ALL.data.datas.size].kind = (ret->size < 2 ? DATA_SINGLE : DATA_PLAIN);
-        strcpy(ALL.data.datas.buf[ALL.data.datas.size].id, id.val.s);
+        strcpy(ALL.data.datas.buf[ALL.data.datas.size].id, SUP.val.s);
         ALL.data.datas.size++;
     }
 
@@ -334,11 +334,13 @@ int parser_data (Data* ret) {
     for (int i=0; i<ret->size; i++) {
         assert(ret->size >= 2);
         if (kind == DATA_ERROR) {
-            ALL.data.conss.buf[ALL.data.conss.size].kind = CONS_CASE;
+            ALL.data.conss.buf[ALL.data.conss.size].kind = CONS_PLAIN;
         } else {
-            ALL.data.conss.buf[ALL.data.conss.size].kind = (i==0 ? CONS_NULL : CONS_CASE);
+            ALL.data.conss.buf[ALL.data.conss.size].kind =
+                (i==0 ? CONS_NULL : (ret->size<=2 ? CONS_CASE1 : CONS_CASEN));
         }
-        strcpy(ALL.data.conss.buf[ALL.data.conss.size].id, ret->vec[i].tk.val.s);
+        strcpy(ALL.data.conss.buf[ALL.data.conss.size].id,  ret->vec[i].tk.val.s);
+        strcpy(ALL.data.conss.buf[ALL.data.conss.size].sup, SUP.val.s);
         ALL.data.conss.size++;
     }
 
@@ -351,11 +353,12 @@ int parser_data (Data* ret) {
             ret->vec  = malloc(sizeof(Cons));
 
             Cons c = (Cons) { 0, {}, tp };
-            strcpy(c.tk.val.s, id.val.s);
+            strcpy(c.tk.val.s, SUP.val.s);
             ret->vec[0] = c;
 
             ALL.data.conss.buf[ALL.data.conss.size].kind = CONS_SINGLE;
-            strcpy(ALL.data.conss.buf[ALL.data.conss.size].id, id.val.s);
+            strcpy(ALL.data.conss.buf[ALL.data.conss.size].id,  SUP.val.s);
+            strcpy(ALL.data.conss.buf[ALL.data.conss.size].sup, SUP.val.s);
             ALL.data.conss.size++;
         }
     }

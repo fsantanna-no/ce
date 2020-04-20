@@ -235,12 +235,13 @@ void code_data (Data data) {
     int has_switch = 0;
     for (int i=0; i<data.size; i++) {
         if (kind==DATA_REC && i==0) {
+            char* v = data.vec[i].tk.val.s;
             fprintf(ALL.out[OGLOB],
                 "if (v == NULL) {\n"
                 "    puts(\"%s\");\n"
                 "    return;\n"
                 "}\n",
-                sup
+                v
             );
         }
         if (kind == DATA_SINGLE) {
@@ -301,15 +302,17 @@ void code_patt_match (Patt p, Expr tst) {
             out(" == 1");
             break;
         case PATT_CONS: {
-            CONS kind = datas_cons(p.Cons.data.val.s);
-            switch (kind) {
+            CONS cons = datas_cons(p.Cons.data.val.s, NULL);
+            switch (cons) {
                 case CONS_SINGLE:
-                    out("1");
-                    // always succeeds
+                    out("1"); // always succeeds
                     break;
                 case CONS_NULL:
                     code_expr(tst, NULL);
                     out(" == NULL");
+                    break;
+                case CONS_CASE1:
+                    out("1"); // always succeeds (after NULL check)
                     break;
                 default:
                     out("(");
@@ -522,20 +525,35 @@ void code_expr (Expr e, tce_ret* ret) {
             code_ret(ret);
             out(e.Cons.val.s);
             break;
-        case EXPR_NEW:
-            code_ret(ret);
-            out("({");
+        case EXPR_NEW: {
+            char* cons;
+            if (e.New->sub == EXPR_CONS) {
+                cons = e.New->Cons.val.s;
+            } else if (e.New->sub==EXPR_CALL && e.New->Call.func->sub==EXPR_CONS) {
+                cons = e.New->Call.func->Cons.val.s;
+            } else {
+                assert(0 && "bug found");
+            }
+            //printf(">>> %s %d\n", e.New->Cons.val.s, datas_cons(e.New->Cons.val.s));
+            if (datas_cons(cons,NULL) == CONS_NULL) {
+                code_ret(ret);
+                out("NULL");
+            } else {
+                code_ret(ret);
+                out("({");
 // TODO
             //out(ret->patt->Set.val.s);
             //out("->cur++; ");
-            out("typeof(");
-            code_expr(*e.New, NULL);
-            out(")* ptr = malloc(sizeof(");
-            code_expr(*e.New, NULL);
-            out(")) ; *ptr=");
-            code_expr(*e.New, NULL);
-            out("; ptr; })");
+                out("typeof(");
+                code_expr(*e.New, NULL);
+                out(")* ptr = malloc(sizeof(");
+                code_expr(*e.New, NULL);
+                out(")) ; *ptr=");
+                code_expr(*e.New, NULL);
+                out("; ptr; })");
+            }
             break;
+        }
         case EXPR_SET:
             code_patt_set(e.Set.expr->env, e.Set.patt, *e.Set.expr);
             out(";\n");
@@ -667,6 +685,7 @@ void code_expr (Expr e, tce_ret* ret) {
             for (int i=0; i<e.Cases.size; i++) {
                 //Expr tst_ = tst;
                 Let let = e.Cases.vec[i];
+// TODO
                 //Expr star = (Expr) { EXPR_RAW, {}, e.env, NULL, .Raw={TK_RAW,{.s="* /*x*/"}} };
                 //Expr old  = tst_;
                 //if (let.decl.patt.sub==PATT_CONS && all_rec(let.decl.patt.Cons.data.val.s)!=REC_NONE) {

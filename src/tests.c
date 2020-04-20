@@ -824,7 +824,6 @@ void t_all (void) {
         "        True  -> return False\n"
         "{show_Bool}(inv(True))"
     ));
-puts(">>>>>>>>>>>>>");
     assert(all(
         "True\n",
         "data Bool:\n"
@@ -837,7 +836,6 @@ puts(">>>>>>>>>>>>>");
         "    Vv(x) :: Bool -> x\n"
         "{show_Bool}(b)"
     ));
-assert(0);
     assert(all(
         "()\n",
         "val i :: ((),()) = ((),())\n"
@@ -960,9 +958,8 @@ assert(0);
         "val l :: List[] = fff()\n"
         "{show_List}(l)"
     ));
-puts("===========");
     assert(all(
-        "Cons\n()\n",
+        "Nil\n()\n",
         "data List\n"
         "data List:\n"
         "    Nil  ()\n"
@@ -973,7 +970,7 @@ puts("===========");
         "{show_List}(l)\n"
         "{show_Unit}(n)"
     ));
-assert(0);
+puts("===========");
     assert(all(
         "Cons\n()\n",
         "data List\n"
@@ -987,6 +984,7 @@ assert(0);
         "{show_List}(l)\n"
         "{show_Unit}(n)"
     ));
+assert(0);
     assert(all(
         "()\n",
         "func f :: (((),()) -> ()) ()\n"

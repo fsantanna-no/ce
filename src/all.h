@@ -11,7 +11,7 @@ FILE* stropen  (const char* mode, size_t size, char* str);
 enum { OGLOB, ODECL, OEXPR };
 
 typedef enum { DATA_ERROR, DATA_SINGLE, DATA_PLAIN, DATA_REC  } DATA;
-typedef enum { CONS_ERROR, CONS_SINGLE, CONS_CASE,  CONS_NULL } CONS;
+typedef enum { CONS_ERROR, CONS_SINGLE, CONS_PLAIN, CONS_NULL, CONS_CASE1, CONS_CASEN } CONS;
 
 typedef struct {
     FILE* inp;
@@ -30,6 +30,7 @@ typedef struct {
             int size;
             struct {
                 char id[256];
+                char sup[256];
                 CONS kind;
             } buf[256];
         } conss;
@@ -76,7 +77,7 @@ typedef struct tce_ret {
 #include "code.h"
 
 DATA datas_data (const char* v);
-CONS datas_cons (const char* v);
+CONS datas_cons (const char* v, char** sup);
 
 void all_init (FILE* out, FILE* inp);
 
