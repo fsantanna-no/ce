@@ -14,10 +14,22 @@ typedef enum { DATA_ERROR, DATA_SINGLE, DATA_PLAIN, DATA_REC  } DATA;
 typedef enum { CONS_ERROR, CONS_SINGLE, CONS_PLAIN, CONS_NULL, CONS_CASE1, CONS_CASEN } CONS;
 
 typedef struct {
+    long  off;   // position before token (to fallback)
+    long  lin;   // line before token
+    long  col;   // column before token
+    Tk    tk;
+} State_Tok;
+
+#include "ll.h"
+
+#include "type.h"
+
+typedef struct {
     FILE* inp;
     FILE* out[3];
     char  err[256];
     int   ind;
+    Data* datas;
     struct {
         struct {
             int size;
@@ -37,19 +49,8 @@ typedef struct {
     } data;
 } State_All;
 
-typedef struct {
-    long  off;   // position before token (to fallback)
-    long  lin;   // line before token
-    long  col;   // column before token
-    Tk    tk;
-} State_Tok;
-
 extern State_All ALL;
 extern State_Tok TOK0, TOK1, TOK2;
-
-#include "ll.h"
-
-#include "type.h"
 
 typedef struct Env_Plain {
     Tk   id;

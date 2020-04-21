@@ -16,6 +16,6 @@ func showC :: (Chars -> ()):
             {putchar(c)}
             showC(l)
 
-val cs[] :: Chars = c2Chars({"abc"})
+val cs :: Chars[] = c2Chars({"abc"})
 {assert(cs.n == 3)}
 showC(c2Chars({"abc"}))

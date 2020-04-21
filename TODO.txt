@@ -1,9 +1,14 @@
+- global datas
+    - remove datas/conss
+- show_*
+    - all fields
+    - recurse
+- back to lst1, always test lexer "OK"
 - remove
     - multiple new in nested cons
     - pre data declaration
     - SUP_*
     - VA_ARGS
-- back to lst1, always test lexer "OK"
 - ambiguity
     - loop / if next line
 

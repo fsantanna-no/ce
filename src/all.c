@@ -31,7 +31,7 @@ void all_init (FILE* out, FILE* inp) {
     static char buf2[65000];
     FILE* out1 = stropen("w", sizeof(buf1), buf1);
     FILE* out2 = stropen("w", sizeof(buf2), buf2);
-    ALL = (State_All) { inp,{out,out1,out2},{},0,{{0,{}},{0,{}}} };
+    ALL = (State_All) { inp,{out,out1,out2},{},0,NULL,{{0,{}},{0,{}}} };
     if (inp != NULL) {
         parser_init();
     }
