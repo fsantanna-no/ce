@@ -732,9 +732,7 @@ void code_expr (Expr e, tce_ret* ret) {
         case EXPR_CONS_SUB: {
             code_ret(ret);
             Type type = env_expr(*e.Cons_Sub.cons);
-//dump_expr(*e.Cons_Sub.cons);
-//printf(">>> %d\n", type.sub);
-            assert(type.sub == TYPE_DATA);
+            //assert(type.sub == TYPE_DATA);
             out("(");
             code_expr(*e.Cons_Sub.cons, NULL);
             out(")");

@@ -26,6 +26,9 @@ void dump_expr_ (Expr e, int spc) {
         case EXPR_RAW:
             printf("{ %s }", e.Raw.val.s);
             break;
+        case EXPR_ARG:
+            printf("...");
+            break;
         case EXPR_UNIT:
             fputs("()", stdout);
             break;

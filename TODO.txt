@@ -1,4 +1,5 @@
 - remove
+    - multiple new in nested cons
     - pre data declaration
     - SUP_*
     - VA_ARGS

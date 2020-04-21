@@ -332,7 +332,7 @@ int parser_data (Data* ret) {
 
     // set kinds of CONS
     for (int i=0; i<ret->size; i++) {
-        assert(ret->size >= 2);
+        //assert(ret->size >= 2);
         if (kind == DATA_ERROR) {
             ALL.data.conss.buf[ALL.data.conss.size].kind = CONS_PLAIN;
         } else {
