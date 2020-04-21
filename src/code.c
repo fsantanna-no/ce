@@ -498,18 +498,16 @@ void code_decl (Decl d, tce_ret* ret) {
         }
         out(out2);
         out(" ce_arg) {\n");
-            if (d.type.Func.out->sub != TYPE_UNIT) {
-                if (!isrec) {
-                    code_type(*d.type.Func.out);
-                    out(" ce_ret;\n");
-                }
-                Env_Plain env = { {TK_IDVAR,{.s="ce_ret"}}, *d.type.Func.out };
-                tce_ret r = { env, NULL };
-                code_expr(*d.init, &r);
-                out(";\n");
-                if (!isrec) {
-                    out("return ce_ret;\n");
-                }
+            if (d.type.Func.out->sub!=TYPE_UNIT && !isrec) {
+                code_type(*d.type.Func.out);
+                out(" ce_ret;\n");
+            }
+            Env_Plain env = { {TK_IDVAR,{.s="ce_ret"}}, *d.type.Func.out };
+            tce_ret r = { env, NULL };
+            code_expr(*d.init, (d.type.Func.out->sub==TYPE_UNIT ? NULL : &r));
+            out(";\n");
+            if (d.type.Func.out->sub!=TYPE_UNIT && !isrec) {
+                out("return ce_ret;\n");
             }
         out("}\n\n");
     } else {
