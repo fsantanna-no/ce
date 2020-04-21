@@ -326,15 +326,22 @@ int parser_data (Data* ret) {
     // new type is either DATA_SINGLE or DATA_PLAIN
     if (kind == DATA_ERROR) {
         ALL.data.datas.buf[ALL.data.datas.size].kind = (ret->size < 2 ? DATA_SINGLE : DATA_PLAIN);
+//printf(">>> %s -> %d\n", SUP.val.s, ret->size);
         strcpy(ALL.data.datas.buf[ALL.data.datas.size].id, SUP.val.s);
         ALL.data.datas.size++;
     }
 
     // set kinds of CONS
+    if (ret->size == 0) {
+        ALL.data.conss.buf[ALL.data.conss.size].kind = CONS_SINGLE;
+        strcpy(ALL.data.conss.buf[ALL.data.conss.size].id,  SUP.val.s);
+        strcpy(ALL.data.conss.buf[ALL.data.conss.size].sup, SUP.val.s);
+        ALL.data.conss.size++;
+    }
     for (int i=0; i<ret->size; i++) {
         //assert(ret->size >= 2);
         if (kind == DATA_ERROR) {
-            ALL.data.conss.buf[ALL.data.conss.size].kind = CONS_PLAIN;
+            ALL.data.conss.buf[ALL.data.conss.size].kind = (ret->size < 2 ? CONS_SINGLE : CONS_PLAIN);
         } else {
             ALL.data.conss.buf[ALL.data.conss.size].kind =
                 (i==0 ? CONS_NULL : (ret->size<=2 ? CONS_CASE1 : CONS_CASEN));
@@ -355,11 +362,6 @@ int parser_data (Data* ret) {
             Cons c = (Cons) { 0, {}, tp };
             strcpy(c.tk.val.s, SUP.val.s);
             ret->vec[0] = c;
-
-            ALL.data.conss.buf[ALL.data.conss.size].kind = CONS_SINGLE;
-            strcpy(ALL.data.conss.buf[ALL.data.conss.size].id,  SUP.val.s);
-            strcpy(ALL.data.conss.buf[ALL.data.conss.size].sup, SUP.val.s);
-            ALL.data.conss.size++;
         }
     }
 
