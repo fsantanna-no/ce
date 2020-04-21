@@ -1,0 +1,21 @@
+data Chars
+data Chars:
+    NilC  ()
+    ConsC ({char},Chars)
+
+func showC :: (Chars -> ()):
+    val arg :: Chars = ...
+    match arg:
+        NilC -> {putchar('\n')}
+        ConsC (c,cs) :: ({char},Chars) :
+            {putchar(c)}
+            showC(cs)
+
+func c2Chars :: ({char*} -> Chars):
+    new ConsC({'a'}, new ConsC({'b'}, NilC))
+
+val cs1 :: Chars[] = new ConsC({'a'}, new ConsC({'b'}, NilC))
+val cs2 :: Chars[] = c2Chars({"abcdef"})
+
+showC(cs1)
+showC(cs2)
