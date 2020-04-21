@@ -1,8 +1,5 @@
 - global datas
     - remove datas/conss
-- show_*
-    - all fields
-    - recurse
 - back to lst1, always test lexer "OK"
 - remove
     - multiple new in nested cons
@@ -55,7 +52,6 @@
 - NEED TYPES
     - ~ be structural not referential
 - TODO
-    - show fields
     - False/True -> 0/1 (enums)
 
 - valgrind --tool=memcheck --leak-check=full --track-origins=yes ./tests

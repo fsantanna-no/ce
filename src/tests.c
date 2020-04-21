@@ -637,18 +637,19 @@ void t_code (void) {
             "    };\n"
             "} Bool;\n"
             "\n"
-            "void show_Bool (Bool v) {\n"
+            "void _show_Bool (Bool v) {\n"
             "switch (v.sub) {\n"
             "case Bool_False:\n"
-            "    puts(\"False\");\n"
+            "    printf(\"False\");\n"
             "    break;\n"
             "case Bool_True:\n"
-            "    puts(\"True\");\n"
+            "    printf(\"True\");\n"
             "    break;\n"
             "default:\n"
             "    assert(0 && \"bug found\");\n"
             "}\n"
             "}\n"
+            "void show_Bool (Bool v) { _show_Bool(v); puts(\"\"); }\n"
             "\n";
         assert(!strcmp(out,xp));
     }
@@ -970,7 +971,7 @@ void t_all (void) {
         "{show_Unit}(n)"
     ));
     assert(all(
-        "Cons\n()\n",
+        "Cons(???,Nil)\n()\n",
         "data List\n"
         "data List:\n"
         "    Nil  ()\n"
