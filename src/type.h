@@ -36,5 +36,5 @@ typedef struct Data {
     Tk    tk;
     int   size;     // size=0: recursive pre declaration
     Cons* vec;
-    struct Data* prev;
+    //struct Data* prev;
 } Data;

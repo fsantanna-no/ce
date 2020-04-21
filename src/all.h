@@ -29,7 +29,7 @@ typedef struct {
     FILE* out[3];
     char  err[256];
     int   ind;
-    Data* datas;
+    //Data* datas;
     struct {
         struct {
             int size;

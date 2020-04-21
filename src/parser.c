@@ -792,6 +792,8 @@ void* parser_glob_ (Env** env) {
         if (!parser_data(&g.data)) {
             return NULL;
         }
+        //g.data.prev = ALL.datas;
+        //ALL.datas = &g.data;
         g.sub = GLOB_DATA;
         g_ = g;
         return &g_;
