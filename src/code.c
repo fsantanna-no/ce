@@ -476,28 +476,29 @@ void code_decl (Decl d, tce_ret* ret) {
             out(" ");
             out(out2);
             out("\n");
-        if (isrec) {
-            out("void");
-        } else {
-            code_type(*d.type.Func.out);
-        }
+        code_type(*d.type.Func.out);
             out(" ");
         out(d.patt.Set.val.s);
         out(" (");
         if (isrec) {
-            out("Pool* ce_out,");
+            out("Pool* ce_pool,");
         }
         out(out2);
         out(" ce_inp) {\n");
-            if (d.type.Func.out->sub!=TYPE_UNIT && !isrec) {
+            if (d.type.Func.out->sub != TYPE_UNIT) {
                 code_type(*d.type.Func.out);
                 out(" ce_out;\n");
             }
+
             Env_Plain env = { {TK_IDVAR,{.s="ce_out"}}, *d.type.Func.out };
+            if (env.type.sub == TYPE_DATA) {
+                env.type.Data.size = -1;  // ce_out is not a Pool
+            }
+
             tce_ret r = { env, NULL };
             code_expr(*d.init, (d.type.Func.out->sub==TYPE_UNIT ? NULL : &r));
             out(";\n");
-            if (d.type.Func.out->sub!=TYPE_UNIT && !isrec) {
+            if (d.type.Func.out->sub != TYPE_UNIT) {
                 out("return ce_out;\n");
             }
         out("}\n\n");
@@ -569,23 +570,25 @@ void code_expr (Expr e, tce_ret* ret) {
                 }
             }
 
+            code_ret(ret);
+
+            // new Nil
             if (e.New->sub == EXPR_CONS) {
-                // new Nil
-                code_ret(ret);
                 aux(e.New->Cons.val.s, *e.New);
+
+            // new Cons(...)
             } else if (e.New->sub==EXPR_CALL && e.New->Call.func->sub==EXPR_CONS) {
-                // new Cons(...)
                 //Expr* arg = e.New->Call.arg;
 //dump_expr(*arg);
-                code_ret(ret);
                 aux(e.New->Call.func->Cons.val.s, *e.New);
 //puts(cons);
 //assert(0);
+
+            //  l[] = new f(...)
+            // becomes
+            //  f(l,...)
             } else if (e.New->sub==EXPR_CALL && e.New->Call.func->sub!=EXPR_CONS) {
-                //  l[] = new f(...)
-                // becomes
-                //  f(l,...)
-                e.New->Call.out = &ret->env.id;
+                e.New->Call.pool = &ret->env.id;
                 code_expr(*e.New, NULL);
             } else {
                 assert(0 && "bug found");
@@ -600,8 +603,8 @@ void code_expr (Expr e, tce_ret* ret) {
             code_ret(ret);
             code_expr(*e.Call.func, NULL);
             out("(");
-            if (e.Call.out != NULL) {
-                out(e.Call.out->val.s);
+            if (e.Call.pool != NULL) {
+                out(e.Call.pool->val.s);
                 out(", ");
             }
             if (e.Call.func->sub == EXPR_RAW) {
