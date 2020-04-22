@@ -969,7 +969,7 @@ void t_all (void) {
         "    Cons ((), List)\n"
         "func fff :: (() -> List[]):\n"
         "    new Nil\n"
-        "val l :: List[] = fff()\n"
+        "val l :: List[] = new fff()\n"
         "{show_List}(l)"
     ));
     assert(all(
@@ -1075,7 +1075,7 @@ void t_all (void) {
         "    Cons (Nat, List)\n"
         "func fff :: (() -> List[]):\n"
         "    new Cons(Tre,Nil)\n"
-        "val l :: List[] = fff()\n"
+        "val l :: List[] = new fff()\n"
         "val n :: Nat = match l:\n"
         "    Cons(x,_) :: Nat -> x\n"
         "{show_Nat}(n)"

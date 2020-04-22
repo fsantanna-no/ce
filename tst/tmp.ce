@@ -17,7 +17,7 @@ func c2Chars :: ({char*} -> Chars[]):
         --else             -> new ConsC({buf[0]}, new NilC)
         --else             -> new ConsC({buf[0]}, c2Chars({buf+1}))
         else:
-            val cs :: Chars[] = c2Chars({buf+1})
+            val cs :: Chars[] = new c2Chars({buf+1})
             new ConsC({buf[0]}, cs)
 
 

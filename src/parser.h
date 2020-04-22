@@ -161,7 +161,7 @@ typedef struct Expr {
         struct {        // EXPR_CALL
             struct Expr* func;
             struct Expr* arg;
-            struct Patt* out;       // l[]=f() -> f(l)
+            Tk* out; // l[]=f() -> f(l)
         } Call;
         struct {        // EXPR_IF
             struct Expr* tst;

@@ -1,3 +1,13 @@
+- multiple new in nested cons
+- new calls
+- calls inside cons
+
+new Nil
+new Cons(...)
+new f()
+
+malloc
+
 - back to lst1, always test lexer "OK"
 - env
     - ce_arg, ce_ret
@@ -6,7 +16,6 @@
 - global datas
     - remove datas/conss
 - remove
-    - multiple new in nested cons
     - pre data declaration
     - SUP_*
     - VA_ARGS

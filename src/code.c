@@ -398,18 +398,9 @@ void code_patt_set (Env* env, Patt p, Expr e) {
         case PATT_SET: {        // x = ce_tst
             Type* type = env_get(env, p.Set.val.s, NULL);
             assert(type != NULL);
-            int isrec = (type->sub==TYPE_DATA && datas_data(type->Data.tk.val.s)==DATA_REC);
-            if (isrec && (e.sub==EXPR_CALL && e.Call.func->sub!=EXPR_CONS)) {
-                //  l[] = f(...)
-                // becomes
-                //  f(l,...)
-                e.Call.out = &p;
-                code_expr(e, NULL);
-            } else {
-                Env_Plain env = { p.Set, *type };
-                tce_ret r = { env, NULL };
-                code_expr(e, &r);
-            }
+            Env_Plain env = { p.Set, *type };
+            tce_ret r = { env, NULL };
+            code_expr(e, &r);
             out(";\n");
             break;
         }
@@ -563,31 +554,42 @@ void code_expr (Expr e, tce_ret* ret) {
             out(e.Cons.val.s);
             break;
         case EXPR_NEW: {
-            char* cons;
+            char* cons = NULL;
             if (e.New->sub == EXPR_CONS) {
+                // new Nil
                 cons = e.New->Cons.val.s;
             } else if (e.New->sub==EXPR_CALL && e.New->Call.func->sub==EXPR_CONS) {
+                // new Cons(...)
                 cons = e.New->Call.func->Cons.val.s;
+            } else if (e.New->sub==EXPR_CALL && e.New->Call.func->sub!=EXPR_CONS) {
+                //  l[] = new f(...)
+                // becomes
+                //  f(l,...)
+                e.New->Call.out = &ret->env.id;
+                code_expr(*e.New, NULL);
             } else {
                 assert(0 && "bug found");
             }
-            //printf(">>> %s %d\n", e.New->Cons.val.s, datas_cons(e.New->Cons.val.s));
-            if (datas_cons(cons,NULL) == CONS_NULL) {
-                code_ret(ret);
-                out("NULL");
-            } else {
-                code_ret(ret);
-                out("({");
-// TODO
-            //out(ret->patt->Set.val.s);
-            //out("->cur++; ");
-                out("typeof(");
-                code_expr(*e.New, NULL);
-                out(")* ptr = malloc(sizeof(");
-                code_expr(*e.New, NULL);
-                out(")) ; *ptr=");
-                code_expr(*e.New, NULL);
-                out("; ptr; })");
+
+            if (cons != NULL) {
+                //printf(">>> %s %d\n", e.New->Cons.val.s, datas_cons(e.New->Cons.val.s));
+                if (datas_cons(cons,NULL) == CONS_NULL) {
+                    code_ret(ret);
+                    out("NULL");
+                } else {
+                    code_ret(ret);
+                    out("({");
+    // TODO
+                //out(ret->patt->Set.val.s);
+                //out("->cur++; ");
+                    out("typeof(");
+                    code_expr(*e.New, NULL);
+                    out(")* ptr = malloc(sizeof(");
+                    code_expr(*e.New, NULL);
+                    out(")) ; *ptr=");
+                    code_expr(*e.New, NULL);
+                    out("; ptr; })");
+                }
             }
             break;
         }
@@ -600,7 +602,7 @@ void code_expr (Expr e, tce_ret* ret) {
             code_expr(*e.Call.func, NULL);
             out("(");
             if (e.Call.out != NULL) {
-                out(e.Call.out->Set.val.s);
+                out(e.Call.out->val.s);
                 out(", ");
             }
             if (e.Call.func->sub == EXPR_RAW) {
