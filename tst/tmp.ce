@@ -11,8 +11,13 @@ func showC :: (Chars -> ()):
             {putchar(c)}
             showC(cs)
 
-func c2Chars :: ({char*} -> Chars):
-    new ConsC({'a'}, new ConsC({'b'}, NilC))
+func c2Chars :: ({char*} -> Chars[]):
+    val buf :: {char*} = ...
+    if:
+        {buf[0] == '\0'} -> new NilC
+        else             -> new ConsC({buf[0]}, new NilC)
+        --else             -> new ConsC({buf[0]}, c2Chars({buf+1}))
+
 
 val cs1 :: Chars[] = new ConsC({'a'}, new ConsC({'b'}, NilC))
 val cs2 :: Chars[] = c2Chars({"abcdef"})

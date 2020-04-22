@@ -10,7 +10,7 @@ void outl (State_Tok tok) {
 
 void code_ret (tce_ret* ret) {
     while (ret != NULL) {
-        if (ret->env.type.sub==TYPE_DATA && datas_data(ret->env.type.Data.tk.val.s)==DATA_REC) {
+        if (ret->env.type.sub==TYPE_DATA && ret->env.type.Data.size!=-1) {
             out("(");
             out(ret->env.id.val.s);
             out("->root");
