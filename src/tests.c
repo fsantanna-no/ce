@@ -733,7 +733,6 @@ void t_all (void) {
     ));
     assert(all(
         "True\n",
-        "data List\n"
         "data Bool:\n"
         "    False ()\n"
         "    True  ()\n"
@@ -741,7 +740,6 @@ void t_all (void) {
     ));
     assert(all(
         "True\n",
-        "data List\n"
         "data Bool:\n"
         "    False ()\n"
         "    True  ()\n"
@@ -951,7 +949,6 @@ void t_all (void) {
 
     assert(all(
         "Nil\n",
-        "data List\n"
         "data List:\n"
         "    Nil  ()\n"
         "    Cons ((), List)\n"
@@ -1144,18 +1141,14 @@ void t_all (void) {
 }
 
 int main (void) {
-#if 0
+#if 1
     assert(all(
-        "Cons\n()\n",
-        "data List\n"
+        "Nil\n",
         "data List:\n"
         "    Nil  ()\n"
         "    Cons ((), List)\n"
-        "val l :: List[] = Nil\n"
-        "val n :: () = match l:\n"
-        "    Nil -> ()\n"
-        "{show_List}(l)\n"
-        "{show_Unit}(n)"
+        "val l :: List[] = new Nil\n"
+        "{show_List}(l)"
     ));
 assert(0);
 #endif
