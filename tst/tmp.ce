@@ -4,8 +4,7 @@ data Chars:
     ConsC ({char},Chars)
 
 func showC :: (Chars -> ()):
-    val arg :: Chars = ...
-    match arg:
+    match ...:
         NilC -> {putchar('\n')}
         ConsC (c,cs) :: ({char},Chars) :
             {putchar(c)}

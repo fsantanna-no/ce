@@ -77,6 +77,8 @@ Type env_expr (Expr expr) {
     switch (expr.sub) {
         case EXPR_UNIT:
             return (Type) { TYPE_UNIT };
+        case EXPR_ARG:
+            return *env_get(expr.env, "ce_inp", NULL);
         case EXPR_VAR:
             return *env_get(expr.env, expr.Var.val.s, NULL);
         case EXPR_CONS:

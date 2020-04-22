@@ -1,7 +1,8 @@
 - back to lst1, always test lexer "OK"
 - env
-    - type of ... (requires enclosing func type)
-    - return should not generate `return` if enclosing func returns recursive type
+    - ce_arg, ce_ret
+        - type of ... (requires enclosing func type)
+        - return should not generate `return` if enclosing func returns recursive type
 - global datas
     - remove datas/conss
 - remove

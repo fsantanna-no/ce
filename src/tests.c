@@ -263,6 +263,8 @@ void t_parser_expr (void) {
         fclose(ALL.inp);
     }
     // EXPR_FUNC
+#if 0
+    // TODO: EXPR_FUNC as expr
     {
         all_init(NULL, stropen("r", 0, "func :: () ()"));
         Env* env = NULL;
@@ -271,6 +273,7 @@ void t_parser_expr (void) {
         assert(e.sub == EXPR_FUNC);
         fclose(ALL.inp);
     }
+#endif
     // EXPR_CALL
     {
         all_init(NULL, stropen("r", 0, "xxx (  )"));

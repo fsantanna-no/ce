@@ -388,8 +388,18 @@ int parser_decl (Env** env, Decl* decl) {
 
     if (is_func || (!is_func && ll_accept1('='))) {
         Expr init;
-        if (!parser_expr(env,&init)) {
-            return is_func;
+        if (is_func) {
+            assert(decl->type.sub == TYPE_FUNC);
+            Env* e = *env;
+            env_add(&e, (Patt){PATT_SET,.Set={TK_IDVAR,{.s="ce_inp"}}}, *decl->type.Func.inp);
+            env_add(&e, (Patt){PATT_SET,.Set={TK_IDVAR,{.s="ce_out"}}}, *decl->type.Func.out);
+            if (!parser_expr(&e,&init)) {
+                return is_func;
+            }
+        } else {
+            if (!parser_expr(env,&init)) {
+                return is_func;
+            }
         }
         decl->init = malloc(sizeof(*decl->init));
         assert(decl->init != NULL);
@@ -569,6 +579,7 @@ int parser_expr_one (Env** env, Expr* ret) {
         if (parser_decl(env,&d)) {
             *ret = (Expr) { EXPR_DECL, {}, *env, NULL, .Decl=d };
         } else if (ll_accept1(TK_DECL)) {
+assert(0 && "TODO");
             Type tp;
             if (!parser_type(&tp)) {
                 return 0;
