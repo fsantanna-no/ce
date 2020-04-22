@@ -14,8 +14,11 @@ func c2Chars :: ({char*} -> Chars[]):
     val buf :: {char*} = ...
     if:
         {buf[0] == '\0'} -> new NilC
-        else             -> new ConsC({buf[0]}, new NilC)
+        --else             -> new ConsC({buf[0]}, new NilC)
         --else             -> new ConsC({buf[0]}, c2Chars({buf+1}))
+        else:
+            val cs :: Chars[] = c2Chars({buf+1})
+            new ConsC({buf[0]}, cs)
 
 
 val cs1 :: Chars[] = new ConsC({'a'}, new ConsC({'b'}, NilC))

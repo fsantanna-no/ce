@@ -1073,6 +1073,23 @@ void t_all (void) {
         "data List:\n"
         "    Nil  ()\n"
         "    Cons (Nat, List)\n"
+        "func fff :: (() -> List[]):\n"
+        "    new Cons(Tre,Nil)\n"
+        "val l :: List[] = fff()\n"
+        "val n :: Nat = match l:\n"
+        "    Cons(x,_) :: Nat -> x\n"
+        "{show_Nat}(n)"
+    ));
+    assert(all(
+        "Tre\n",
+        "data Nat:\n"
+        "    One ()\n"
+        "    Two ()\n"
+        "    Tre ()\n"
+        "data List\n"
+        "data List:\n"
+        "    Nil  ()\n"
+        "    Cons (Nat, List)\n"
         "val l :: List[] = new Cons(Tre,new Cons(Two,new Cons(One,Nil)))\n"
         "val n :: Nat = match l:\n"
         "    Cons(x,_) :: Nat -> x\n"
