@@ -22,7 +22,7 @@ func c2Chars :: ({char*} -> Chars[]):
 
 
 val cs1 :: Chars[] = new ConsC({'a'}, new ConsC({'b'}, NilC))
-val cs2 :: Chars[] = c2Chars({"abcdef"})
+val cs2 :: Chars[] = new c2Chars({"abcdef"})
 
 showC(cs1)
 showC(cs2)

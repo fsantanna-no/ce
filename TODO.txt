@@ -1,6 +1,7 @@
 - multiple new in nested cons
 - new calls
 - calls inside cons
+- count number of allocs in "new", cur++
 
 new Nil
 new Cons(...)

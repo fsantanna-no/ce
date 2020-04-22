@@ -554,6 +554,17 @@ void code_expr (Expr e, tce_ret* ret) {
             out(e.Cons.val.s);
             break;
         case EXPR_NEW: {
+            void aux (char* cons, Expr e) {
+                char* sup;
+                datas_cons(cons,&sup);
+                fprintf (ALL.out[OGLOB],
+                    "({ %s* ptr=malloc(sizeof(%s)) ; *ptr=",
+                    sup, sup
+                );
+                code_expr(e, NULL);
+                out(" ; ptr ; })");
+            }
+
             char* cons = NULL;
             if (e.New->sub == EXPR_CONS) {
                 // new Nil
@@ -561,6 +572,8 @@ void code_expr (Expr e, tce_ret* ret) {
             } else if (e.New->sub==EXPR_CALL && e.New->Call.func->sub==EXPR_CONS) {
                 // new Cons(...)
                 cons = e.New->Call.func->Cons.val.s;
+puts(cons);
+//assert(0);
             } else if (e.New->sub==EXPR_CALL && e.New->Call.func->sub!=EXPR_CONS) {
                 //  l[] = new f(...)
                 // becomes
@@ -578,17 +591,7 @@ void code_expr (Expr e, tce_ret* ret) {
                     out("NULL");
                 } else {
                     code_ret(ret);
-                    out("({");
-    // TODO
-                //out(ret->patt->Set.val.s);
-                //out("->cur++; ");
-                    out("typeof(");
-                    code_expr(*e.New, NULL);
-                    out(")* ptr = malloc(sizeof(");
-                    code_expr(*e.New, NULL);
-                    out(")) ; *ptr=");
-                    code_expr(*e.New, NULL);
-                    out("; ptr; })");
+                    aux(cons, *e.New);
                 }
             }
             break;
