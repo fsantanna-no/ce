@@ -20,6 +20,45 @@ void dump_env (Env* cur, Env* stop) {
     return dump_env(cur->prev, stop);
 }
 
+///////////////////////////////////////////////////////////////////////////////
+
+void dump_patt_ (Patt p) {
+    switch (p.sub) {
+        case PATT_ANY:
+            printf("_");
+            break;
+        case PATT_UNIT:
+            printf("()");
+            break;
+        case PATT_SET:
+            printf("%s", p.Set.val.s);
+            break;
+        case PATT_CONS:
+            printf("%s(", p.Cons.data.val.s);
+            dump_patt_(*p.Cons.arg);
+            printf(")");
+            break;
+        case PATT_TUPLE:
+            for (int i=0; i<p.Tuple.size; i++) {
+                if (i > 0) {
+                    printf(",");
+                }
+                dump_patt_(p.Tuple.vec[i]);
+            }
+            break;
+        default:
+            printf("dump_patt: %d\n", p.sub);
+            assert(0 && "TODO");
+    }
+}
+
+void dump_patt (Patt p) {
+    dump_patt_(p);
+    puts("");
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 void dump_expr_ (Expr e, int spc) {
     for (int i=0; i<spc; i++) printf(" ");
     switch (e.sub) {
@@ -119,5 +158,3 @@ void dump_expr (Expr e) {
     dump_expr_(e, 0);
     puts("");
 }
-
-
