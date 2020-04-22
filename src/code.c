@@ -557,22 +557,29 @@ void code_expr (Expr e, tce_ret* ret) {
             void aux (char* cons, Expr e) {
                 char* sup;
                 datas_cons(cons,&sup);
-                fprintf (ALL.out[OGLOB],
-                    "({ %s* ptr=malloc(sizeof(%s)) ; *ptr=",
-                    sup, sup
-                );
-                code_expr(e, NULL);
-                out(" ; ptr ; })");
+                if (datas_cons(cons,NULL) == CONS_NULL) {
+                    out("NULL");
+                } else {
+                    fprintf (ALL.out[OGLOB],
+                        "({ %s* ptr=malloc(sizeof(%s)) ; *ptr=",
+                        sup, sup
+                    );
+                    code_expr(e, NULL);
+                    out(" ; ptr ; })");
+                }
             }
 
-            char* cons = NULL;
             if (e.New->sub == EXPR_CONS) {
                 // new Nil
-                cons = e.New->Cons.val.s;
+                code_ret(ret);
+                aux(e.New->Cons.val.s, *e.New);
             } else if (e.New->sub==EXPR_CALL && e.New->Call.func->sub==EXPR_CONS) {
                 // new Cons(...)
-                cons = e.New->Call.func->Cons.val.s;
-puts(cons);
+                //Expr* arg = e.New->Call.arg;
+//dump_expr(*arg);
+                code_ret(ret);
+                aux(e.New->Call.func->Cons.val.s, *e.New);
+//puts(cons);
 //assert(0);
             } else if (e.New->sub==EXPR_CALL && e.New->Call.func->sub!=EXPR_CONS) {
                 //  l[] = new f(...)
@@ -582,17 +589,6 @@ puts(cons);
                 code_expr(*e.New, NULL);
             } else {
                 assert(0 && "bug found");
-            }
-
-            if (cons != NULL) {
-                //printf(">>> %s %d\n", e.New->Cons.val.s, datas_cons(e.New->Cons.val.s));
-                if (datas_cons(cons,NULL) == CONS_NULL) {
-                    code_ret(ret);
-                    out("NULL");
-                } else {
-                    code_ret(ret);
-                    aux(cons, *e.New);
-                }
             }
             break;
         }

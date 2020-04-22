@@ -985,6 +985,19 @@ void t_all (void) {
         "{show_Unit}(n)"
     ));
     assert(all(
+        "Cons(Nil)\n()\n",
+        "data List\n"
+        "data List:\n"
+        "    Nil  ()\n"
+        "    Cons List\n"
+        "val l :: List[] = Nil\n"
+        "set l = new Cons(l)\n"
+        "val n :: () = match l:\n"
+        "    Cons(_) -> ()\n"
+        "{show_List}(l)\n"
+        "{show_Unit}(n)"
+    ));
+    assert(all(
         "Cons(???,Nil)\n()\n",
         "data List\n"
         "data List:\n"
