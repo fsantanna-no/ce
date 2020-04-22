@@ -1,3 +1,4 @@
+- remove conss/datas
 - multiple new in nested cons
 - new calls
 - calls inside cons

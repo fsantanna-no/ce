@@ -6,12 +6,11 @@ int all (const char* xp, char* src) {
         stropen("w", sizeof(out), out),
         stropen("r", 0, src)
     );
-    Prog prog;
-    if (!parser_prog(&prog)) {
+    if (!parser_prog()) {
         puts(ALL.err);
         return !strcmp(ALL.err, xp);
     }
-    code(prog);
+    code();
     fclose(ALL.out[OGLOB]);
 puts(out);
     remove("a.out");
@@ -562,9 +561,8 @@ void t_code (void) {
             stropen("w", sizeof(out), out),
             stropen("r", 0, "val a :: ()\n{show_Bool}(a)")
         );
-        Prog p;
-        parser_prog(&p);
-        code(p);
+        parser_prog();
+        code();
         fclose(ALL.out[OGLOB]);
         char* ret =
             "#include \"inc/ce.c\"\n"
@@ -585,9 +583,8 @@ void t_code (void) {
             stropen("w", sizeof(out), out),
             stropen("r", 0, "val inp :: ()\nmatch {fgetc(inp)}:\n    {'\\n'} -> ()")
         );
-        Prog p;
-        parser_prog(&p);
-        code(p);
+        parser_prog();
+        code();
         fclose(ALL.out[OGLOB]);
         char* ret =
             "#include \"inc/ce.c\"\n"

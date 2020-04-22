@@ -787,9 +787,9 @@ void code_expr (Expr e, tce_ret* ret) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void code_prog (Prog prog) {
-    for (int i=0; i<prog.size; i++) {
-        Glob g = prog.vec[i];
+void code_prog (void) {
+    for (int i=0; i<ALL.prog.size; i++) {
+        Glob g = ALL.prog.vec[i];
         switch (g.sub) {
             case GLOB_DATA:
                 code_data(g.data);
@@ -803,13 +803,13 @@ void code_prog (Prog prog) {
     }
 }
 
-void code (Prog prog) {
+void code (void) {
     out (
         "#include \"inc/ce.c\"\n"
         "int main (void) {\n"
         "\n"
     );
-    code_prog(prog);
+    code_prog();
     fprintf(ALL.out[OGLOB], "\n");
     out("}\n");
 }

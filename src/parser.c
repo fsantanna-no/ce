@@ -822,13 +822,13 @@ void* parser_glob_ (Env** env) {
     return &g_;
 }
 
-int parser_prog (Prog* ret) {
+int parser_prog (void) {
     Env* env = NULL;
     List lst;
     if (!parser_list_line(&env, 0, &lst, &parser_glob_, sizeof(Glob))) {
         return 0;
     }
-    *ret = (Prog) { lst.size, lst.vec };
+    ALL.prog = (Prog) { lst.size, lst.vec };
 
     if (!ll_accept1(EOF)) {
         return err_expected("end of file");

@@ -24,12 +24,17 @@ typedef struct {
 
 #include "type.h"
 
+struct Glob;
+typedef struct Prog {
+    int size;
+    struct Glob* vec;
+} Prog;
+
 typedef struct {
     FILE* inp;
     FILE* out[3];
     char  err[256];
     int   ind;
-    //Data* datas;
     struct {
         struct {
             int size;
@@ -47,6 +52,7 @@ typedef struct {
             } buf[256];
         } conss;
     } data;
+    Prog prog;
 } State_All;
 
 extern State_All ALL;

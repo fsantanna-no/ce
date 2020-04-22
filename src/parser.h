@@ -197,18 +197,13 @@ typedef struct Expr {
     };
 } Expr;
 
-typedef struct {
+typedef struct Glob {
     int sub;
     union {
         Data data;
         Expr expr;
     };
 } Glob;
-
-typedef struct {
-    int   size;
-    Glob* vec;
-} Prog;
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -224,4 +219,4 @@ int parser_type (Type* ret);
 int parser_data (Data* ret);
 int parser_patt (Env* env, Patt* ret, int is_match);
 int parser_expr (Env** env, Expr* ret);
-int parser_prog (Prog* prog);
+int parser_prog (void);
