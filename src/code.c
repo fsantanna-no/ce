@@ -555,7 +555,7 @@ void code_expr (Expr e, tce_ret* ret) {
             out(e.Cons.val.s);
             break;
         case EXPR_NEW: {
-            void aux (char* cons, Expr e) {
+            void aux (char* cons) {
                 char* sup;
                 datas_cons(cons,&sup);
                 if (datas_cons(cons,NULL) == CONS_NULL) {
@@ -565,24 +565,19 @@ void code_expr (Expr e, tce_ret* ret) {
                         "({ %s* ptr=malloc(sizeof(%s)) ; *ptr=",
                         sup, sup
                     );
-                    code_expr(e, NULL);
+                    code_expr(*e.New, NULL);
                     out(" ; ptr ; })");
                 }
             }
-
             code_ret(ret);
 
             // new Nil
             if (e.New->sub == EXPR_CONS) {
-                aux(e.New->Cons.val.s, *e.New);
+                aux(e.New->Cons.val.s);
 
             // new Cons(...)
             } else if (e.New->sub==EXPR_CALL && e.New->Call.func->sub==EXPR_CONS) {
-                //Expr* arg = e.New->Call.arg;
-//dump_expr(*arg);
-                aux(e.New->Call.func->Cons.val.s, *e.New);
-//puts(cons);
-//assert(0);
+                aux(e.New->Call.func->Cons.val.s);
 
             //  l[] = new f(...)
             // becomes
