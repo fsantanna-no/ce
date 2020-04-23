@@ -164,14 +164,20 @@ void code_data (Data data) {
         if (isrec && cons.type.sub==TYPE_UNIT) {
             out(" NULL\n");
         } else {
+            int ismult = (data.size>=3 || (!isrec && data.size>=2));
             out(" ((");
             out(sup);
             out(") { ");
-            out(sup);
-            out("_");
-            out(sub);
+            if (ismult) {
+                out(sup);
+                out("_");
+                out(sub);
+            }
             if (cons.type.sub != TYPE_UNIT) {
-                out(", ._");
+                if (ismult) {
+                    out(", ");
+                }
+                out("._");
                 out(sub);
                 out("=__VA_ARGS__");
             }
@@ -573,39 +579,59 @@ void code_expr (Expr e, tce_ret* ret) {
             }
             char* sup = data->tk.val.s;
 
-            void aux (char* sub) {
-                Cons* cons = cons_get(*data,sub);
-                assert(cons != NULL);
-                if (cons->idx == 0) {
-                    out("NULL");
-                } else {
-                    fprintf (ALL.out[OGLOB],
-                        "({ %s* ptr=malloc(sizeof(%s)) ; *ptr=",
-                        sup, sup
-                    );
-                    code_expr(*e.New, NULL);
-                    out(" ; ptr ; })");
+            void aux (Expr e) {
+                static int I = 0;
+                int i = ++I;
+
+                // new Nil
+                // new Xxx
+                if (e.sub == EXPR_CONS) {
+                    Cons* cons = cons_get(*data,e.Cons.val.s);
+                    if (cons->idx == 0) {
+                        out("NULL");
+                    } else {
+                        assert(0 && "TODO");
+                    }
+                    return;
                 }
+
+                assert(e.sub == EXPR_CALL);
+
+                //  l[] = new f(...)
+                // becomes
+                //  f(l,...)
+                if (e.Call.func->sub != EXPR_CONS) {
+                    e.Call.pool = &ret->env.id;
+                    code_expr(e, NULL);
+                    return;
+                }
+
+                //  new Cons(...)
+                // becomes
+                //  { List* ptr=malloc(sizeof(List)); *ptr=XXX(); ptr; }
+                assert(e.Call.func->sub == EXPR_CONS);
+                char* sub = e.Call.func->Cons.val.s;
+
+                fprintf(ALL.out[OGLOB],
+                    "({\n"
+                    "%s* ptr_%d = malloc(sizeof(%s));\n"
+                    "*ptr_%d = (%s) %s(",
+                    sup, i, sup,
+                    i, sup, sub
+                );
+
+                // XXX
+                aux(*e.Call.arg);
+
+                fprintf(ALL.out[OGLOB],
+                    ");\n"
+                    "ptr_%d;\n})",
+                    i
+                );
             }
+
             code_ret(ret);
-
-            // new Nil
-            if (e.New->sub == EXPR_CONS) {
-                aux(e.New->Cons.val.s);
-
-            // new Cons(...)
-            } else if (e.New->sub==EXPR_CALL && e.New->Call.func->sub==EXPR_CONS) {
-                aux(e.New->Call.func->Cons.val.s);
-
-            //  l[] = new f(...)
-            // becomes
-            //  f(l,...)
-            } else if (e.New->sub==EXPR_CALL && e.New->Call.func->sub!=EXPR_CONS) {
-                e.New->Call.pool = &ret->env.id;
-                code_expr(*e.New, NULL);
-            } else {
-                assert(0 && "bug found");
-            }
+            aux(*e.New);
             break;
         }
         case EXPR_SET:
