@@ -134,8 +134,9 @@ void code_data (Data data) {
     char SUP[256];
     assert(strlen(sup) < sizeof(SUP));
     strcpy(SUP, strupper(sup));
-    DATA kind = datas_data(sup);
-    int isrec = data_isrec(data);
+    int isrec    = data_isrec(data);
+    int isplain  = !isrec && data.size>=2;
+    int issingle = !isrec && data.size==1;
 
     if (isrec) {
         fprintf(ALL.out[OGLOB], "struct %s;\n", sup);
@@ -210,7 +211,7 @@ void code_data (Data data) {
 
     out(out1);
 
-    if (kind==DATA_PLAIN || (isrec && data.size>2)) {
+    if (isplain || (isrec && data.size>2)) {
         fprintf(ALL.out[OGLOB],
             "typedef struct %s {\n"
             "    %s sub;\n"
@@ -246,7 +247,7 @@ void code_data (Data data) {
                 v
             );
         }
-        if (kind == DATA_SINGLE) {
+        if (issingle) {
             // no switch
             fprintf(ALL.out[OGLOB], "printf(\"%s\");\n", v);
         } else if (isrec && data.size<=2) {
@@ -255,7 +256,7 @@ void code_data (Data data) {
                 fprintf(ALL.out[OGLOB], "printf(\"%s\");\n", v);
             }
         } else {
-            if (kind == DATA_PLAIN) {
+            if (isplain) {
                 has_switch = 1;
                 if (i == 0) {
                     fprintf(ALL.out[OGLOB], "switch (v.sub) {\n");
@@ -343,26 +344,25 @@ void code_patt_match (Patt p, Expr tst) {
             out(" == 1");
             break;
         case PATT_CONS: {
-            CONS cons = datas_cons(p.Cons.data.val.s, NULL);
-            switch (cons) {
-                case CONS_SINGLE:
-                    out("1"); // always succeeds
-                    break;
-                case CONS_NULL:
-                    code_expr(tst, NULL);
-                    out(" == NULL");
-                    break;
-                case CONS_CASE1:
-                    code_expr(tst, NULL);
-                    out(" != NULL");
-                    break;
-                default:
-                    out("(");
+            Cons cons;
+            Data* data = cons_sup(p.Cons.data.val.s, &cons);
+            assert(data != NULL);
+            int isrec = data_isrec(*data);
+            if (data->size == 1) {                  // SINGLE
+                out("1"); // always succeeds
+            } else if (isrec && cons.idx==0) {      // NULL
+                code_expr(tst, NULL);
+                out(" == NULL");
+            } else if (isrec && data->size==2) {    // CASE1
+                code_expr(tst, NULL);
+                out(" != NULL");
+            } else {
+                out("(");
 //dump_expr(tst);
-                    code_expr(tst, NULL);
-                    out(").sub == SUP_");
-                    out(p.Cons.data.val.s);
-                    break;
+                code_expr(tst, NULL);
+                out(").sub == SUP_");
+                out(p.Cons.data.val.s);
+                break;
             }
             if (p.Cons.arg != NULL) {
                 out(" && ");
@@ -463,8 +463,13 @@ void code_patt_decls (Decl decl) {
 
 void code_decl (Decl d, tce_ret* ret) {
     if (d.type.sub == TYPE_FUNC) {
-        int isrec = (d.type.Func.out->sub == TYPE_DATA &&
-                     datas_data(d.type.Func.out->Data.tk.val.s) == DATA_REC);
+        int isrec = 0; {
+            if (d.type.Func.out->sub == TYPE_DATA) {
+                Data* data = data_get(d.type.Func.out->Data.tk.val.s);
+                assert(data != NULL);
+                isrec = data_isrec(*data);
+            }
+        }
         assert(d.init != NULL);
         assert(d.patt.sub == PATT_SET);
         out("\n");
@@ -562,16 +567,16 @@ void code_expr (Expr e, tce_ret* ret) {
             Data* data; {
                 data = data_get(id);
                 if (data == NULL) {
-                    data = cons_sup(id);
+                    data = cons_sup(id,NULL);
                 }
                 assert(data != NULL);
             }
             char* sup = data->tk.val.s;
 
-            void aux (char* cons) {
-                Cons* sub = cons_get(*data,cons);
-                assert(sub != NULL);
-                if (cons_isnull(*sub)) {
+            void aux (char* sub) {
+                Cons* cons = cons_get(*data,sub);
+                assert(cons != NULL);
+                if (cons->idx == 0) {
                     out("NULL");
                 } else {
                     fprintf (ALL.out[OGLOB],
@@ -779,11 +784,13 @@ void code_expr (Expr e, tce_ret* ret) {
         case EXPR_CONS_SUB: {
             code_ret(ret);
             Type type = env_expr(*e.Cons_Sub.cons);
+            Data* data = data_get(type.Data.tk.val.s);
+            int isrec = (data!=NULL && data_isrec(*data));
             //assert(type.sub == TYPE_DATA);
             out("(");
             code_expr(*e.Cons_Sub.cons, NULL);
             out(")");
-            out(datas_data(type.Data.tk.val.s) == DATA_REC ? "->" : ".");
+            out(isrec ? "->" : ".");
             out("_");
             out(e.Cons_Sub.sub);
             break;

@@ -129,9 +129,10 @@ void t_parser_datas (void) {
     {
         all_init(NULL, stropen("r", 0, "data Err"));
         Data dts;
-        assert(parser_data(&dts));
-        assert(ALL.data.datas.size == 1);
-        //assert(!strcmp(ALL.err, "(ln 1, col 9): expected `=` or `:` : have end of file"));
+        parser_data(&dts);
+        assert(!strcmp(ALL.err, "(ln 1, col 9): expected data declaration : have end of line"));
+        //assert(parser_data(&dts));
+        //assert(ALL.data.datas.size == 1);
         fclose(ALL.inp);
     }
     {

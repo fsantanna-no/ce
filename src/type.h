@@ -44,5 +44,5 @@ Data* data_get   (const char* id);
 int   data_isrec (Data data);
 
 Cons* cons_get    (Data data, const char* id);
-Data* cons_sup    (const char* id);
+Data* cons_sup    (const char* id, Cons* sub);
 int   cons_isnull (Cons cons);

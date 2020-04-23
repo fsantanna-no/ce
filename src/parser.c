@@ -307,48 +307,12 @@ int parser_data (Data* ret) {
     }
 
     if (!tp_ok && !lst_ok) {
-        // recursive pre declaration
-        assert(ALL.data.datas.size < sizeof(ALL.data.datas.buf));
-        ALL.data.datas.buf[ALL.data.datas.size].kind = DATA_REC;
-        strcpy(ALL.data.datas.buf[ALL.data.datas.size].id, SUP.val.s);
-        ALL.data.datas.size++;
-        *ret = (Data) { SUP, 0, NULL };
-        return 1;
+        return err_expected("data declaration");
     }
 
     *ret = (Data) { SUP, lst.size, lst.vec };
     for (int i=0; i<ret->size; i++) {
         ret->vec[i].idx = i;
-    }
-
-    DATA kind = datas_data(SUP.val.s);
-
-    // new type is either DATA_SINGLE or DATA_PLAIN
-    if (kind == DATA_ERROR) {
-        ALL.data.datas.buf[ALL.data.datas.size].kind = (ret->size < 2 ? DATA_SINGLE : DATA_PLAIN);
-//printf(">>> %s -> %d\n", SUP.val.s, ret->size);
-        strcpy(ALL.data.datas.buf[ALL.data.datas.size].id, SUP.val.s);
-        ALL.data.datas.size++;
-    }
-
-    // set kinds of CONS
-    if (ret->size == 0) {
-        ALL.data.conss.buf[ALL.data.conss.size].kind = CONS_SINGLE;
-        strcpy(ALL.data.conss.buf[ALL.data.conss.size].id,  SUP.val.s);
-        strcpy(ALL.data.conss.buf[ALL.data.conss.size].sup, SUP.val.s);
-        ALL.data.conss.size++;
-    }
-    for (int i=0; i<ret->size; i++) {
-        //assert(ret->size >= 2);
-        if (kind == DATA_ERROR) {
-            ALL.data.conss.buf[ALL.data.conss.size].kind = (ret->size < 2 ? CONS_SINGLE : CONS_PLAIN);
-        } else {
-            ALL.data.conss.buf[ALL.data.conss.size].kind =
-                (i==0 ? CONS_NULL : (ret->size<=2 ? CONS_CASE1 : CONS_CASEN));
-        }
-        strcpy(ALL.data.conss.buf[ALL.data.conss.size].id,  ret->vec[i].tk.val.s);
-        strcpy(ALL.data.conss.buf[ALL.data.conss.size].sup, SUP.val.s);
-        ALL.data.conss.size++;
     }
 
     // realloc TP more spaces inside each CONS

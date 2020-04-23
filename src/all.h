@@ -10,9 +10,6 @@ FILE* stropen  (const char* mode, size_t size, char* str);
 
 enum { OGLOB, ODECL, OEXPR };
 
-typedef enum { DATA_ERROR, DATA_SINGLE, DATA_PLAIN, DATA_REC  } DATA;
-typedef enum { CONS_ERROR, CONS_SINGLE, CONS_PLAIN, CONS_NULL, CONS_CASE1, CONS_CASEN } CONS;
-
 typedef struct {
     long  off;   // position before token (to fallback)
     long  lin;   // line before token
@@ -35,24 +32,7 @@ typedef struct {
     FILE* out[3];
     char  err[256];
     int   ind;
-    struct {
-        struct {
-            int size;
-            struct {
-                char id[256];
-                DATA kind;
-            } buf[256];
-        } datas;
-        struct {
-            int size;
-            struct {
-                char id[256];
-                char sup[256];
-                CONS kind;
-            } buf[256];
-        } conss;
-    } data;
-    Prog prog;
+    Prog  prog;
 } State_All;
 
 extern State_All ALL;
@@ -82,9 +62,6 @@ typedef struct tce_ret {
 } tce_ret;
 
 #include "code.h"
-
-DATA datas_data (const char* v);
-CONS datas_cons (const char* v, char** sup);
 
 void all_init (FILE* out, FILE* inp);
 
