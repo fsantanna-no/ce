@@ -564,10 +564,6 @@ void code_expr (Expr e, tce_ret* ret) {
                 out(")");
             }
             break;
-        case EXPR_CONS:
-            code_ret(ret);
-            out(e.Cons.val.s);
-            break;
         case EXPR_NEW: {
             Type type = env_expr(*e.New);
             assert(type.sub == TYPE_DATA);
@@ -585,45 +581,52 @@ void code_expr (Expr e, tce_ret* ret) {
                 static int I = 0;
                 int i = ++I;
 
-                // new Cons(v)
-                if (e.sub != EXPR_CALL) {   // aux(v)
-                    code_expr(e, NULL);
-                    return;
-                }
-
-                assert(e.sub == EXPR_CALL);
-
                 //  l[] = new f(...)
                 // becomes
                 //  f(l,...)
-                if (e.Call.func->sub != EXPR_CONS) {
+                if (e.sub == EXPR_CALL) {
                     e.Call.pool = &ret->env.id;
                     code_expr(e, NULL);
                     return;
                 }
 
+                // about `v` (nested `aux`)
+                // new Cons(v)
+                if (e.sub != EXPR_CONS) {
+                    code_expr(e, NULL);
+                    return;
+                }
+
+                assert(e.sub == EXPR_CONS);
+
+                char* sub = e.Cons.id.val.s;
+                Cons* cons = cons_get(*data,sub);
+
+                // new Nil
+                if (cons->idx == 0) {
+                    out("NULL");
+
                 //  new Cons(...)
                 // becomes
                 //  { List* ptr=malloc(sizeof(List)); *ptr=XXX(); ptr; }
-                assert(e.Call.func->sub == EXPR_CONS);
-                char* sub = e.Call.func->Cons.val.s;
+                } else {
+                    fprintf(ALL.out[OGLOB],
+                        "({\n"
+                        "%s* ptr_%d = malloc(sizeof(%s));\n"
+                        "*ptr_%d = (%s) %s(",
+                        sup, i, sup,
+                        i, sup, sub
+                    );
 
-                fprintf(ALL.out[OGLOB],
-                    "({\n"
-                    "%s* ptr_%d = malloc(sizeof(%s));\n"
-                    "*ptr_%d = (%s) %s(",
-                    sup, i, sup,
-                    i, sup, sub
-                );
+                    // XXX
+                    aux(*e.Cons.arg);
 
-                // XXX
-                aux(*e.Call.arg);
-
-                fprintf(ALL.out[OGLOB],
-                    ");\n"
-                    "ptr_%d;\n})",
-                    i
-                );
+                    fprintf(ALL.out[OGLOB],
+                        ");\n"
+                        "ptr_%d;\n})",
+                        i
+                    );
+                }
             }
 
             code_ret(ret);
@@ -633,6 +636,13 @@ void code_expr (Expr e, tce_ret* ret) {
         case EXPR_SET:
             code_patt_set(e.Set.expr->env, e.Set.patt, *e.Set.expr);
             out(";\n");
+            break;
+        case EXPR_CONS:
+            code_ret(ret);
+            out(e.Cons.id.val.s);
+            out("(");
+            code_expr(*e.Cons.arg, NULL);
+            out(")");
             break;
         case EXPR_CALL:
             code_ret(ret);
@@ -655,8 +665,6 @@ void code_expr (Expr e, tce_ret* ret) {
                     // {f}(a) -> f(a)
                     code_expr(*e.Call.arg, NULL);
                 }
-            } else if (e.Call.func->sub == EXPR_CONS) {
-                code_expr(*e.Call.arg, NULL);
             } else {
                 assert(e.Call.func->sub == EXPR_VAR);
                 out("(typeof(TYPE_");

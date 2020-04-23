@@ -504,7 +504,7 @@ int parser_expr_one (Env** env, Expr* ret) {
 
     // EXPR_CONS
     } else if (ll_accept1(TK_IDDATA)) {
-        *ret = (Expr) { EXPR_CONS, {}, *env, NULL, .Cons=TOK0.tk };
+        *ret = (Expr) { EXPR_CONS, {}, *env, NULL, .Cons={TOK0.tk,NULL} };
 
     // EXPR_NEW
     } else if (ll_accept1(TK_NEW)) {
@@ -690,12 +690,9 @@ int parser_expr (Env** env, Expr* ret) {
 
     void cons2call (void) {
         if (e.sub == EXPR_CONS) {
-            Expr* func = malloc(sizeof(Expr));
             Expr* arg  = malloc(sizeof(Expr));
-            assert(func!=NULL && arg!=NULL);
-            *func = e;
-            *arg  = (Expr) { EXPR_UNIT, {}, *env };
-            *ret  = (Expr) { EXPR_CALL, {}, *env, .Call={func,arg} };
+            assert(arg != NULL);
+            ret->Cons.arg = arg;
         }
     }
 
@@ -705,18 +702,24 @@ int parser_expr (Env** env, Expr* ret) {
         goto _WHERE_;
     }
 
-    // EXPR_CALL
+    // EXPR_CALL / EXPR_CONS
     if (ll_check1('(')) {
         Expr arg;
         if (!parser_expr_one(env, &arg)) {
             return 0;
         }
         Expr* parg = malloc(sizeof(Expr));
-        Expr* func = malloc(sizeof(Expr));
-        assert(parg!=NULL && func!=NULL);
         *parg = arg;
-        *func = *ret;
-        *ret  = (Expr) { EXPR_CALL, {}, *env, NULL, .Call={func,parg,NULL} };
+        assert(parg != NULL);
+
+        if (e.sub == EXPR_CONS) {
+            ret->Cons.arg = parg;
+        } else {
+            Expr* func = malloc(sizeof(Expr));
+            assert(func != NULL);
+            *func = *ret;
+            *ret  = (Expr) { EXPR_CALL, {}, *env, NULL, .Call={func,parg,NULL} };
+        }
     } else {
         cons2call();
     }

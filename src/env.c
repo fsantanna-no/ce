@@ -82,15 +82,11 @@ Type env_expr (Expr expr) {
         case EXPR_VAR:
             return *env_get(expr.env, expr.Var.val.s, NULL);
         case EXPR_CONS:
-            return (Type) { TYPE_DATA, .Data={expr.Cons,-1} };
+            return (Type) { TYPE_DATA, .Data={expr.Cons.id,-1} };
         case EXPR_CALL: {
             Type type = env_expr(*expr.Call.func);
-            switch (type.sub) {
-                case TYPE_FUNC:
-                    return *type.Func.out;
-                case TYPE_DATA:
-                    return type;
-            }
+            assert(type.sub == TYPE_FUNC);
+            return *type.Func.out;
         }
         default:
             printf(">>>>>> ENV_EXPR %d <<<<<<\n", expr.sub);

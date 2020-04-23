@@ -139,7 +139,6 @@ typedef struct Expr {
         Tk Raw;
         Tk Unit;
         Tk Var;
-        Tk Cons;                // EXPR_CONS -> EXPR_CALL
         Decl Decl;              // EXPR_DECL
         Let  Let;               // EXPR_LET
         struct Expr* New;       // EXPR_NEW
@@ -163,6 +162,10 @@ typedef struct Expr {
             struct Expr* arg;
             Tk* pool;   // l[]=f() -> f(l)
         } Call;
+        struct {        // EXPR_CONS
+            Tk id;
+            struct Expr* arg;
+        } Cons;
         struct {        // EXPR_IF
             struct Expr* tst;
             struct Expr* true;
