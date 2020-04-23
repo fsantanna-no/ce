@@ -1082,6 +1082,19 @@ void t_all (void) {
         "{show_Nat}(n)"
     ));
     assert(all(
+        "Two\n",
+        "data Nat:\n"
+        "    One ()\n"
+        "    Two ()\n"
+        "data List:\n"
+        "    Nil  ()\n"
+        "    Cons (Nat, List)\n"
+        "val l :: List[] = new Cons(Two,Cons(One,Nil))\n"
+        "val n :: Nat = match l:\n"
+        "    Cons(x,_) :: Nat -> x\n"
+        "{show_Nat}(n)"
+    ));
+    assert(all(
         "Tre\n",
         "data Nat:\n"
         "    One ()\n"
@@ -1090,7 +1103,7 @@ void t_all (void) {
         "data List:\n"
         "    Nil  ()\n"
         "    Cons (Nat, List)\n"
-        "val l :: List[] = new Cons(Tre,new Cons(Two,new Cons(One,Nil)))\n"
+        "val l :: List[] = new Cons(Tre,Cons(Two,Cons(One,Nil)))\n"
         "val n :: Nat = match l:\n"
         "    Cons(x,_) :: Nat -> x\n"
         "{show_Nat}(n)"
@@ -1135,6 +1148,19 @@ void t_all (void) {
 
 int main (void) {
 #if 0
+    assert(all(
+        "Two\n",
+        "data Nat:\n"
+        "    One ()\n"
+        "    Two ()\n"
+        "data List:\n"
+        "    Nil  ()\n"
+        "    Cons (Nat, List)\n"
+        "val l :: List[] = new Cons(Two,Cons(One,Nil))\n"
+        "val n :: Nat = match l:\n"
+        "    Cons(x,_) :: Nat -> x\n"
+        "{show_Nat}(n)"
+    ));
 assert(0);
 #endif
     t_lexer();

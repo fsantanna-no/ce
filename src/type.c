@@ -3,6 +3,8 @@
 int data_isrec (Data data) {        // TODO: mutually recursive datas
     int aux (Type type) {
         switch (type.sub) {
+            case TYPE_RAW:
+                return 0;
             case TYPE_UNIT:
                 return 0;
             case TYPE_DATA:

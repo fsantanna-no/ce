@@ -76,6 +76,9 @@ void dump_expr_ (Expr e, int spc) {
             break;
         case EXPR_CONS:
             fputs(e.Var.val.s, stdout);
+            fputs("(", stdout);
+            dump_expr_(*e.Cons.arg, 0);
+            fputs(")", stdout);
             break;
         case EXPR_SET:
             puts("set");
@@ -137,6 +140,9 @@ void dump_expr_ (Expr e, int spc) {
             break;
         case EXPR_IF:
             fputs("if (...)", stdout);
+            break;
+        case EXPR_IFS:
+            fputs("ifs (...)", stdout);
             break;
         case EXPR_CASES:
             fputs("match (...)", stdout);

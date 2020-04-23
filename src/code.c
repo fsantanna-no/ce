@@ -366,7 +366,6 @@ void code_patt_match (Patt p, Expr tst) {
                 out(" != NULL");
             } else {
                 out("(");
-//dump_expr(tst);
                 code_expr(tst, NULL);
                 out(").sub == SUP_");
                 out(p.Cons.data.val.s);
@@ -591,6 +590,18 @@ void code_expr (Expr e, tce_ret* ret) {
                 }
 
                 // about `v` (nested `aux`)
+
+                // new Cons(v1,v2,...)
+                if (e.sub == EXPR_TUPLE) {
+                    for (int i=0; i<e.Tuple.size; i++) {
+                        if (i > 0) {
+                            out(", ");
+                        }
+                        aux(e.Tuple.vec[i]);
+                    }
+                    return;
+                }
+
                 // new Cons(v)
                 if (e.sub != EXPR_CONS) {
                     code_expr(e, NULL);
@@ -601,6 +612,12 @@ void code_expr (Expr e, tce_ret* ret) {
 
                 char* sub = e.Cons.id.val.s;
                 Cons* cons = cons_get(*data,sub);
+
+                // new Cons(True,...)
+                if (cons == NULL) {     // True is not a case of this data
+                    code_expr(e, NULL);
+                    return;
+                }
 
                 // new Nil
                 if (cons->idx == 0) {

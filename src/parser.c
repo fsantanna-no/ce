@@ -690,8 +690,9 @@ int parser_expr (Env** env, Expr* ret) {
 
     void cons2call (void) {
         if (e.sub == EXPR_CONS) {
-            Expr* arg  = malloc(sizeof(Expr));
+            Expr* arg = malloc(sizeof(Expr));
             assert(arg != NULL);
+            *arg = (Expr) { EXPR_UNIT, {}, *env, NULL };
             ret->Cons.arg = arg;
         }
     }

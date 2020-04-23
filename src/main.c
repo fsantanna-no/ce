@@ -41,14 +41,13 @@ int main (int argc, char* argv[]) {
 
     all_init(fout, finp);
 
-    Prog prog;
-    if (!parser_prog(&prog)) {
+    if (!parser_prog()) {
         fprintf(stderr, "%s\n", ALL.err);
         fclose(finp);
         fclose(fout);
         exit(EXIT_FAILURE);
     }
-    code(prog);
+    code();
 
     return 0;
 }
