@@ -556,10 +556,16 @@ void code_expr (Expr e, tce_ret* ret) {
             out(e.Cons.val.s);
             break;
         case EXPR_NEW: {
+            Type type = env_expr(*e.New);
+            assert(type.sub == TYPE_DATA);
+            char* sup = type.Data.tk.val.s;
+            Data* data = cons_sup(sup);
+            assert(data != NULL);
+
             void aux (char* cons) {
-                char* sup;
-                datas_cons(cons,&sup);
-                if (datas_cons(cons,NULL) == CONS_NULL) {
+                Cons* sub = cons_get(*data,cons);
+                assert(sub != NULL);
+                if (cons_isnull(*sub)) {
                     out("NULL");
                 } else {
                     fprintf (ALL.out[OGLOB],

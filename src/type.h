@@ -40,5 +40,9 @@ typedef struct Data {
     Cons* vec;
 } Data;
 
-int   data_isrec (Data data);
 Data* data_get   (const char* id);
+int   data_isrec (Data data);
+
+Cons* cons_get    (Data data, const char* id);
+Data* cons_sup    (const char* id);
+int   cons_isnull (Cons cons);

@@ -1141,17 +1141,6 @@ void t_all (void) {
 }
 
 int main (void) {
-#if 1
-    assert(all(
-        "Nil\n",
-        "data List:\n"
-        "    Nil  ()\n"
-        "    Cons ((), List)\n"
-        "val l :: List[] = new Nil\n"
-        "{show_List}(l)"
-    ));
-assert(0);
-#endif
     t_lexer();
     t_parser();
     t_code();
