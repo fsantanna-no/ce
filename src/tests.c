@@ -623,9 +623,9 @@ void t_code (void) {
         fclose(ALL.out[OGLOB]);
         char* xp =
             "#define SUP_False Bool_False\n"
-            "#define False ((Bool) { Bool_False })\n"
+            "#define False(x) ((Bool) { Bool_False })\n"
             "#define SUP_True Bool_True\n"
-            "#define True ((Bool) { Bool_True })\n"
+            "#define True(x) ((Bool) { Bool_True })\n"
             "\n"
             "typedef enum {\n"
             "    Bool_False,\n"
@@ -745,7 +745,7 @@ void t_all (void) {
         "    False ()\n"
         "    True  ()\n"
         "mut x :: Bool = False\n"
-        "{x = True}\n"
+        "{x = True()}\n"
         "{show_Bool}(x)\n"
     ));
     assert(all(
@@ -1134,6 +1134,21 @@ void t_all (void) {
 }
 
 int main (void) {
+#if 0
+    assert(all(
+        "Cons(Nil)\n()\n",
+        "data List:\n"
+        "    Nil  ()\n"
+        "    Cons List\n"
+        "val l :: List[] = new Nil\n"
+        "set l = new Cons(l)\n"
+        "val n :: () = match l:\n"
+        "    Cons(_) -> ()\n"
+        "{show_List}(l)\n"
+        "{show_Unit}(n)"
+    ));
+    assert(0);
+#endif
     t_lexer();
     t_parser();
     t_code();

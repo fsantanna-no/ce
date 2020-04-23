@@ -688,8 +688,20 @@ int parser_expr (Env** env, Expr* ret) {
     }
     *ret = e;
 
+    void cons2call (void) {
+        if (e.sub == EXPR_CONS) {
+            Expr* func = malloc(sizeof(Expr));
+            Expr* arg  = malloc(sizeof(Expr));
+            assert(func!=NULL && arg!=NULL);
+            *func = e;
+            *arg  = (Expr) { EXPR_UNIT, {}, *env };
+            *ret  = (Expr) { EXPR_CALL, {}, *env, .Call={func,arg} };
+        }
+    }
+
     // cannot separate exprs with \n
     if (ll_check0('\n')) {
+        cons2call();
         goto _WHERE_;
     }
 
@@ -705,6 +717,8 @@ int parser_expr (Env** env, Expr* ret) {
         *parg = arg;
         *func = *ret;
         *ret  = (Expr) { EXPR_CALL, {}, *env, NULL, .Call={func,parg,NULL} };
+    } else {
+        cons2call();
     }
 
     // EXPR_MATCH

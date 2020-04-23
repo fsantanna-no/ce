@@ -1,8 +1,7 @@
-- remove conss/datas
-- multiple new in nested cons
-- new calls
-- calls inside cons
+- expr_new assert
 - count number of allocs in "new", cur++
+- transform EXPR_CONS in EXPR_CALL
+    - diff CALL_FUNC/CALL_CONS
 
 new Nil
 new Cons(...)
@@ -133,65 +132,3 @@ malloc
  1965  4915 47808 total
 
 ///////////////////////////////////////////////////////////////////////////////
-
-        case EXPR_NEW: {
-            char* SUP; {
-                Type type = env_expr(e);
-                assert(type.sub == TYPE_DATA);
-                SUP = type.Data.tk.val.s;
-            }
-            void aux (Expr e) {
-#if 0
-                char* sup;
-                datas_cons(cons,&sup);
-                if (datas_cons(cons,NULL) == CONS_NULL) {
-                    out("NULL");
-                } else {
-                    fprintf (ALL.out[OGLOB],
-                        "({ %s* ptr=malloc(sizeof(%s)) ; *ptr=",
-                        sup, sup
-                    );
-                    code_expr(*e.New, NULL);
-                    out(" ; ptr ; })");
-                }
-#endif
-
-                // new Nil
-                if (e.sub == EXPR_CONS) {
-                    char* sup;
-                    int kind = datas_cons(e.Cons.val.s,&sup);
-                    assert(!strcmp(SUP,sup));
-                    assert(kind == CONS_NULL);
-                    out("NULL");
-
-                // new Cons(...)
-                } else if (e.sub==EXPR_CALL && e.Call.func->sub==EXPR_CONS) {
-                    char* sup;
-                    int kind = datas_cons(e.Cons.val.s,&sup);
-                    assert(!strcmp(SUP,sup));
-// TODO: check if rec case
-                    if ()
-                    aux(e.Call.func->Cons.val.s);
-                    fprintf (ALL.out[OGLOB],
-                        "({ %s* ptr=malloc(sizeof(%s)) ; *ptr=",
-                        sup, sup
-                    );
-                    code_expr(*e.New, NULL);
-                    out(" ; ptr ; })");
-
-                //  l[] = new f(...)
-                // becomes
-                //  f(l,...)
-                } else if (e.sub==EXPR_CALL && e.Call.func->sub!=EXPR_CONS) {
-                    e.Call.pool = &ret->env.id;
-                    code_expr(e, NULL);
-                } else {
-                    code_expr(e, NULL);
-                }
-            }
-            code_ret(ret);
-            aux(*e.New);
-
-            break;
-        }
-

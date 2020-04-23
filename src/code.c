@@ -158,7 +158,9 @@ void code_data (Data data) {
         // #define Sub(v) ((Sup) { Sup_Sub, ._Sub=v })
         out("#define ");
         out(sub);
-        if (cons.type.sub != TYPE_UNIT) {
+        if (cons.type.sub == TYPE_UNIT) {
+            out("(x)");
+        } else {
             out("(...)");
         }
         if (isrec && cons.type.sub==TYPE_UNIT) {
@@ -583,15 +585,9 @@ void code_expr (Expr e, tce_ret* ret) {
                 static int I = 0;
                 int i = ++I;
 
-                // new Nil
-                // new Xxx
-                if (e.sub == EXPR_CONS) {
-                    Cons* cons = cons_get(*data,e.Cons.val.s);
-                    if (cons->idx == 0) {
-                        out("NULL");
-                    } else {
-                        assert(0 && "TODO");
-                    }
+                // new Cons(v)
+                if (e.sub != EXPR_CALL) {   // aux(v)
+                    code_expr(e, NULL);
                     return;
                 }
 

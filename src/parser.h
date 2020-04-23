@@ -139,7 +139,7 @@ typedef struct Expr {
         Tk Raw;
         Tk Unit;
         Tk Var;
-        Tk Cons;
+        Tk Cons;                // EXPR_CONS -> EXPR_CALL
         Decl Decl;              // EXPR_DECL
         Let  Let;               // EXPR_LET
         struct Expr* New;       // EXPR_NEW
