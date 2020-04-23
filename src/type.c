@@ -29,12 +29,12 @@ int data_isrec (Data data) {        // TODO: mutually recursive datas
     return 0;
 }
 
-int datas_isrec (const char* data) {
+Data* data_get (const char* id) {
     for (int i=0; i<ALL.prog.size; i++) {
         Glob g = ALL.prog.vec[i];
-        if (g.sub==GLOB_DATA && !strcmp(data,g.data.tk.val.s)) {
-            return data_isrec(g.data);
+        if (g.sub==GLOB_DATA && !strcmp(id,g.data.tk.val.s)) {
+            return &ALL.prog.vec[i].data;
         }
     }
-    return 0;
+    return NULL;
 }

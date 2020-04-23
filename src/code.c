@@ -69,7 +69,9 @@ void code_type_ (char* out1, char* out2, Type tp) {
             strcat(out2, "int");
             break;
         case TYPE_DATA: {
-            int isrec = datas_isrec(tp.Data.tk.val.s);
+            Data* data = data_get(tp.Data.tk.val.s);
+            assert(data != NULL);
+            int isrec = data_isrec(*data);
             if (isrec) strcat(out2, "struct ");
             strcat(out2, tp.Data.tk.val.s);
             if (isrec) strcat(out2, "*");
