@@ -1082,6 +1082,30 @@ void t_all (void) {
         "{show_Nat}(n)"
     ));
     assert(all(
+        "Cons(Cons(Nil))\n",
+        "data List:\n"
+        "    Nil  ()\n"
+        "    Cons (List)\n"
+        "func fff :: (() -> List[]):\n"
+        "    new Cons(Nil)\n"
+        "val l :: List[] = new Cons(fff())\n"
+        "{show_List}(l)"
+    ));
+    assert(all(
+        "Cons(One,Cons(Tre,Nil))\n",
+        "data Nat:\n"
+        "    One ()\n"
+        "    Two ()\n"
+        "    Tre ()\n"
+        "data List:\n"
+        "    Nil  ()\n"
+        "    Cons (Nat, List)\n"
+        "func fff :: (() -> List[]):\n"
+        "    new Cons(Tre,Nil)\n"
+        "val l :: List[] = new Cons(One,fff())\n"
+        "{show_List}(l)"
+    ));
+    assert(all(
         "Two\n",
         "data Nat:\n"
         "    One ()\n"
@@ -1148,19 +1172,6 @@ void t_all (void) {
 
 int main (void) {
 #if 0
-    assert(all(
-        "Two\n",
-        "data Nat:\n"
-        "    One ()\n"
-        "    Two ()\n"
-        "data List:\n"
-        "    Nil  ()\n"
-        "    Cons (Nat, List)\n"
-        "val l :: List[] = new Cons(Two,Cons(One,Nil))\n"
-        "val n :: Nat = match l:\n"
-        "    Cons(x,_) :: Nat -> x\n"
-        "{show_Nat}(n)"
-    ));
 assert(0);
 #endif
     t_lexer();

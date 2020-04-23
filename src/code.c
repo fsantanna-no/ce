@@ -576,78 +576,100 @@ void code_expr (Expr e, tce_ret* ret) {
             }
             char* sup = data->tk.val.s;
 
-            void aux (Expr e) {
+            //void aux1 (Expr e);
+            //void aux2 (Expr e, Cons cons);
+
+            // substitutes `v` in
+            //      v
+            // where v is a recursive value, so either
+            // - a call to build it
+            // - a cons to build it
+            void aux1 (Expr e) {
                 static int I = 0;
                 int i = ++I;
 
-                //  l[] = new f(...)
-                // becomes
-                //  f(l,...)
-                if (e.sub == EXPR_CALL) {
-                    e.Call.pool = &ret->env.id;
-                    code_expr(e, NULL);
-                    return;
-                }
-
-                // about `v` (nested `aux`)
-
-                // new Cons(v1,v2,...)
-                if (e.sub == EXPR_TUPLE) {
-                    for (int i=0; i<e.Tuple.size; i++) {
-                        if (i > 0) {
-                            out(", ");
-                        }
-                        aux(e.Tuple.vec[i]);
+                // substitutes `v` in
+                //      Cons v
+                // where v is a recursive value
+                void aux2 (Expr e, Cons cons) {
+                    switch (cons.type.sub) {
+                        case TYPE_DATA:
+                            if (!strcmp(sup,cons.type.Data.tk.val.s)) {
+                                aux1(e);
+                                return;
+                            }
+                            break;
+                        case TYPE_TUPLE:
+                            assert(e.sub == EXPR_TUPLE);
+                            out("{");
+                            for (int i=0; i<cons.type.Tuple.size; i++) {
+                                if (i > 0) {
+                                    out(", ");
+                                }
+                                if (cons.type.Tuple.vec[i].sub==TYPE_DATA &&
+                                    !strcmp(sup,cons.type.Tuple.vec[i].Data.tk.val.s)) {
+                                    aux1(e.Tuple.vec[i]);
+                                } else {
+                                    code_expr(e.Tuple.vec[i], NULL);
+                                }
+                            }
+                            out("}");
+                            break;
+                        default:
+                            code_expr(e, NULL);
                     }
-                    return;
                 }
 
-                // new Cons(v)
-                if (e.sub != EXPR_CONS) {
-                    code_expr(e, NULL);
-                    return;
-                }
+                switch (e.sub) {
+                    //  l[] = new f(...)
+                    // becomes
+                    //  f(l,...)
+                    case EXPR_CALL:
+                        e.Call.pool = &ret->env.id;
+                        code_expr(e, NULL);
+                        break;
 
-                assert(e.sub == EXPR_CONS);
+                    // new Cons(...)
+                    case EXPR_CONS: {
+                        char* sub = e.Cons.id.val.s;
+                        Cons* cons = cons_get(*data,sub);
+                        assert(cons != NULL);
 
-                char* sub = e.Cons.id.val.s;
-                Cons* cons = cons_get(*data,sub);
+                        // new Nil
+                        if (cons->idx == 0) {
+                            out("NULL");
 
-                // new Cons(True,...)
-                if (cons == NULL) {     // True is not a case of this data
-                    code_expr(e, NULL);
-                    return;
-                }
+                        //  new Cons(...)
+                        // becomes
+                        //  { List* ptr=malloc(sizeof(List)); *ptr=XXX(); ptr; }
+                        } else {
+                            fprintf(ALL.out[OGLOB],
+                                "({\n"
+                                "%s* ptr_%d = malloc(sizeof(%s));\n"
+                                "*ptr_%d = (%s) %s(",
+                                sup, i, sup,
+                                i, sup, sub
+                            );
 
-                // new Nil
-                if (cons->idx == 0) {
-                    out("NULL");
+                            // XXX
+                            aux2(*e.Cons.arg, *cons);
 
-                //  new Cons(...)
-                // becomes
-                //  { List* ptr=malloc(sizeof(List)); *ptr=XXX(); ptr; }
-                } else {
-                    fprintf(ALL.out[OGLOB],
-                        "({\n"
-                        "%s* ptr_%d = malloc(sizeof(%s));\n"
-                        "*ptr_%d = (%s) %s(",
-                        sup, i, sup,
-                        i, sup, sub
-                    );
-
-                    // XXX
-                    aux(*e.Cons.arg);
-
-                    fprintf(ALL.out[OGLOB],
-                        ");\n"
-                        "ptr_%d;\n})",
-                        i
-                    );
+                            fprintf(ALL.out[OGLOB],
+                                ");\n"
+                                "ptr_%d;\n})",
+                                i
+                            );
+                        }
+                        break;
+                    }
+                    default:
+                        code_expr(e, NULL);
+                        //assert(0 && "bug found");
                 }
             }
 
             code_ret(ret);
-            aux(*e.New);
+            aux1(*e.New);
             break;
         }
         case EXPR_SET:

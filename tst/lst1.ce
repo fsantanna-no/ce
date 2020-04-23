@@ -1,4 +1,3 @@
-data Chars
 data Chars:
     NilC  ()
     ConsC ({char},Chars)
