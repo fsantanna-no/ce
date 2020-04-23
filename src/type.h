@@ -39,3 +39,6 @@ typedef struct Data {
     int   size;     // size=0: recursive pre declaration
     Cons* vec;
 } Data;
+
+int data_isrec  (Data data);
+int datas_isrec (const char* data);

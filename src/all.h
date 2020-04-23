@@ -85,8 +85,6 @@ typedef struct tce_ret {
 
 DATA datas_data (const char* v);
 CONS datas_cons (const char* v, char** sup);
-int data_isrec  (Data data);
-int datas_isrec (const char* data);
 
 void all_init (FILE* out, FILE* inp);
 
