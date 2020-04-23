@@ -558,9 +558,15 @@ void code_expr (Expr e, tce_ret* ret) {
         case EXPR_NEW: {
             Type type = env_expr(*e.New);
             assert(type.sub == TYPE_DATA);
-            char* sup = type.Data.tk.val.s;
-            Data* data = cons_sup(sup);
-            assert(data != NULL);
+            char* id = type.Data.tk.val.s;
+            Data* data; {
+                data = data_get(id);
+                if (data == NULL) {
+                    data = cons_sup(id);
+                }
+                assert(data != NULL);
+            }
+            char* sup = data->tk.val.s;
 
             void aux (char* cons) {
                 Cons* sub = cons_get(*data,cons);
