@@ -85,8 +85,11 @@ Type env_expr (Expr expr) {
             return (Type) { TYPE_DATA, .Data={expr.Cons,-1} };
         case EXPR_CALL: {
             Type type = env_expr(*expr.Call.func);
-            if (type.sub == TYPE_FUNC) {
-                return *type.Func.out;
+            switch (type.sub) {
+                case TYPE_FUNC:
+                    return *type.Func.out;
+                case TYPE_DATA:
+                    return type;
             }
         }
         default:
