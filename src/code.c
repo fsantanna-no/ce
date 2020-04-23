@@ -69,7 +69,7 @@ void code_type_ (char* out1, char* out2, Type tp) {
             strcat(out2, "int");
             break;
         case TYPE_DATA: {
-            int isrec = (datas_data(tp.Data.tk.val.s) == DATA_REC);
+            int isrec = datas_isrec(tp.Data.tk.val.s);
             if (isrec) strcat(out2, "struct ");
             strcat(out2, tp.Data.tk.val.s);
             if (isrec) strcat(out2, "*");
@@ -133,11 +133,10 @@ void code_data (Data data) {
     assert(strlen(sup) < sizeof(SUP));
     strcpy(SUP, strupper(sup));
     DATA kind = datas_data(sup);
+    int isrec = data_isrec(data);
 
-    // only pre declaration
-    if (data.size == 0) {
+    if (isrec) {
         fprintf(ALL.out[OGLOB], "struct %s;\n", sup);
-        return;
     }
 
     for (int i=0; i<data.size; i++) {
@@ -159,7 +158,7 @@ void code_data (Data data) {
         if (cons.type.sub != TYPE_UNIT) {
             out("(...)");
         }
-        if (kind==DATA_REC && cons.type.sub==TYPE_UNIT) {
+        if (isrec && cons.type.sub==TYPE_UNIT) {
             out(" NULL\n");
         } else {
             out(" ((");
@@ -209,7 +208,7 @@ void code_data (Data data) {
 
     out(out1);
 
-    if (kind==DATA_PLAIN || (kind==DATA_REC && data.size>2)) {
+    if (kind==DATA_PLAIN || (isrec && data.size>2)) {
         fprintf(ALL.out[OGLOB],
             "typedef struct %s {\n"
             "    %s sub;\n"
@@ -230,13 +229,13 @@ void code_data (Data data) {
 
     fprintf(ALL.out[OGLOB],
         "void _show_%s (%s%s v) {\n",
-        sup, sup, (kind==DATA_REC ? "*" : "")
+        sup, sup, (isrec ? "*" : "")
     );
     int has_switch = 0;
     for (int i=0; i<data.size; i++) {
         Cons cons = data.vec[i];
         char* v = cons.tk.val.s;
-        if (kind==DATA_REC && i==0) {
+        if (isrec && i==0) {
             fprintf(ALL.out[OGLOB],
                 "if (v == NULL) {\n"
                 "    printf(\"%s\");\n"
@@ -248,7 +247,7 @@ void code_data (Data data) {
         if (kind == DATA_SINGLE) {
             // no switch
             fprintf(ALL.out[OGLOB], "printf(\"%s\");\n", v);
-        } else if (kind == DATA_REC && data.size<=2) {
+        } else if (isrec && data.size<=2) {
             // no switch
             if (i > 0) {
                 fprintf(ALL.out[OGLOB], "printf(\"%s\");\n", v);
@@ -259,7 +258,7 @@ void code_data (Data data) {
                 if (i == 0) {
                     fprintf(ALL.out[OGLOB], "switch (v.sub) {\n");
                 }
-            } else if (kind == DATA_REC) {
+            } else if (isrec) {
                 has_switch = 1;
                 if (i == 1) {
                     fprintf(ALL.out[OGLOB], "switch (v->sub) {\n");
@@ -301,7 +300,7 @@ void code_data (Data data) {
                 }
             }
             char arg_[256];
-            sprintf(arg_, "v%s_%s", (kind==DATA_REC?"->":"."), v);
+            sprintf(arg_, "v%s_%s", (isrec?"->":"."), v);
             aux(cons.type, arg_, 1);
             out("putchar(')');\n");
         }
@@ -316,7 +315,7 @@ void code_data (Data data) {
     out("}\n");
     fprintf(ALL.out[OGLOB],
         "void show_%s (%s%s v) { _show_%s(v); puts(\"\"); }\n\n",
-        sup, sup, (kind==DATA_REC ? "*" : ""), sup);
+        sup, sup, (isrec ? "*" : ""), sup);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

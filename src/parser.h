@@ -198,7 +198,7 @@ typedef struct Expr {
 } Expr;
 
 typedef struct Glob {
-    int sub;
+    GLOB sub;
     union {
         Data data;
         Expr expr;
