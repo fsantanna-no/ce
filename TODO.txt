@@ -1,5 +1,5 @@
-- count number of allocs in "new", cur++
 - back to lst1, always test lexer "OK"
+- count number of allocs in "new", cur++
 - env
     - ce_arg, ce_ret
         - type of ... (requires enclosing func type)

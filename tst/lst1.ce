@@ -2,7 +2,7 @@ data Chars:
     NilC  ()
     ConsC ({char},Chars)
 
-func c2Chars :: ({char*} -> Chars):
+func c2Chars :: ({char*} -> Chars[]):
     val buf :: {char*} = ...
     if:
         {buf[0] == '\0'} -> new NilC
@@ -15,6 +15,6 @@ func showC :: (Chars -> ()):
             {putchar(c)}
             showC(l)
 
-val cs :: Chars[] = c2Chars({"abc"})
-{assert(cs.n == 3)}
-showC(c2Chars({"abc"}))
+val cs :: Chars[] = new c2Chars({"abc"})
+--{assert(cs.n == 3)}
+showC(cs)
