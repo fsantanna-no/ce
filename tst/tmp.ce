@@ -1,26 +1,34 @@
-data Chars:
-    NilC  ()
-    ConsC ({char},Chars)
+data String:
+    Str0
+    StrN ({char},String)
 
-func showC :: (Chars -> ()):
-    match ...:
-        NilC -> {putchar('\n')}
-        ConsC (c,cs) :: ({char},Chars) :
-            {putchar(c)}
-            showC(cs)
+data Tokens:
+    Tok0
+    TokN ({char},Tokens)
 
-func c2Chars :: ({char*} -> Chars[]):
+func toString :: ({char*} -> String[]):
     val buf :: {char*} = ...
     if:
-        {buf[0] == '\0'} -> new NilC
-        else:
-            --val cs :: Chars[] = new c2Chars({buf+1})
-            --new ConsC({buf[0]}, cs)
-            new ConsC({buf[0]}, c2Chars({buf+1}))
+        {buf[0] == '\0'} -> new Str0
+        else             -> new StrN({buf[0]}, toString({buf+1}))
 
+func toTokens :: (String -> Tokens[]):
+    val cur :: String[] = new Str0
+    return aux(...,cur)
+where:
+    func aux :: ((String,String) -> Tokens[]):
+        val (buf,cur) :: (String,String) = ...
+        match buf:
+            Str0 -> Tok0
+            StrN(c,cs) :: ({char},String) -> TokN(c, aux(cs,cur))
 
-val cs1 :: Chars[] = new ConsC({'a'}, ConsC({'b'}, NilC))
-val cs2 :: Chars[] = new c2Chars({"abcdef"})
+func t_lexer :: (() -> ()):
+    :
+        val str :: String[] = new toString({"-- foobar"})
+        val tks :: Tokens[] = new toTokens(str)
+        {show_Tokens}(tks)
 
-showC(cs1)
-showC(cs2)
+:
+    t_lexer ()
+
+{ puts("OK") }

@@ -1156,6 +1156,20 @@ void t_all (void) {
         "val m :: LMaybe = LJust(l)\n"
         "{show_LMaybe}(m)\n"
     ));
+    assert(all(
+        "StrN(StrN(Str0))\n",
+        "data String:\n"
+        "    Str0\n"
+        "    StrN String\n"
+        "func copy :: (String -> String[]):\n"
+        "    val buf :: String = ...\n"
+        "    match buf:\n"
+        "        Str0 -> Str0\n"
+        "        StrN(cs) :: String -> new StrN(copy(cs))\n"
+        "val str :: String[] = new StrN(StrN(Str0))\n"
+        "val cpy :: String[] = new copy(str)\n"
+        "{show_String}(cpy)\n"
+    ));
 
     // LOOP
 

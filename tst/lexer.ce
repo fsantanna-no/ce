@@ -13,13 +13,13 @@ func to_bool :: ({int} -> Bool):
 
 data Tk:        -- TODO: inheritance // optional | \n
     Tk_ERR
-    Tk_CHAR     {char}
     Tk_EOF
-    Tk_LINE     {int}
     Tk_COMMENT
+    Tk_LINE     {int}
+    Tk_CHAR     {char}      -- `:`  `=`  ...
+    Tk_DECL                 -- `::`
+    Tk_ARROW                -- `->`
     Tk_RAW      {String}
-    Tk_DECL
-    Tk_ARROW
     Tk_IDVAR    {String}
     Tk_IDDATA   {String}
     Tk_LET
@@ -60,7 +60,7 @@ func reserved_ :: ((Keywords,{String}) -> Maybe_Key):
                 {!strcmp(key.v,str.v)} -> Key_Just(tk)
                 else -> reserved_ (l,key)
 
-func lexer_ :: (() -> Tk):
+func lexer' :: (() -> Tk):
     val c :: {int} = {fgetc} (inp)
     match c:
         {EOF}  -> Tk_EOF
@@ -96,7 +96,7 @@ func lexer_ :: (() -> Tk):
                                 return Tk_RAW(s)
                     {'\n'}:
                         return Tk_ERR
-                {s.v[i++] = c'}
+                {s.v[i++] = c_}
                 pass                            -- TODO: prevents assigning loop value
         {'-'}:
             val c' :: {int} = {fgetc}(inp)
@@ -138,7 +138,7 @@ func lexer_ :: (() -> Tk):
                 Key_Just(tk) :: Tk -> tk
 
 func lexer :: (() -> Tk):
-    val tk :: Tk = lexer_()
+    val tk :: Tk = lexer'()
     loop:
         val c :: {int} = {fgetc}(inp)
         match c:
@@ -149,7 +149,7 @@ func lexer :: (() -> Tk):
     {show_Tk}(tk)
     return tk
 
-func stropen :: (({char*},{size_t},{char*}) -> {FILE*}): -- TODO: (mode::char*, ...)
+func stropen :: (({char*},{size_t},{char*}) -> {FILE*}):
     val (mode,size,str) :: ({char*},{size_t},{char*}) = ...
     set size = match size:
         {0}  -> {strlen} (str)
