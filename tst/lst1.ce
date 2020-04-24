@@ -1,20 +1,11 @@
-data Chars:
-    NilC  ()
-    ConsC ({char},Chars)
+data List:
+    Nil  ()
+    Cons List
 
-func c2Chars :: ({char*} -> Chars[]):
-    val buf :: {char*} = ...
-    if:
-        {buf[0] == '\0'} -> new NilC
-        else             -> new ConsC({buf[0]}, c2Chars({buf+1}))
+data LMaybe:
+    LNothing ()
+    LJust    List
 
-func showC :: (Chars -> ()):
-    match ...:
-        NilC -> {putchar('\n')}
-        ConsC (c,l) :: ({char},Chars) :
-            {putchar(c)}
-            showC(l)
-
-val cs :: Chars[] = new c2Chars({"abc"})
-{assert(cs->cur == 3)}
-showC(cs)
+val l :: List[] = new Cons(Nil)
+val m :: LMaybe = LJust(l)
+{show_LMaybe}(m)

@@ -1,4 +1,4 @@
-- count number of allocs in "new", cur++
+- Pool
     - List[10], fail to allocate
     - dealloc on scope
 - test lexer

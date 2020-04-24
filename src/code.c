@@ -238,95 +238,102 @@ void code_data (Data data) {
         );
     }
 
-    fprintf(ALL.out[OGLOB],
-        "void _show_%s (%s%s v) {\n",
-        sup, sup, (isrec ? "*" : "")
-    );
-    int has_switch = 0;
-    for (int i=0; i<data.size; i++) {
-        Cons cons = data.vec[i];
-        char* v = cons.tk.val.s;
-        if (isrec && i==0) {
-            fprintf(ALL.out[OGLOB],
-                "if (v == NULL) {\n"
-                "    printf(\"%s\");\n"
-                "    return;\n"
-                "}\n",
-                v
-            );
-        }
-        if (issingle) {
-            // no switch
-            fprintf(ALL.out[OGLOB], "printf(\"%s\");\n", v);
-        } else if (isrec && data.size<=2) {
-            // no switch
-            if (i > 0) {
-                fprintf(ALL.out[OGLOB], "printf(\"%s\");\n", v);
-            }
-        } else {
-            if (isplain) {
-                has_switch = 1;
-                if (i == 0) {
-                    fprintf(ALL.out[OGLOB], "switch (v.sub) {\n");
-                }
-            } else if (isrec) {
-                has_switch = 1;
-                if (i == 1) {
-                    fprintf(ALL.out[OGLOB], "switch (v->sub) {\n");
-                }
-            }
-            fprintf(ALL.out[OGLOB],
-                "case %s_%s:\n"
-                "    printf(\"%s\");\n"
-                "    break;\n",
-                sup, v, v
-            );
-        }
-
-        if (cons.type.sub != TYPE_UNIT) {
-            out("putchar('(');\n");
-            void aux (Type type, char* arg, int first) {
-                switch (type.sub) {
-                    case TYPE_TUPLE:
-                        if (!first) {
-                            out("putchar('(');\n");
-                        }
-                        for (int i=0; i<type.Tuple.size; i++) {
-                            if (i > 0) {
-                                out("printf(\",\");\n");
-                            }
-                            char arg_[256];
-                            sprintf(arg_, "%s._%d", arg, i);
-                            aux(type.Tuple.vec[i], arg_, 0);
-                        }
-                        if (!first) {
-                            out("putchar(')');\n");
-                        }
-                        break;
-                    case TYPE_DATA:
-                        fprintf(ALL.out[OGLOB], "_show_%s(%s);\n", type.Data.tk.val.s, arg);
-                        break;
-                    default:
-                        out("printf(\"%s\", \"???\");\n");
-                }
-            }
-            char arg_[256];
-            sprintf(arg_, "v%s_%s", (isrec?"->":"."), v);
-            aux(cons.type, arg_, 1);
-            out("putchar(')');\n");
-        }
-    }
-    if (has_switch) {
+    // SHOW
+    {
         fprintf(ALL.out[OGLOB],
-            "default:\n"
-            "    assert(0 && \"bug found\");\n"
-            "}\n"
+            "void _show_%s (%s%s v) {\n",
+            sup, sup, (isrec ? "*" : "")
         );
+        int has_switch = 0;
+        int has_open   = 0;
+        for (int i=0; i<data.size; i++) {
+            Cons cons = data.vec[i];
+            char* v = cons.tk.val.s;
+            if (isrec && i==0) {
+                fprintf(ALL.out[OGLOB],
+                    "if (v == NULL) {\n"
+                    "    printf(\"%s\");\n"
+                    "    return;\n"
+                    "}\n",
+                    v
+                );
+            }
+            if (issingle) {
+                // no switch
+                fprintf(ALL.out[OGLOB], "printf(\"%s\");\n", v);
+            } else if (isrec && data.size<=2) {
+                // no switch
+                if (i > 0) {
+                    fprintf(ALL.out[OGLOB], "printf(\"%s\");\n", v);
+                }
+            } else {
+                has_open = 1;
+                if (isplain) {
+                    has_switch = 1;
+                    if (i == 0) {
+                        fprintf(ALL.out[OGLOB], "switch (v.sub) {\n");
+                    }
+                } else if (isrec) {
+                    has_switch = 1;
+                    if (i == 1) {
+                        fprintf(ALL.out[OGLOB], "switch (v->sub) {\n");
+                    }
+                }
+                fprintf(ALL.out[OGLOB],
+                    "case %s_%s:\n"
+                    "    printf(\"%s\");\n",
+                    sup, v, v
+                );
+            }
+
+            if (cons.type.sub != TYPE_UNIT) {
+                out("putchar('(');\n");
+                void aux (Type type, char* arg, int first) {
+                    switch (type.sub) {
+                        case TYPE_TUPLE:
+                            if (!first) {
+                                out("putchar('(');\n");
+                            }
+                            for (int i=0; i<type.Tuple.size; i++) {
+                                if (i > 0) {
+                                    out("printf(\",\");\n");
+                                }
+                                char arg_[256];
+                                sprintf(arg_, "%s._%d", arg, i);
+                                aux(type.Tuple.vec[i], arg_, 0);
+                            }
+                            if (!first) {
+                                out("putchar(')');\n");
+                            }
+                            break;
+                        case TYPE_DATA:
+                            fprintf(ALL.out[OGLOB], "_show_%s(%s);\n", type.Data.tk.val.s, arg);
+                            break;
+                        default:
+                            out("printf(\"%s\", \"???\");\n");
+                    }
+                }
+                char arg_[256];
+                sprintf(arg_, "v%s_%s", (isrec?"->":"."), v);
+                aux(cons.type, arg_, 1);
+                out("putchar(')');\n");
+            }
+            if (has_open) {
+                out("    break;\n");
+            }
+        }
+        if (has_switch) {
+            fprintf(ALL.out[OGLOB],
+                "default:\n"
+                "    assert(0 && \"bug found\");\n"
+                "}\n"
+            );
+        }
+        out("}\n");
+        fprintf(ALL.out[OGLOB],
+            "void show_%s (%s%s v) { _show_%s(v); puts(\"\"); }\n\n",
+            sup, sup, (isrec ? "*" : ""), sup);
     }
-    out("}\n");
-    fprintf(ALL.out[OGLOB],
-        "void show_%s (%s%s v) { _show_%s(v); puts(\"\"); }\n\n",
-        sup, sup, (isrec ? "*" : ""), sup);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -618,7 +625,7 @@ void code_expr_new (Expr e, tce_ret* ret) {
                 } else {
                     fprintf(ALL.out[OGLOB],
                         "({\n"
-                        "ce_pool->cur++;\n"
+                        "//ce_pool->cur++;\n"
                         "%s* ptr_%d = malloc(sizeof(%s));\n"
                         "*ptr_%d = (%s) %s(",
                         sup, i, sup,

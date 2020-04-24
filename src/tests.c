@@ -1132,7 +1132,6 @@ void t_all (void) {
         "    Cons(x,_) :: Nat -> x\n"
         "{show_Nat}(n)"
     ));
-
     assert(all(
         "ConsC(???,NilC)\n",
         "data Chars:\n"
@@ -1145,7 +1144,18 @@ void t_all (void) {
         "val cs :: Chars[] = new c2Chars()\n"
         "{show_Chars}(cs)\n"
     ));
-
+    assert(all(
+        "LJust(Cons(Nil))\n",
+        "data List:\n"
+        "    Nil  ()\n"
+        "    Cons List\n"
+        "data LMaybe:\n"
+        "    LNothing ()\n"
+        "    LJust    List\n"
+        "val l :: List[] = new Cons(Nil)\n"
+        "val m :: LMaybe = LJust(l)\n"
+        "{show_LMaybe}(m)\n"
+    ));
 
     // LOOP
 

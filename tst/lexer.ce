@@ -24,7 +24,6 @@ data Tk:        -- TODO: inheritance // optional | \n
     Tk_IDDATA   {String}
     Tk_LET
 
-data Keywords
 data Keywords:
     Key_NIL
     Key_CNS ({String},Tk,Keywords)
@@ -45,7 +44,7 @@ data Maybe_Type:
 data State_Tok:
     State_Tok ({long},{long},{long},Tk)
 
-val keys :: Keywords = new Key_CNS ({(String){"let"}},Tk_LET,new Key_NIL)
+val keys :: Keywords = new Key_CNS ({(String){"let"}},Tk_LET,Key_NIL)
 mut out  :: {FILE*}
 mut inp  :: {FILE*}
 mut tok0 :: State_Tok = State_Tok ({-1},{0},{0},Tk_ERR)
@@ -62,18 +61,20 @@ func reserved_ :: ((Keywords,{String}) -> Maybe_Key):
                 else -> reserved_ (l,key)
 
 func lexer_ :: (() -> Tk):
-    match {fgetc} (inp):
+    val c :: {int} = {fgetc} (inp)
+    match c:
         {EOF}  -> Tk_EOF
         {'('}  -> Tk_CHAR ({'('})
         {')'}  -> Tk_CHAR ({')'})
         {'\n'}:
             val i :: {int} = {0}
             loop:                               -- TODO: loop i
-                match {fgetc} (inp):
+                val c' :: {int} = {fgetc} (inp)
+                match c':
                     {EOF} -> return Tk_EOF      -- consider \nEOF as EOF
                     {' '} -> set i = {i+1}
-                    c :: {int}:
-                        {ungetc} (c,inp)
+                    c' :: {int}:
+                        {ungetc} (c',inp)
                         break ()
             if:
                 {i%4 == 0} -> return Tk_LINE ({i/4})
@@ -83,8 +84,8 @@ func lexer_ :: (() -> Tk):
             val i :: {int} = {0}
             val n :: {int} = {1}
             loop:
-                val c :: {int} = {fgetc}(inp)
-                match c:
+                val c' :: {int} = {fgetc}(inp)
+                match c':
                     {'{'/*}*/}:
                         set n = {n+1}
                     {/*{*/'}'}:
@@ -95,14 +96,16 @@ func lexer_ :: (() -> Tk):
                                 return Tk_RAW(s)
                     {'\n'}:
                         return Tk_ERR
-                {s.v[i++] = c}
+                {s.v[i++] = c'}
                 pass                            -- TODO: prevents assigning loop value
         {'-'}:
-            match {fgetc} (inp):
+            val c' :: {int} = {fgetc}(inp)
+            match c':
                 {'>'} -> return Tk_ARROW
                 {'-'} -> :
                     loop:
-                        match {fgetc} (inp):
+                        val c'' :: {int} = {fgetc}(inp)
+                        match c'':
                             {EOF}:
                                 {ungetc} ({EOF},inp)
                                 return Tk_COMMENT
@@ -112,12 +115,13 @@ func lexer_ :: (() -> Tk):
                             else -> pass
                 else  -> return Tk_ERR
         {':'}:
-            match {fgetc} (inp):
+            val c' :: {int} = {fgetc}(inp)
+            match c':
                 {':'} -> return Tk_DECL
-                c :: {int}:
-                    {ungetc} (c,inp)
+                else:
+                    {ungetc} (c',inp)
                     return Tk_CHAR ({':'})
-        c :: {int}:
+        else:
             mut i   :: {int}    = {0}
             mut ret :: {String} = {(String){""}}
             return Tk_ERR if {!isalpha (c)}
@@ -136,9 +140,10 @@ func lexer_ :: (() -> Tk):
 func lexer :: (() -> Tk):
     val tk :: Tk = lexer_()
     loop:
-        match {fgetc} (inp):
+        val c :: {int} = {fgetc}(inp)
+        match c:
             {' '} -> pass
-            c :: {int}:
+            else:
                 {ungetc} (c,inp)
                 break ()
     {show_Tk}(tk)
