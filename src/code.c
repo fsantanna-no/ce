@@ -798,9 +798,11 @@ void code_expr (Expr e, tce_ret* ret) {
             break;
         }
         case EXPR_RETURN: {
-            out("return ");
-            code_expr(*e.Return, NULL);
+            Env_Plain env = { {TK_IDVAR,{.s="ce_out"}}, *env_get(e.env,"ce_out",NULL) };
+            tce_ret r = { env, NULL };
+            code_expr(*e.Return, &r);
             out(";\n");
+            out("return ce_out;\n");
             break;
         }
         case EXPR_MATCH:

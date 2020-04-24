@@ -14,13 +14,13 @@ func toString :: ({char*} -> String[]):
 
 func toTokens :: (String -> Tokens[]):
     val cur :: String[] = new Str0
-    return aux(...,cur)
+    return new aux(...,cur)
 where:
     func aux :: ((String,String) -> Tokens[]):
         val (buf,cur) :: (String,String) = ...
         match buf:
-            Str0 -> Tok0
-            StrN(c,cs) :: ({char},String) -> TokN(c, aux(cs,cur))
+            Str0 -> new Tok0
+            StrN(c,cs) :: ({char},String) -> new TokN(c, aux(cs,cur))
 
 func t_lexer :: (() -> ()):
     :
