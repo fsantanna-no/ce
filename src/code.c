@@ -11,6 +11,7 @@ void outl (State_Tok tok) {
 void code_ret (tce_ret* ret) {
     while (ret != NULL) {
         if (ret->env.type.sub==TYPE_DATA && ret->env.type.Data.size!=-1) {
+//assert(0);
             out("(");
             out(ret->env.id.val.s);
             out("->root");
@@ -799,6 +800,9 @@ void code_expr (Expr e, tce_ret* ret) {
         }
         case EXPR_RETURN: {
             Env_Plain env = { {TK_IDVAR,{.s="ce_out"}}, *env_get(e.env,"ce_out",NULL) };
+            if (env.type.sub == TYPE_DATA) {
+                env.type.Data.size = -1;     // returns pointer, not pool[]
+            }
             tce_ret r = { env, NULL };
             code_expr(*e.Return, &r);
             out(";\n");
