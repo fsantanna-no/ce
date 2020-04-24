@@ -528,6 +528,115 @@ void code_decl (Decl d, tce_ret* ret) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
+void code_expr_new (Expr e, tce_ret* ret) {
+    //out(e.Call.pool->val.s);
+    Type type = env_expr(*e.New);
+    assert(type.sub == TYPE_DATA);
+    char* id = type.Data.tk.val.s;
+    Data* data; {
+        data = data_get(id);
+        if (data == NULL) {
+            data = cons_sup(id,NULL);
+        }
+        assert(data != NULL);
+    }
+    char* sup = data->tk.val.s;
+
+    //void aux1 (Expr e);
+    //void aux2 (Expr e, Cons cons);
+
+    // substitutes `v` in
+    //      v
+    // where v is a recursive value, so either
+    // - a call to build it
+    // - a cons to build it
+    void aux1 (Expr e) {
+        static int I = 0;
+        int i = ++I;
+
+        // substitutes `v` in
+        //      Cons v
+        // where v is a recursive value
+        void aux2 (Expr e, Cons cons) {
+            switch (cons.type.sub) {
+                case TYPE_DATA:
+                    if (!strcmp(sup,cons.type.Data.tk.val.s)) {
+                        aux1(e);
+                        return;
+                    }
+                    break;
+                case TYPE_TUPLE:
+                    assert(e.sub == EXPR_TUPLE);
+                    out("{");
+                    for (int i=0; i<cons.type.Tuple.size; i++) {
+                        if (i > 0) {
+                            out(", ");
+                        }
+                        if (cons.type.Tuple.vec[i].sub==TYPE_DATA &&
+                            !strcmp(sup,cons.type.Tuple.vec[i].Data.tk.val.s)) {
+                            aux1(e.Tuple.vec[i]);
+                        } else {
+                            code_expr(e.Tuple.vec[i], NULL);
+                        }
+                    }
+                    out("}");
+                    break;
+                default:
+                    code_expr(e, NULL);
+            }
+        }
+
+        switch (e.sub) {
+            //  l[] = new f(...)
+            // becomes
+            //  f(l,...)
+            case EXPR_CALL:
+                e.Call.pool = &ret->env.id;
+                code_expr(e, NULL);
+                break;
+
+            // new Cons(...)
+            case EXPR_CONS: {
+                char* sub = e.Cons.id.val.s;
+                Cons* cons = cons_get(*data,sub);
+                assert(cons != NULL);
+
+                // new Nil
+                if (cons->idx == 0) {
+                    out("NULL");
+
+                //  new Cons(...)
+                // becomes
+                //  { List* ptr=malloc(sizeof(List)); *ptr=XXX(); ptr; }
+                } else {
+                    fprintf(ALL.out[OGLOB],
+                        "({\n"
+                        "%s* ptr_%d = malloc(sizeof(%s));\n"
+                        "*ptr_%d = (%s) %s(",
+                        sup, i, sup,
+                        i, sup, sub
+                    );
+
+                    // XXX
+                    aux2(*e.Cons.arg, *cons);
+
+                    fprintf(ALL.out[OGLOB],
+                        ");\n"
+                        "ptr_%d;\n})",
+                        i
+                    );
+                }
+                break;
+            }
+            default:
+                code_expr(e, NULL);
+                //assert(0 && "bug found");
+        }
+    }
+    code_ret(ret);
+    aux1(*e.New);
+}
+
 void code_expr (Expr e, tce_ret* ret) {
     //Env* env = env_expr(e);
 
@@ -563,115 +672,9 @@ void code_expr (Expr e, tce_ret* ret) {
                 out(")");
             }
             break;
-        case EXPR_NEW: {
-            Type type = env_expr(*e.New);
-            assert(type.sub == TYPE_DATA);
-            char* id = type.Data.tk.val.s;
-            Data* data; {
-                data = data_get(id);
-                if (data == NULL) {
-                    data = cons_sup(id,NULL);
-                }
-                assert(data != NULL);
-            }
-            char* sup = data->tk.val.s;
-
-            //void aux1 (Expr e);
-            //void aux2 (Expr e, Cons cons);
-
-            // substitutes `v` in
-            //      v
-            // where v is a recursive value, so either
-            // - a call to build it
-            // - a cons to build it
-            void aux1 (Expr e) {
-                static int I = 0;
-                int i = ++I;
-
-                // substitutes `v` in
-                //      Cons v
-                // where v is a recursive value
-                void aux2 (Expr e, Cons cons) {
-                    switch (cons.type.sub) {
-                        case TYPE_DATA:
-                            if (!strcmp(sup,cons.type.Data.tk.val.s)) {
-                                aux1(e);
-                                return;
-                            }
-                            break;
-                        case TYPE_TUPLE:
-                            assert(e.sub == EXPR_TUPLE);
-                            out("{");
-                            for (int i=0; i<cons.type.Tuple.size; i++) {
-                                if (i > 0) {
-                                    out(", ");
-                                }
-                                if (cons.type.Tuple.vec[i].sub==TYPE_DATA &&
-                                    !strcmp(sup,cons.type.Tuple.vec[i].Data.tk.val.s)) {
-                                    aux1(e.Tuple.vec[i]);
-                                } else {
-                                    code_expr(e.Tuple.vec[i], NULL);
-                                }
-                            }
-                            out("}");
-                            break;
-                        default:
-                            code_expr(e, NULL);
-                    }
-                }
-
-                switch (e.sub) {
-                    //  l[] = new f(...)
-                    // becomes
-                    //  f(l,...)
-                    case EXPR_CALL:
-                        e.Call.pool = &ret->env.id;
-                        code_expr(e, NULL);
-                        break;
-
-                    // new Cons(...)
-                    case EXPR_CONS: {
-                        char* sub = e.Cons.id.val.s;
-                        Cons* cons = cons_get(*data,sub);
-                        assert(cons != NULL);
-
-                        // new Nil
-                        if (cons->idx == 0) {
-                            out("NULL");
-
-                        //  new Cons(...)
-                        // becomes
-                        //  { List* ptr=malloc(sizeof(List)); *ptr=XXX(); ptr; }
-                        } else {
-                            fprintf(ALL.out[OGLOB],
-                                "({\n"
-                                "%s* ptr_%d = malloc(sizeof(%s));\n"
-                                "*ptr_%d = (%s) %s(",
-                                sup, i, sup,
-                                i, sup, sub
-                            );
-
-                            // XXX
-                            aux2(*e.Cons.arg, *cons);
-
-                            fprintf(ALL.out[OGLOB],
-                                ");\n"
-                                "ptr_%d;\n})",
-                                i
-                            );
-                        }
-                        break;
-                    }
-                    default:
-                        code_expr(e, NULL);
-                        //assert(0 && "bug found");
-                }
-            }
-
-            code_ret(ret);
-            aux1(*e.New);
+        case EXPR_NEW:
+            code_expr_new(e, ret);
             break;
-        }
         case EXPR_SET:
             code_patt_set(e.Set.expr->env, e.Set.patt, *e.Set.expr);
             out(";\n");
