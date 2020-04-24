@@ -1133,6 +1133,20 @@ void t_all (void) {
         "{show_Nat}(n)"
     ));
 
+    assert(all(
+        "ConsC(???,NilC)\n",
+        "data Chars:\n"
+        "    NilC  ()\n"
+        "    ConsC ((),Chars)\n"
+        "func c2Chars :: (() -> Chars[]):\n"
+        "    match ():\n"
+        "        ()   -> new ConsC((), NilC)\n"
+        "        else -> new ConsC((), c2Chars())\n"
+        "val cs :: Chars[] = new c2Chars()\n"
+        "{show_Chars}(cs)\n"
+    ));
+
+
     // LOOP
 
     assert(all(

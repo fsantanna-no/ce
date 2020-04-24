@@ -529,7 +529,8 @@ void code_decl (Decl d, tce_ret* ret) {
 ///////////////////////////////////////////////////////////////////////////////
 
 void code_expr_new (Expr e, tce_ret* ret) {
-    //out(e.Call.pool->val.s);
+    assert(ret != NULL);
+
     Type type = env_expr(*e.New);
     assert(type.sub == TYPE_DATA);
     char* id = type.Data.tk.val.s;
@@ -590,10 +591,15 @@ void code_expr_new (Expr e, tce_ret* ret) {
             //  l[] = new f(...)
             // becomes
             //  f(l,...)
-            case EXPR_CALL:
-                e.Call.pool = &ret->env.id;
+            case EXPR_CALL: {
+                Tk tk = ret->env.id;
+                if (!strcmp(tk.val.s,"ce_out")) {
+                    tk = (Tk) { TK_IDVAR,{.s="ce_pool"} };
+                }
+                e.Call.pool = &tk;
                 code_expr(e, NULL);
                 break;
+            }
 
             // new Cons(...)
             case EXPR_CONS: {
