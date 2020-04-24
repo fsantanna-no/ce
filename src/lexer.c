@@ -151,7 +151,11 @@ TK lexer_ (TK_val* val) {
 
             int i = 0;
             while (isalnum(c) || c=='_' || c=='\'' || c=='?' || c=='!') {
-                val->s[i++] = c;
+                if (c=='\'' || c=='?' || c=='!') {
+                    val->s[i++] = '_';      // TODO: handle substitution in code generation
+                } else {
+                    val->s[i++] = c;
+                }
                 c = fgetc(ALL.inp);
             }
             val->s[i] = '\0';
