@@ -446,7 +446,8 @@ void code_patt_decls (Decl decl) {
         } else {
             out("Pool _");
             out(patts[0].Set.val.s);
-            out(";\nPool*"); // all pools must be used as pointers b/c of fun args w/ write access
+            out(" = { NULL, 0, 0, NULL };\n");
+            out("Pool*"); // all pools must be used as pointers b/c of fun args w/ write access
         }
         out(" ");
         out(patts[0].Set.val.s);
@@ -617,6 +618,7 @@ void code_expr_new (Expr e, tce_ret* ret) {
                 } else {
                     fprintf(ALL.out[OGLOB],
                         "({\n"
+                        "ce_pool->cur++;\n"
                         "%s* ptr_%d = malloc(sizeof(%s));\n"
                         "*ptr_%d = (%s) %s(",
                         sup, i, sup,

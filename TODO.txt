@@ -1,11 +1,7 @@
-- back to lst1, always test lexer "OK"
 - count number of allocs in "new", cur++
-- env
-    - ce_arg, ce_ret
-        - type of ... (requires enclosing func type)
-        - return should not generate `return` if enclosing func returns recursive type
-- global datas
-    - remove datas/conss
+    - List[10], fail to allocate
+    - dealloc on scope
+- test lexer
 - remove
     - pre data declaration
     - SUP_*
@@ -13,9 +9,6 @@
 - ambiguity
     - loop / if next line
 
-- types
-    - typedefs
-    - TODOS em tests
 - tuples
     - _1, _2
 - pools
