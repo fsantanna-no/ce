@@ -1,3 +1,14 @@
+- proof-examples for immut recs
+- char type
+- poly types
+    - List, Maybe
+- [...] syntax
+- lambda
+    - static
+    - poly
+- map
+- type classes
+
 - Pool
     - List[10], fail to allocate
     - dealloc on scope

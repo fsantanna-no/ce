@@ -1,0 +1,37 @@
+data String:
+    Str0
+    StrN ({char},String)
+
+data Token:
+    TChar {char}
+
+data Tokens:
+    Tok0
+    TokN (Token,Tokens)
+
+func toString :: ({char*} -> String[]):
+    val buf :: {char*} = ...
+    if:
+        {buf[0] == '\0'} -> new Str0
+        else             -> new StrN({buf[0]}, toString({buf+1}))
+
+func toTokens :: (String -> Tokens[]):
+    val cur :: String[] = new Str0
+    return new aux(...,cur)
+where:
+    func aux :: ((String,String) -> Tokens[]):
+        val (buf,cur) :: (String,String) = ...
+        match buf:
+            Str0 -> new Tok0
+            StrN(c,cs) :: ({char},String) -> new TokN(TChar(c), aux(cs,cur))
+
+func t_lexer :: (() -> ()):
+    :
+        val str :: String[] = new toString({"-- foobar"})
+        val tks :: Tokens[] = new toTokens(str)
+        {show_Tokens}(tks)
+
+:
+    t_lexer ()
+
+{ puts("OK") }

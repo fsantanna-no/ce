@@ -1,0 +1,8 @@
+data Chars:
+    NilC  ()
+    ConsC ((),Chars)
+func c2Chars :: (() -> Chars[]):
+    new ConsC((), NilC)
+val cs :: Chars[] = new c2Chars()
+{show_Chars}(cs)
+
