@@ -12,7 +12,7 @@ int all (const char* xp, char* src) {
     }
     code();
     fclose(ALL.out[OGLOB]);
-puts(out);
+//puts(out);
     remove("a.out");
 
     // compile
@@ -569,10 +569,10 @@ void t_code (void) {
             "#include \"inc/ce.c\"\n"
             "int main (void) {\n"
             "\n"
-            //"#line 1\n"
+            "#line 1\n"
             "int a;\n"
             ";\n"
-            //"#line 2\n"
+            "#line 2\n"
             "show_Bool(a);\n"
             "\n"
             "}\n";
@@ -591,9 +591,10 @@ void t_code (void) {
             "#include \"inc/ce.c\"\n"
             "int main (void) {\n"
             "\n"
+            "#line 1\n"
             "int inp;\n"
             ";\n"
-            //"#line 1\n"
+            "#line 2\n"
             "{\n"
             "typeof(fgetc(inp)) ce_tst = fgetc(inp);\n"
             "if (ce_tst == '\\n') {\n"

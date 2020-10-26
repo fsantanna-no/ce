@@ -5,7 +5,7 @@ void out (const char* v) {
 }
 
 void outl (State_Tok tok) {
-    //fprintf(ALL.out[OGLOB], "#line %ld\n", tok.lin);
+    fprintf(ALL.out[OGLOB], "#line %ld\n", tok.lin);
 }
 
 void code_ret (tce_ret* ret) {
