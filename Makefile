@@ -2,11 +2,12 @@
 CFLAGS = -Wall -Wno-switch #-Wno-return-local-addr
 
 SRC=$(wildcard src/*.c)
-SRC_TESTS := $(filter-out src/main.c,  $(SRC))
-SRC_MAIN  := $(filter-out src/tests.c, $(SRC))
 
-tests: $(SRC_TESTS)
+tests: $(SRC) src/main/tests.c
 	gcc -g -o $@ $^ $(CFLAGS) $(LIBS)
 
-main: $(SRC_MAIN)
+book: $(SRC) src/main/book.c
+	gcc -g -o $@ $^ $(CFLAGS) $(LIBS)
+
+main: $(SRC) src/main/main.c
 	gcc -g -o ce $^ $(CFLAGS) $(LIBS)

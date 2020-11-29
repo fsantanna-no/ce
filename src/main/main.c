@@ -3,7 +3,7 @@
 #include <assert.h>
 #include <stdlib.h>
 
-#include "all.h"
+#include "../all.h"
 
 enum {
     MODE_CODE,

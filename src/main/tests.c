@@ -1,4 +1,4 @@
-#include "all.h"
+#include "../all.h"
 
 int all (const char* xp, char* src) {
     static char out[65000];
