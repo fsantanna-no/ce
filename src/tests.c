@@ -113,6 +113,12 @@ void t_lexer (void) {
         assert(lexer().sym == ':');
         fclose(ALL.inp);
     }
+    {
+        ALL.inp = stropen("r", 0, "'x' '''");
+        Tk tk1 = lexer(); assert(tk1.sym == TK_CHAR); assert(tk1.val.n == 'x');
+        Tk tk2 = lexer(); assert(tk1.sym == TK_CHAR); assert(tk2.val.n == '\'');
+        fclose(ALL.inp);
+    }
 }
 
 void t_parser_type (void) {

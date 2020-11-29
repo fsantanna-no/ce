@@ -16,6 +16,7 @@ typedef enum {
 
     TK_IDVAR,   // 263
     TK_IDDATA,
+    TK_CHAR,
 
     // all reserved keywords
     TK_RESERVED,

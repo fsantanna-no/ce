@@ -142,6 +142,15 @@ TK lexer_ (TK_val* val) {
             }
             return TK_ERR;
 
+        case '\'': {        // TODO: ''', '\n'
+            val->n = fgetc(ALL.inp);
+            c = fgetc(ALL.inp);
+            if (c != '\'') {
+                return TK_ERR;
+            }
+            return TK_CHAR;
+        }
+
         default:
 
             if (!isalpha(c)) {
