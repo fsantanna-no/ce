@@ -4,7 +4,7 @@ typedef enum {
     TK_ERR = 0,
 
     // all single-char tokens
-    TK_CHAR = 256,
+    TK_TOK = 256,
 
     TK_COMMENT,
     TK_RAW,

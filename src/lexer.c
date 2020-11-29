@@ -52,7 +52,7 @@ const char* lexer_tk2str (Tk* tk) {
             sprintf(str, "`%s`", tk->val.s);
             break;
         default:
-            if (tk->sym < TK_CHAR) {
+            if (tk->sym < TK_TOK) {
                 sprintf(str, "`%c`", tk->sym);
             } else if (tk->sym > TK_RESERVED) {
                 sprintf(str, "`%s`", reserved[tk->sym-TK_RESERVED-1]);
