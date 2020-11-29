@@ -37,11 +37,11 @@ typedef struct {
 typedef struct Data {
     Tk    tk;
     int   size;     // size=0: recursive pre declaration
+    int   isrec;
     Cons* vec;
 } Data;
 
 Data* data_get   (const char* id);
-int   data_isrec (Data data);
 
 Cons* cons_get    (Data data, const char* id);
 Data* cons_sup    (const char* id, Cons* sub);

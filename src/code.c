@@ -72,10 +72,9 @@ void code_type_ (char* out1, char* out2, Type tp) {
         case TYPE_DATA: {
             Data* data = data_get(tp.Data.tk.val.s);
             assert(data != NULL);
-            int isrec = data_isrec(*data);
-            if (isrec) strcat(out2, "struct ");
+            if (data->isrec) strcat(out2, "struct ");
             strcat(out2, tp.Data.tk.val.s);
-            if (isrec) strcat(out2, "*");
+            if (data->isrec) strcat(out2, "*");
             break;
         }
         case TYPE_TUPLE: {
@@ -135,11 +134,8 @@ void code_data (Data data) {
     char SUP[256];
     assert(strlen(sup) < sizeof(SUP));
     strcpy(SUP, strupper(sup));
-    int isrec    = data_isrec(data);
-    int isplain  = !isrec && data.size>=2;
-    int issingle = !isrec && data.size==1;
 
-    if (isrec) {
+    if (data.isrec) {
         fprintf(ALL.out[OGLOB], "struct %s;\n", sup);
     }
 
@@ -164,10 +160,10 @@ void code_data (Data data) {
         } else {
             out("(...)");
         }
-        if (isrec && cons.type.sub==TYPE_UNIT) {
+        if (data.isrec && cons.type.sub==TYPE_UNIT) {
             out(" NULL\n");
         } else {
-            int ismult = (data.size>=3 || (!isrec && data.size>=2));
+            int ismult = (data.size>=3 || (!data.isrec && data.size>=2));
             out(" ((");
             out(sup);
             out(") { ");
@@ -220,7 +216,8 @@ void code_data (Data data) {
 
     out(out1);
 
-    if (isplain || (isrec && data.size>2)) {
+    int isplain  = !data.isrec && data.size>=2;
+    if (isplain || (data.isrec && data.size>2)) {
         fprintf(ALL.out[OGLOB],
             "typedef struct %s {\n"
             "    %s sub;\n"
@@ -243,41 +240,27 @@ void code_data (Data data) {
     {
         fprintf(ALL.out[OGLOB],
             "void _show_%s (%s%s v) {\n",
-            sup, sup, (isrec ? "*" : "")
+            sup, sup, (data.isrec ? "*" : "")
         );
-        int has_switch = 0;
-        int has_open   = 0;
+        if (data.isrec) {
+            fprintf(ALL.out[OGLOB],
+                "if (v == NULL) {\n"
+                "    printf(\"$\");\n"
+                "    return;\n"
+                "}\n"
+            );
+        }
         for (int i=0; i<data.size; i++) {
             Cons cons = data.vec[i];
             char* v = cons.tk.val.s;
-            if (isrec && i==0) {
-                fprintf(ALL.out[OGLOB],
-                    "if (v == NULL) {\n"
-                    "    printf(\"%s\");\n"
-                    "    return;\n"
-                    "}\n",
-                    v
-                );
-            }
-            if (issingle) {
-                // no switch
+            if (data.size == 1) {
                 fprintf(ALL.out[OGLOB], "printf(\"%s\");\n", v);
-            } else if (isrec && data.size<=2) {
-                // no switch
-                if (i > 0) {
-                    fprintf(ALL.out[OGLOB], "printf(\"%s\");\n", v);
-                }
             } else {
-                has_open = 1;
-                if (isplain) {
-                    has_switch = 1;
-                    if (i == 0) {
-                        fprintf(ALL.out[OGLOB], "switch (v.sub) {\n");
-                    }
-                } else if (isrec) {
-                    has_switch = 1;
-                    if (i == 1) {
+                if (data.size>=2 && i==0) {
+                    if (data.isrec) {
                         fprintf(ALL.out[OGLOB], "switch (v->sub) {\n");
+                    } else {
+                        fprintf(ALL.out[OGLOB], "switch (v.sub) {\n");
                     }
                 }
                 fprintf(ALL.out[OGLOB],
@@ -315,15 +298,15 @@ void code_data (Data data) {
                     }
                 }
                 char arg_[256];
-                sprintf(arg_, "v%s_%s", (isrec?"->":"."), v);
+                sprintf(arg_, "v%s_%s", (data.isrec?"->":"."), v);
                 aux(cons.type, arg_, 1);
                 out("putchar(')');\n");
             }
-            if (has_open) {
+            if (data.size >= 2) {
                 out("    break;\n");
             }
         }
-        if (has_switch) {
+        if (data.size >= 2) {
             fprintf(ALL.out[OGLOB],
                 "default:\n"
                 "    assert(0 && \"bug found\");\n"
@@ -333,7 +316,7 @@ void code_data (Data data) {
         out("}\n");
         fprintf(ALL.out[OGLOB],
             "void show_%s (%s%s v) { _show_%s(v); puts(\"\"); }\n\n",
-            sup, sup, (isrec ? "*" : ""), sup);
+            sup, sup, (data.isrec ? "*" : ""), sup);
     }
 }
 
@@ -359,19 +342,21 @@ void code_patt_match (Patt p, Expr tst) {
             code_expr(tst, NULL);
             out(" == 1");
             break;
+        case PATT_NIL:
+            code_expr(tst, NULL);
+            out(" == NULL");
+            break;
         case PATT_CONS: {
             Cons cons;
             Data* data = cons_sup(p.Cons.data.val.s, &cons);
             assert(data != NULL);
-            int isrec = data_isrec(*data);
             if (data->size == 1) {                  // SINGLE
-                out("1"); // always succeeds
-            } else if (isrec && cons.idx==0) {      // NULL
-                code_expr(tst, NULL);
-                out(" == NULL");
-            } else if (isrec && data->size==2) {    // CASE1
-                code_expr(tst, NULL);
-                out(" != NULL");
+                if (data->isrec) {                  // CASE1
+                    code_expr(tst, NULL);
+                    out(" != NULL");
+                } else {
+                    out("1"); // always succeeds
+                }
             } else {
                 out("(");
                 code_expr(tst, NULL);
@@ -409,6 +394,7 @@ void code_patt_set (Env* env, Patt p, Expr e) {
         case PATT_RAW:
         case PATT_ANY:
         case PATT_UNIT:
+        case PATT_NIL:
         case PATT_EXPR:
             break;
         case PATT_SET: {        // x = ce_tst
@@ -483,7 +469,7 @@ void code_decl (Decl d, tce_ret* ret) {
             if (d.type.Func.out->sub == TYPE_DATA) {
                 Data* data = data_get(d.type.Func.out->Data.tk.val.s);
                 assert(data != NULL);
-                isrec = data_isrec(*data);
+                isrec = data->isrec;
             }
         }
         assert(d.init != NULL);
@@ -616,32 +602,26 @@ void code_expr_new (Expr e, tce_ret* ret) {
                 Cons* cons = cons_get(*data,sub);
                 assert(cons != NULL);
 
-                // new Nil
-                if (cons->idx == 0) {
-                    out("NULL");
-
                 //  new Cons(...)
                 // becomes
                 //  { List* ptr=malloc(sizeof(List)); *ptr=XXX(); ptr; }
-                } else {
-                    fprintf(ALL.out[OGLOB],
-                        "({\n"
-                        "//ce_pool->cur++;\n"
-                        "%s* ptr_%d = malloc(sizeof(%s));\n"
-                        "*ptr_%d = (%s) %s(",
-                        sup, i, sup,
-                        i, sup, sub
-                    );
+                fprintf(ALL.out[OGLOB],
+                    "({\n"
+                    "//ce_pool->cur++;\n"
+                    "%s* ptr_%d = malloc(sizeof(%s));\n"
+                    "*ptr_%d = (%s) %s(",
+                    sup, i, sup,
+                    i, sup, sub
+                );
 
-                    // XXX
-                    aux2(*e.Cons.arg, *cons);
+                // XXX
+                aux2(*e.Cons.arg, *cons);
 
-                    fprintf(ALL.out[OGLOB],
-                        ");\n"
-                        "ptr_%d;\n})",
-                        i
-                    );
-                }
+                fprintf(ALL.out[OGLOB],
+                    ");\n"
+                    "ptr_%d;\n})",
+                    i
+                );
                 break;
             }
             default:
@@ -665,13 +645,17 @@ void code_expr (Expr e, tce_ret* ret) {
             code_ret(ret);
             out(e.Raw.val.s);
             break;
-        case EXPR_ARG:
-            code_ret(ret);
-            out("ce_inp");
-            break;
         case EXPR_UNIT:
             code_ret(ret);
             out("1");
+            break;
+        case EXPR_NIL:
+            code_ret(ret);
+            out("NULL");
+            break;
+        case EXPR_ARG:
+            code_ret(ret);
+            out("ce_inp");
             break;
         case EXPR_VAR:
             code_ret(ret);
@@ -878,12 +862,11 @@ void code_expr (Expr e, tce_ret* ret) {
             code_ret(ret);
             Type type = env_expr(*e.Cons_Sub.cons);
             Data* data = data_get(type.Data.tk.val.s);
-            int isrec = (data!=NULL && data_isrec(*data));
             //assert(type.sub == TYPE_DATA);
             out("(");
             code_expr(*e.Cons_Sub.cons, NULL);
             out(")");
-            out(isrec ? "->" : ".");
+            out((data!=NULL && data->isrec) ? "->" : ".");
             out("_");
             out(e.Cons_Sub.sub);
             break;

@@ -9,8 +9,22 @@ State_All ALL = { NULL,{NULL,NULL,NULL},{},0 };
 State_Tok TOK0, TOK1, TOK2;
 
 static char* reserved[] = {
-    "break", "match", "data", "else",   "func", "if",  "let", "loop",
-    "mut",   "new",  "pass", "return", "set",  "val", "where"
+    "break",
+    "data",
+    "data_rec",
+    "else",
+    "func",
+    "if",
+    "let",
+    "loop",
+    "match",
+    "mut",
+    "new",
+    "pass",
+    "return",
+    "set",
+    "val",
+    "where"
 };
 
 int is_reserved (TK_val* val) {
@@ -79,6 +93,7 @@ TK lexer_ (TK_val* val) {
         case '~':
         case '?':
         case '=':
+        case '$':
         case EOF:
         case '\n':
             return c;

@@ -16,7 +16,7 @@
  *        |   `(` Patt { `,` Patt } `)`
  *
  * Expr  ::= Expr' [ where `:` { Expr } ]
- * Expr' ::= `(` `)` | `...` | <id>             // EXPR_UNIT | EXPR_ARG | EXPR_VAR
+ * Expr' ::= `(` `)` | `$` | `...` | <id>       // EXPR_UNIT | EXPR_NIL | EXPR_ARG | EXPR_VAR
  *        |  <Id> [`(` Expr `)`]                // EXPR_CONS
  *        | `{` <...> `}`                       // EXPR_RAW
  *        | `(` Expr { `,` Expr } `)`           // EXPR_TUPLE
@@ -46,6 +46,7 @@
 typedef enum {
     PATT_RAW,
     PATT_UNIT,
+    PATT_NIL,
     PATT_ARG,
     PATT_ANY,
     PATT_CONS,
@@ -56,8 +57,9 @@ typedef enum {
 
 typedef enum {
     EXPR_RAW,
-    EXPR_ARG,
     EXPR_UNIT,
+    EXPR_NIL,
+    EXPR_ARG,
     EXPR_VAR,
     EXPR_CONS,
     EXPR_NEW,

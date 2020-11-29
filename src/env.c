@@ -5,6 +5,7 @@ void patt2patts (Patt* patts, int* patts_i, Patt patt) {
         case PATT_RAW:
         case PATT_ANY:
         case PATT_UNIT:
+        case PATT_NIL:
         case PATT_EXPR:
             break;
         case PATT_SET:

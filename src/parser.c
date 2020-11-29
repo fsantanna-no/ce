@@ -226,6 +226,9 @@ int parser_patt (Env* env, Patt* ret, int is_match) {
                 return err_expected("`)`");
             }
         }
+    // PATT_NIL
+    } else if (ll_accept1('$')) {
+        *ret = (Patt) { PATT_NIL };
     // PATT_ANY
     } else if (ll_accept1('_')) {
         *ret = (Patt) { PATT_ANY };
@@ -287,8 +290,12 @@ void* parser_cons_ (Env** env) {
 }
 
 int parser_data (Data* ret) {
+    int isrec = 0;
     if (!ll_accept1(TK_DATA)) {
-        return err_expected("`data`");
+        if (!ll_accept1(TK_DATA_REC)) {
+            return err_expected("`data`");
+        }
+        isrec = 1;
     }
     if (!ll_accept1(TK_IDDATA)) {
         return err_expected("data identifier");
@@ -310,7 +317,7 @@ int parser_data (Data* ret) {
         return err_expected("data declaration");
     }
 
-    *ret = (Data) { SUP, lst.size, lst.vec };
+    *ret = (Data) { SUP, lst.size, isrec, lst.vec };
     for (int i=0; i<ret->size; i++) {
         ret->vec[i].idx = i;
     }
@@ -494,6 +501,10 @@ int parser_expr_one (Env** env, Expr* ret) {
             }
         }
 
+    // EXPR_NIL
+    } else if (ll_accept1('$')) {
+        *ret = (Expr) { EXPR_NIL, {}, *env, NULL, {} };
+
     // EXPR_ARG
     } else if (ll_accept1(TK_ARG)) {
         *ret = (Expr) { EXPR_ARG, {}, *env, NULL, {} };
@@ -637,7 +648,7 @@ assert(0 && "TODO");
         }
 
     // EXPR_CASES
-    } else if (ll_accept1(TK_CASE)) {
+    } else if (ll_accept1(TK_MATCH)) {
         Expr* pe = expr_new(env);
         if (pe == NULL) {
             return 0;
@@ -783,7 +794,7 @@ void* parser_glob_ (Env** env) {
     static Glob g_;
     Glob g;
 
-    if (ll_check1(TK_DATA)) {
+    if (ll_check1(TK_DATA) || ll_check1(TK_DATA_REC)) {
         if (!parser_data(&g.data)) {
             return NULL;
         }
