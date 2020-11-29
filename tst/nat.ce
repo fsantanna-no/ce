@@ -1,6 +1,6 @@
 data Nat:
-    Zero = ()
-    Succ = Nat
+    Zero ()
+    Succ Nat
 
 val[0] zero :: Nat
 
@@ -29,6 +29,9 @@ val[2] two = new Succ (Succ (Zero))
 -- - move semantics, what to assign on pointer in place of what was released
 --
 -- Traverse knows the maximum "stack" size
+
+-- No move semantics e Pool unbounded, eu posso retirar de um e jogar pro outro
+-- sem maiores problemas.
 
 val v :: Nat = ...
     -- cannot change nodes
