@@ -13,9 +13,9 @@ set cpo&vim
 let s:ft = matchstr(&ft, '^\([^.]\)\+')
 
 syn keyword Structure   where
-syn keyword Statement   let set new call pass
+syn keyword Statement   let set call pass
 syn keyword Statement   val mut
-syn keyword Statement   data func
+syn keyword Statement   data data_rec func
 syn keyword Repeat      loop
 syn match   Operator    "\(\<[A-Z][a-zA-Z0-9_']*\.\)\=:[-!#$%&\*\+./<=>\?@\\^|~:]*"
 

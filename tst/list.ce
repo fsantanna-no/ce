@@ -1,0 +1,10 @@
+-- $ ./ce tst/list.ce
+-- $ ./ce.out
+
+data List:
+    Nil  ()     -- implicit, must be ommited
+    Cons List   -- recursive constructor
+
+val l :: List[] = new Cons(Cons(Nil))
+
+{show_List}(l)

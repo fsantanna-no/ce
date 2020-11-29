@@ -972,7 +972,7 @@ void t_all (void) {
         "    Cons ((), List)\n"
         "func fff :: (() -> List[]):\n"
         "    $\n"
-        "val l :: List[] = new fff()\n"
+        "val l :: List[] = fff()\n"
         "{show_List}(l)"
     ));
     assert(all(
@@ -990,7 +990,7 @@ void t_all (void) {
         "data_rec List:\n"
         "    Cons List\n"
         "val l :: List[] = $\n"
-        "set l = new Cons(l)\n"
+        "set l = Cons(l)\n"
         "val n :: () = match l:\n"
         "    Cons(_) -> ()\n"
         "{show_List}(l)\n"
@@ -1001,7 +1001,7 @@ void t_all (void) {
         "data_rec List:\n"
         "    Cons ((), List)\n"
         "val l :: List[] = $\n"
-        "set l = new Cons((),l)\n"
+        "set l = Cons((),l)\n"
         "val n :: () = match l:\n"
         "    Cons(x,_) :: () -> x\n"
         "{show_List}(l)\n"
@@ -1036,7 +1036,7 @@ void t_all (void) {
         "data List:\n"
         "    Nil  ()\n"
         "    Cons ((), List)\n"
-        "val l :: List = new Cons((),Cons((),Nil))\n"
+        "val l :: List = Cons((),Cons((),Nil))\n"
         "val n :: () = match l:\n"
         "    Cons(_,Cons(x,_)) :: () -> x\n"   // TODO
         "{show_Unit}(n)"
@@ -1064,7 +1064,7 @@ void t_all (void) {
         "    Tre ()\n"
         "data_rec List:\n"
         "    Cons (Nat, List)\n"
-        "val l :: List[] = new Cons(Tre,$)\n"
+        "val l :: List[] = Cons(Tre,$)\n"
         "val n :: Nat = match l:\n"
         "    Cons(x,_) :: Nat -> x\n"
         "{show_Nat}(n)"
@@ -1078,21 +1078,34 @@ void t_all (void) {
         "data_rec List:\n"
         "    Cons (Nat, List)\n"
         "func fff :: (() -> List[]):\n"
-        "    new Cons(Tre,$)\n"
-        "val l :: List[] = new fff()\n"
+        "    Cons(Tre,$)\n"
+        "val l :: List[] = fff()\n"
         "val n :: Nat = match l:\n"
         "    Cons(x,_) :: Nat -> x\n"
         "{show_Nat}(n)"
     ));
     assert(all(
+        "NNat(One)\n",
+        "data Nat:\n"
+        "    One ()\n"
+        "    Two ()\n"
+        "    Tre ()\n"
+        "data NNat:\n"
+        "    NNat Nat\n"
+        "val nn :: NNat = NNat(One)\n"
+        "{show_NNat}(nn)"
+    ));
+puts("11111");
+    assert(all(
         "Cons(Cons($))\n",
         "data_rec List:\n"
         "    Cons (List)\n"
         "func fff :: (() -> List[]):\n"
-        "    new Cons($)\n"
-        "val l :: List[] = new Cons(fff())\n"
+        "    Cons($)\n"
+        "val l :: List[] = Cons(fff())\n"
         "{show_List}(l)"
     ));
+puts("22222");
     assert(all(
         "Cons(One,Cons(Tre,$))\n",
         "data Nat:\n"
@@ -1102,8 +1115,8 @@ void t_all (void) {
         "data_rec List:\n"
         "    Cons (Nat, List)\n"
         "func fff :: (() -> List[]):\n"
-        "    new Cons(Tre,$)\n"
-        "val l :: List[] = new Cons(One,fff())\n"
+        "    Cons(Tre,$)\n"
+        "val l :: List[] = Cons(One,fff())\n"
         "{show_List}(l)"
     ));
     assert(all(
@@ -1113,7 +1126,7 @@ void t_all (void) {
         "    Two ()\n"
         "data_rec List:\n"
         "    Cons (Nat, List)\n"
-        "val l :: List[] = new Cons(Two,Cons(One,$))\n"
+        "val l :: List[] = Cons(Two,Cons(One,$))\n"
         "val n :: Nat = match l:\n"
         "    Cons(x,_) :: Nat -> x\n"
         "{show_Nat}(n)"
@@ -1126,7 +1139,7 @@ void t_all (void) {
         "    Tre ()\n"
         "data_rec List:\n"
         "    Cons (Nat, List)\n"
-        "val l :: List[] = new Cons(Tre,Cons(Two,Cons(One,$)))\n"
+        "val l :: List[] = Cons(Tre,Cons(Two,Cons(One,$)))\n"
         "val n :: Nat = match l:\n"
         "    Cons(x,_) :: Nat -> x\n"
         "{show_Nat}(n)"
@@ -1137,9 +1150,9 @@ void t_all (void) {
         "    ConsC ((),Chars)\n"
         "func c2Chars :: (() -> Chars[]):\n"
         "    match ():\n"
-        "        ()   -> new ConsC((), $)\n"
-        "        else -> new ConsC((), c2Chars())\n"
-        "val cs :: Chars[] = new c2Chars()\n"
+        "        ()   -> ConsC((), $)\n"
+        "        else -> ConsC((), c2Chars())\n"
+        "val cs :: Chars[] = c2Chars()\n"
         "{show_Chars}(cs)\n"
     ));
     assert(all(
@@ -1149,7 +1162,7 @@ void t_all (void) {
         "data LMaybe:\n"
         "    LNothing ()\n"
         "    LJust    List\n"
-        "val l :: List[] = new Cons($)\n"
+        "val l :: List[] = Cons($)\n"
         "val m :: LMaybe = LJust(l)\n"
         "{show_LMaybe}(m)\n"
     ));
@@ -1161,9 +1174,9 @@ void t_all (void) {
         "    val buf :: String = ...\n"
         "    match buf:\n"
         "        $ -> $\n"
-        "        StrN(cs) :: String -> new StrN(copy(cs))\n"
-        "val str :: String[] = new StrN(StrN($))\n"
-        "val cpy :: String[] = new copy(str)\n"
+        "        StrN(cs) :: String -> StrN(copy(cs))\n"
+        "val str :: String[] = StrN(StrN($))\n"
+        "val cpy :: String[] = copy(str)\n"
         "{show_String}(cpy)\n"
     ));
     assert(all(
@@ -1174,11 +1187,11 @@ void t_all (void) {
         "    val buf :: String = ...\n"
         "    match buf:\n"
         "        $ -> $\n"
-        "        StrN(cs) :: String -> new StrN(copy'(cs))\n"
+        "        StrN(cs) :: String -> StrN(copy'(cs))\n"
         "func copy :: (String -> String[]):\n"
-        "    return new copy'(...)\n"
-        "val str :: String[] = new StrN(StrN($))\n"
-        "val cpy :: String[] = new copy(str)\n"
+        "    return copy'(...)\n"
+        "val str :: String[] = StrN(StrN($))\n"
+        "val cpy :: String[] = copy(str)\n"
         "{show_String}(cpy)\n"
     ));
 

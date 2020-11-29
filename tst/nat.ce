@@ -94,3 +94,26 @@ mut n = case l:
     List(=x,_) -> x
 
 call show(n)
+
+-------------------------------------------------------------------------------
+
+data_rec Nat:
+    Succ Nat
+
+func add :: ((Nat,Nat) -> Nat):
+    match ...:
+        (x,$)        -> x
+        (x, Succ(y)) -> new Succ(add(x,y))
+
+val v1 :: Nat = $
+val v2 :: Nat = Succ($)
+val v3 :: Nat[] = add(v1,v2)
+val v3 :: Nat[] = add(Succ($),$)
+
+val v3 :: Nat[] = add (Succ($), add(Succ($),$))
+
+Expr e = {
+
+
+{show_String}(cpy)
+

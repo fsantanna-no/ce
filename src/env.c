@@ -76,6 +76,8 @@ void env_add (Env** old, Patt patt, Type type) {
 
 Type env_expr (Expr expr) {
     switch (expr.sub) {
+        case EXPR_RAW:
+            return (Type) { TYPE_RAW };
         case EXPR_UNIT:
             return (Type) { TYPE_UNIT };
         case EXPR_ARG:
@@ -86,8 +88,14 @@ Type env_expr (Expr expr) {
             return (Type) { TYPE_DATA, .Data={expr.Cons.id,-1} };
         case EXPR_CALL: {
             Type type = env_expr(*expr.Call.func);
-            assert(type.sub == TYPE_FUNC);
-            return *type.Func.out;
+            switch (type.sub) {
+                case TYPE_FUNC:
+                    return *type.Func.out;
+                case TYPE_RAW:
+                    return (Type) { TYPE_RAW };
+                default:
+                    assert(0 && "bug found: invalid function");
+            }
         }
         default:
             printf(">>>>>> ENV_EXPR %d <<<<<<\n", expr.sub);

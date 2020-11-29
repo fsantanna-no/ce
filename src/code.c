@@ -526,7 +526,7 @@ void code_decl (Decl d, tce_ret* ret) {
 void code_expr_new (Expr e, tce_ret* ret) {
     assert(ret != NULL);
 
-    Type type = env_expr(*e.New);
+    Type type = env_expr(e);
     assert(type.sub == TYPE_DATA);
     char* id = type.Data.tk.val.s;
     Data* data; {
@@ -630,8 +630,9 @@ void code_expr_new (Expr e, tce_ret* ret) {
         }
     }
     code_ret(ret);
-    aux1(*e.New);
+    aux1(e);
 }
+
 
 void code_expr (Expr e, tce_ret* ret) {
     //Env* env = env_expr(e);
@@ -672,21 +673,43 @@ void code_expr (Expr e, tce_ret* ret) {
                 out(")");
             }
             break;
-        case EXPR_NEW:
-            code_expr_new(e, ret);
-            break;
         case EXPR_SET:
             code_patt_set(e.Set.expr->env, e.Set.patt, *e.Set.expr);
             out(";\n");
             break;
-        case EXPR_CONS:
-            code_ret(ret);
-            out(e.Cons.id.val.s);
-            out("(");
-            code_expr(*e.Cons.arg, NULL);
-            out(")");
+        case EXPR_CONS: {
+            Data* data = cons_sup(e.Cons.id.val.s,NULL);
+            if (data->isrec) {
+                code_expr_new(e, ret);
+            } else {
+                code_ret(ret);
+                out(e.Cons.id.val.s);
+                out("(");
+                code_expr(*e.Cons.arg, NULL);
+                out(")");
+            }
             break;
-        case EXPR_CALL:
+        }
+        case EXPR_CALL: {
+            int isrec = 0; {    // call returns recursive data?
+                Type type = env_expr(e);
+                if (type.sub == TYPE_DATA) {
+                    Data* data = data_get(type.Data.tk.val.s);
+                    assert(data != NULL);
+                    isrec = data->isrec;
+                }
+            }
+            if (isrec) {
+                //  l[] = new f(...)
+                // becomes
+                //  f(l,...)
+                Tk tk = ret->env.id;
+                if (!strcmp(tk.val.s,"ce_out")) {
+                    tk = (Tk) { TK_IDVAR,{.s="ce_pool"} };
+                }
+                e.Call.pool = &tk;
+            }
+
             code_ret(ret);
             code_expr(*e.Call.func, NULL);
             out("(");
@@ -716,6 +739,7 @@ void code_expr (Expr e, tce_ret* ret) {
             }
             out(")");
             break;
+        }
         case EXPR_TUPLE:
             code_ret(ret);
             if (ret != NULL) {
@@ -807,12 +831,12 @@ void code_expr (Expr e, tce_ret* ret) {
             if (tst.sub == EXPR_RAW) {   // prevents multiple evaluation of tst
                 tst = (Expr) { EXPR_VAR, {}, &env, NULL, {.Var=tk} };
 
-                if (type.sub != TYPE_NONE) {
-                    code_type(type);
-                } else {
+                if (type.sub == TYPE_RAW) {
                     out("typeof(");
                     code_expr(*e.Cases.tst, NULL);
                     out(")");
+                } else {
+                    code_type(type);
                 }
                 out(" ce_tst = ");
                 code_expr(*e.Cases.tst, NULL);

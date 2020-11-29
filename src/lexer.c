@@ -19,7 +19,6 @@ static char* reserved[] = {
     "loop",
     "match",
     "mut",
-    "new",
     "pass",
     "return",
     "set",

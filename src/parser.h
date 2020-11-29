@@ -62,7 +62,6 @@ typedef enum {
     EXPR_ARG,
     EXPR_VAR,
     EXPR_CONS,
-    EXPR_NEW,
     EXPR_SET,
     EXPR_FUNC,
     EXPR_RETURN,
@@ -143,7 +142,6 @@ typedef struct Expr {
         Tk Var;
         Decl Decl;              // EXPR_DECL
         Let  Let;               // EXPR_LET
-        struct Expr* New;       // EXPR_NEW
         struct Expr* Loop;      // EXPR_LOOP
         struct Expr* Break;     // EXPR_BREAK
         struct Expr* Return;    // EXPR_RETURN

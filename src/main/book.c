@@ -54,8 +54,17 @@ puts("<<<");
 
 void t_all (void) {
     assert(all(
-        "1\n",
-        "mut a :: ()\nset a = ()\n{ printf(\"%d\\n\",a) }\n"
+        "data_rec Nat:\n"
+        "    Succ Nat\n"
+        "func add :: ((Nat,Nat) -> Nat):\n"
+        "    match ...:\n"
+        "        (x,$)        -> x\n"
+        "        (x, Succ(y)) -> new Succ(add(x,y))\n"
+        "val v1 :: Nat = $\n"
+        "val v2 :: Nat = new Succ($)\n"
+        "val v3 :: Nat[] = add(v1,v2)\n"
+        "val v3 :: Nat[] = add(new Succ($),$)\n"
+        "{show_String}(cpy)\n"
     ));
 }
 

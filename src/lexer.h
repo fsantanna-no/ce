@@ -30,7 +30,6 @@ typedef enum {
     TK_LOOP,
     TK_MATCH,
     TK_MUT,
-    TK_NEW,
     TK_PASS,
     TK_RETURN,
     TK_SET,

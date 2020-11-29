@@ -89,9 +89,6 @@ void dump_expr_ (Expr e, int spc) {
         case EXPR_DECL:
             fputs("decl (...)", stdout);
             break;
-        case EXPR_NEW:
-            fputs("new (...)", stdout);
-            break;
         case EXPR_FUNC:
             fputs("func (...)", stdout);
             break;

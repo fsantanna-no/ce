@@ -517,14 +517,6 @@ int parser_expr_one (Env** env, Expr* ret) {
     } else if (ll_accept1(TK_IDDATA)) {
         *ret = (Expr) { EXPR_CONS, {}, *env, NULL, .Cons={TOK0.tk,NULL} };
 
-    // EXPR_NEW
-    } else if (ll_accept1(TK_NEW)) {
-        Expr* pe = expr_new(env);
-        if (pe == NULL) {
-            return 0;
-        }
-        *ret = (Expr) { EXPR_NEW, {}, *env, NULL, .New=pe };
-
     // EXPR_SET
     } else if (ll_accept1(TK_SET)) {
         Patt p;

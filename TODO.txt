@@ -1,3 +1,10 @@
+- add _1 for tuple / data
+- remove new
+- func_rec
+- (Int as hits, Int as strength) // 
+    func add :: ((x :: Nat, y :: Nat) -> Nat):
+- retirar "new add (...)"
+- criar book.c
 - se uma funcao retorna um data_rec, este vai necessariamente ser atribuido a um pool externo
   de modo que a funcao deve recebe-lo implicitamente para poder modifica-lo?
 - proof-examples for immut recs

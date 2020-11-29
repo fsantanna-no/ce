@@ -103,6 +103,7 @@ func lexer' :: (() -> Tk):
             match c':
                 {'>'} -> return Tk_ARROW
                 {'-'} -> :
+                    {puts("---")}
                     loop:
                         val c'' :: {int} = {fgetc}(inp)
                         match c'':
@@ -228,9 +229,11 @@ func t_lexer :: (() -> ()):
         {assert} (lexer() ~ Tk_COMMENT)
         {fclose} (inp)
     :
+        {puts("===")}
         set inp = stropen({"r"}, {0}, {"-- c1\n--c2\n\n"})
         {assert} (lexer() ~ Tk_COMMENT)
         {assert} (lexer() ~ Tk_LINE)
+        val xxx :: Tk = lexer()
         {assert} (lexer() ~ Tk_COMMENT)
         {assert} (lexer() ~ Tk_LINE)
         {assert} (lexer() ~ Tk_EOF)
